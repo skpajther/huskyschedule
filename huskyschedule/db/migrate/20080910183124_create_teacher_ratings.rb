@@ -3,7 +3,6 @@ class CreateTeacherRatings < ActiveRecord::Migration
     create_table :teacher_ratings do |t|
       t.integer :teacher_id
       t.integer :course_taught_id
-      t.integer :quarter_taught
       t.integer :rating
       t.text :pros
       t.text :cons
