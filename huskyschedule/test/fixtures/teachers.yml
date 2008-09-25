@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  name: MyString
+  current_photo_location: MyString
+
+two:
+  name: MyString
+  current_photo_location: MyString

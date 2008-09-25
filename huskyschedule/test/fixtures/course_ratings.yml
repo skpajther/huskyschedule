@@ -1,0 +1,23 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  quarter_taken: 1
+  teacher_id: 1
+  rating: 1
+  pros: MyText
+  cons: MyText
+  other_thoughts: MyText
+  rating_name: MyText
+  user_id: 1
+  class_name: MyString
+
+two:
+  quarter_taken: 1
+  teacher_id: 1
+  rating: 1
+  pros: MyText
+  cons: MyText
+  other_thoughts: MyText
+  rating_name: MyText
+  user_id: 1
+  class_name: MyString
