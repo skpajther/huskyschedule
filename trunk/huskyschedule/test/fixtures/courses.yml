@@ -1,0 +1,39 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  sln: 1
+  teacher: MyString
+  title: MyString
+  number: 1
+  status: 1
+  students_enrolled: 1
+  enrollment_space: 1
+  credits: 1
+  restrictions: false
+  deptabriev: MyString
+  notes: MyText
+  credit_type: MyText
+  section: MyString
+  schedule: MyText
+  description: MyText
+  crnc: false
+  parent: 1
+
+two:
+  sln: 1
+  teacher: MyString
+  title: MyString
+  number: 1
+  status: 1
+  students_enrolled: 1
+  enrollment_space: 1
+  credits: 1
+  restrictions: false
+  deptabriev: MyString
+  notes: MyText
+  credit_type: MyText
+  section: MyString
+  schedule: MyText
+  description: MyText
+  crnc: false
+  parent: 1
