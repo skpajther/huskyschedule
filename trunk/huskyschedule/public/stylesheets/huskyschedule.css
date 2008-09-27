@@ -37,9 +37,190 @@ a:hover {
 }
 
 
-
-
 /* MENU BAR CSS AREA */
+#apDiv2 {
+	background-image:url(/images/topbar.jpg);
+	width: 942px;
+	height: 54px;		
+}
+#search {
+	padding-top: 18px;
+	padding-left: 70px;	
+}
+#search_go {
+    /*padding-top: 10px;*/
+	padding-left: 10px;	
+}
+#artssciences:hover {
+	background-image:url(/images/Cat_over_artscience.jpg);
+}
+#artssciences {
+	height:12px;
+	width:81px;
+	background-image:url(/images/Cat_artscience.jpg);
+}
+#artssciences_sel {
+	height:12px;
+	width:81px;
+	background-image:url(/images/Cat_over_artscience.jpg);
+}
+#engineering:hover {
+	background-image:url(/images/Cat_over_engineering.jpg);
+}
+#engineering {
+	height:12px;
+	width:57px;
+	background-image:url(/images/Cat_engineering.jpg);
+}
+#engineering_sel {
+	height:12px;
+	width:57px;
+	background-image:url(/images/Cat_over_engineering.jpg);
+}
+#business:hover {
+	background-image:url(/images/Cat_over_business.jpg);
+}
+#business {
+	height:12px;
+	width:41px;
+	background-image:url(/images/Cat_business.jpg);
+}
+#business_sel {
+	height:12px;
+	width:41px;
+	background-image:url(/images/Cat_over_business.jpg);
+}
+#law:hover {
+	background-image:url(/images/Cat_over_law.jpg);
+}
+#law {
+	height:12px;
+	width:13px;
+	background-image:url(/images/Cat_law.jpg);
+}
+#law_sel {
+	height:12px;
+	width:13px;
+	background-image:url(/images/Cat_over_law.jpg);
+}
+#dentist:hover {
+	background-image:url(/images/Cat_over_dentist.jpg);
+}
+#dentist {
+	height:12px;
+	width:53px;
+	background-image:url(/images/Cat_dentist.jpg);
+}
+#dentist_sel {
+	height:12px;
+	width:53px;
+	background-image:url(/images/Cat_over_dentist.jpg);
+}
+#medicine:hover {
+	background-image:url(/images/Cat_over_medicine.jpg);
+}
+#medicine {
+	height:12px;
+	width:40px;
+	background-image:url(/images/Cat_medicine.jpg);
+}
+#medicine_sel {
+	height:12px;
+	width:40px;
+	background-image:url(/images/Cat_over_medicine.jpg);
+}
+#arch:hover {
+	background-image:url(/images/Cat_over_arch.jpg);
+}
+#arch {
+	height:12px;
+	width:62px;
+	background-image:url(/images/Cat_arch.jpg);
+}
+#arch_sel {
+	height:12px;
+	width:62px;
+	background-image:url(/images/Cat_over_arch.jpg);
+}
+#edu:hover {
+	background-image:url(/images/Cat_over_edu.jpg);
+}
+#edu {
+	height:12px;
+	width:44px;
+	background-image:url(/images/Cat_edu.jpg);
+}
+#edu_sel {
+	height:12px;
+	width:44px;
+	background-image:url(/images/Cat_over_edu.jpg);
+}
+#forest:hover {
+	background-image:url(/images/Cat_over_forest.jpg);
+}
+#forest {
+	height:12px;
+	width:83px;
+	background-image:url(/images/Cat_forest.jpg);
+}
+#forest_sel {
+	height:12px;
+	width:83px;
+	background-image:url(/images/Cat_over_forest.jpg);
+}
+#info:hover {
+	background-image:url(/images/Cat_over_info.jpg);
+}
+#info {
+	height:12px;
+	width:94px;
+	background-image:url(/images/Cat_info.jpg);
+}
+#info_sel {
+	height:12px;
+	width:94px;
+	background-image:url(/images/Cat_over_info.jpg);
+}
+#nurse:hover {
+	background-image:url(/images/Cat_over_nurse.jpg);
+}
+#nurse {
+	height:12px;
+	width:34px;
+	background-image:url(/images/Cat_nurse.jpg);
+}
+#nurse_sel {
+	height:12px;
+	width:34px;
+	background-image:url(/images/Cat_over_nurse.jpg);
+}
+#fish:hover {
+	background-image:url(/images/Cat_over_fish.jpg);
+}
+#fish {
+	height:12px;
+	width:83px;
+	background-image:url(/images/Cat_fish.jpg);
+}
+#fish_sel {
+	height:12px;
+	width:83px;
+	background-image:url(/images/Cat_over_fish.jpg);
+}
+#other:hover {
+	background-image:url(/images/Cat_over_other.jpg);
+}
+#other {
+	height:12px;
+	width:23px;
+	background-image:url(/images/Cat_other.jpg);
+}
+#other_sel {
+	height:12px;
+	width:23px;
+	background-image:url(/images/Cat_over_other.jpg);
+}
+/* MENU BAR Spry Stuff */
 /* The outermost container of the Menu Bar, an auto width box with no margin or padding */
 ul.MenuBarHorizontal
 {
@@ -138,7 +319,6 @@ ul.MenuBarHorizontal a.MenuBarItemHover, ul.MenuBarHorizontal a.MenuBarItemSubme
 	background-color: #412164;
 	color: #FFF;
 }
-
 /*******************************************************************************
 
  SUBMENU INDICATION: styles if there is a submenu under a given menu item
