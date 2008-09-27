@@ -9,7 +9,7 @@ class CreateQuizSections < ActiveRecord::Migration
       t.boolean :restrictions
       t.text :notes
       t.string :section
-      t.text :schedule
+      t.text :times
       t.text :description
       t.boolean :crnc
       t.integer :parent_id

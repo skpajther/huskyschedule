@@ -14,7 +14,7 @@ class CreateCourses < ActiveRecord::Migration
       t.text :notes
       t.text :credit_type
       t.string :section
-      t.text :schedule
+      t.text :times
       t.text :description
       t.boolean :crnc
       t.integer :parent_id
