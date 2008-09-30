@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080925032735) do
+ActiveRecord::Schema.define(:version => 20080930004448) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -57,7 +57,7 @@ ActiveRecord::Schema.define(:version => 20080925032735) do
     t.text     "notes"
     t.text     "credit_type"
     t.string   "section"
-    t.text     "times"
+    t.text     "schedule"
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
@@ -66,6 +66,8 @@ ActiveRecord::Schema.define(:version => 20080925032735) do
     t.string   "room"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "rating",            :limit => 11
+    t.integer  "total_ratings",     :limit => 11
   end
 
   create_table "labs", :force => true do |t|
@@ -77,7 +79,7 @@ ActiveRecord::Schema.define(:version => 20080925032735) do
     t.boolean  "restrictions"
     t.text     "notes"
     t.string   "section"
-    t.text     "times"
+    t.text     "schedule"
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
@@ -96,7 +98,7 @@ ActiveRecord::Schema.define(:version => 20080925032735) do
     t.boolean  "restrictions"
     t.text     "notes"
     t.string   "section"
-    t.text     "times"
+    t.text     "schedule"
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11

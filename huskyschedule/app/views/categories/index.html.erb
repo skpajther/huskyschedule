@@ -4,13 +4,21 @@
         <td width="160" valign="top">
             <table width="160" border="0" cellpadding="3" cellspacing="0" bgcolor="#DED1ED">
                 <tr>
-                    <td bgcolor="#412164"><b><font color="#ffffff">Catagory Name</font></b></td>
-                </tr>
-                <tr>
-                    <td>
-                        children links or other search stuff
+                    <td bgcolor="#412164">
+                        <% if(@category!=nil) %>
+                            <b><font color="#ffffff"><%= @category.name %></font></b>
+                        <% end %>
                     </td>
                 </tr>
+                <% if(@category!=nil) %>
+                  <% for child in @category.children %>
+                    <tr>
+                        <td>
+                            <%= link_to child.name, :controller=>"categories", :action=>"index", :id=>child.id %>
+                        </td>
+                    </tr>
+                  <% end %>
+                <% end %>
             </table>
         </td>
         <td width="768" align="left" valign="top" >
@@ -21,12 +29,15 @@
                   <table width="100%" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                         <td align="left">
-                    	   put bread crumbs here
+                           <%= link_to "Home" %>
+                    	   <% while (parent = @familypath.pop)!=nil %>
+                    	       > <%= link_to parent.name, :controller=>"categories", :action=>"index", :id=>parent.id %>
+                    	   <% end %>
                     	</td>
                     </tr>
                     <tr>
 					    <td align="right">
-					       
+					       put page numbers here
 					    </td>
 			  		</tr>
                     <tr>
@@ -53,7 +64,31 @@
               <tr>
                 <td height="118" align="left" valign="top">
                   <table width="100%" border="1" cellpadding="10" cellspacing="0" bordercolor="#CCCCCC" FRAME=VOID RULES=ALL>
-                    put class list here
+                    <% for course in @courses %>
+                        <tr>
+                            <td align='left' bgcolor='#FFFFFF'>
+                                <table border='0' cellpadding='3' cellspacing='0'>
+    							<tr height='1'>
+    								<td rowspan='6' width = '1' align='left'><%= mini_schedule(@test_schedule) %></td>
+    								<td colspan = '3' align='left' valign='top'><%= link_to "#{course.deptabriev} #{course.number}: #{course.title}", {:controller=>"courses", :action=>"index", :id=>course.id}, {:class=>"newlink"} %></td>
+    							</tr>
+    							<tr height='1'>
+    								<td align='left' valign='top'><%= star_ratings(course.rating, course.total_ratings) %></td>
+    								<td align='left' valign='top'><img src='/images/credits/<%= course.credits %>.jpg' height='47' width='50'/></td>
+    								<td  align='left' valign='top'><%= "#{course.students_enrolled}/#{course.enrollment_space}" %></td>
+    							</tr>
+    							<tr>
+    								<td align='left' valign='top' colspan='3'><%= course.description %></td>
+    							</tr>
+    							<tr>
+    								<td colspan='2' align='left' valign='top'><table><tr><td><% if(course.teacher.current_photo_location!=nil) %><%= image_tag course.teacher.current_photo_location, :height=>"48px" %><% else %><img src='/images/teachers/default.png'/><% end %></td><td align='left' valign='top'><%= course.teacher.name %></td></tr></table></td>
+    								
+    							</tr>
+    							<tr><td><%= course.category.name %></td></tr>
+    							</table>
+                            </td>
+                        </tr>
+                    <% end %>
                   </table>
                 </td>
               </tr>
