@@ -1,0 +1,53 @@
+<%= javascript_include_tag 'SpryTabbedPanels'%>
+<div id="apDiv3">
+  <table width="958" height="172">
+    <tr>
+        <td height="36" colspan="3" valign="top"><%= bread_crumbs(@course) %></td>
+    </tr>
+   	<tr>
+        <td></td>
+   	    <td height="28" colspan="2" align="left" valign="top"><%= "#{@course.deptabriev} #{@course.number}: #{@course.title}" %></td>
+    </tr>
+   	<tr>
+   	    <td width="37"></td>
+   	    <td valign='top' width="417"><%= mini_schedule(@course.times, {:by_hour=>false, :end_hour=>20.5}) %></td>
+        <td width="488" valign="top">
+            <div id="TabbedPanels1" class="TabbedPanels">
+              <ul class="TabbedPanelsTabGroup">
+                <li onclick="handleTabClicks('overview')" class="TabbedPanelsTab" id="overview" tabindex="0"><div style="width:92px; height:15px"></div></li>
+                <li onclick="handleTabClicks('classreviews')" id="classreviews" class="TabbedPanelsTab" tabindex="0"><div style="width:100px; height:15px"></div></li>
+                <li onclick="handleTabClicks('teacherreviews')" id="teacherreviews" class="TabbedPanelsTab" tabindex="0"><div style="width:112px; height:15px"></div></li>
+                <li onclick="handleTabClicks('specifications')" id="specifications" class="TabbedPanelsTab" tabindex="0"><div style="width:104px; height:15px"></div></li>
+              </ul>
+              <div class="TabbedPanelsContentGroup">
+                <div class="TabbedPanelsContent">
+                    description teacher and course review summary here
+                </div>
+                <div class="TabbedPanelsContent">Content 2</div>
+                <div class="TabbedPanelsContent">Content 3</div>
+                <div class="TabbedPanelsContent">Content 4</div>
+              </div>
+            </div>        
+        </td>
+    </tr>
+  </table>
+</div>
+<script type="text/javascript">
+var TabbedPanels1 = new Spry.Widget.TabbedPanels("TabbedPanels1");
+function handleTabClicks(id){
+	//alert("madeit1"+id);
+	//var tab = document.getElementById(id);
+	var hover = new Array("url('/images/tabs/Tab_overview_over.jpg')","url('/images/tabs/Tab_classreview_over.jpg')","url('/images/tabs/Tab_teacherreview_over.jpg')","url('/images/tabs/Tab_specifications_over.jpg')");
+	var normal = new Array("url('/images/tabs/Tab_overview.jpg')","url('/images/tabs/Tab_classreview.jpg')","url('/images/tabs/Tab_teacherreview.jpg')","url('/images/tabs/Tab_specifications.jpg')");
+	var ids = new Array("overview","classreviews","teacherreviews","specifications");
+	//tab.style.backgroundImage=hover[ids.indexof(id)];
+			for(var i=0;i<ids.length;i++){
+				if(ids[i] == id)
+					document.getElementById(id).style.backgroundImage=hover[i];
+				else
+					document.getElementById(ids[i]).style.backgroundImage=normal[i];
+			}
+	//tab.style.backgroundImage="url('images/Tab_overview_over.jpg')";
+	//alert("madeit"+document.getElementById(id));
+}
+</script>
