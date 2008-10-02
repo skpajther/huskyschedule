@@ -21,7 +21,9 @@
               </ul>
               <div class="TabbedPanelsContentGroup">
                 <div class="TabbedPanelsContent">
-                    description teacher and course review summary here
+                    <%= @course.description %><br/><br/>
+                    <% if(@course.teacher.current_photo_location!=nil) %><%= image_tag @course.teacher.current_photo_location, :height=>"48px" %><% else %><img src='/images/teachers/default.png'/><% end %>&nbsp;&nbsp;&nbsp;<%= link_to @course.teacher.name, :controller=>"teachers", :action=>"index", :id=>@course.teacher.id %>
+                    <%= class_review_summary(@course) %>
                 </div>
                 <div class="TabbedPanelsContent">Content 2</div>
                 <div class="TabbedPanelsContent">Content 3</div>

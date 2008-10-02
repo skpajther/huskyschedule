@@ -73,7 +73,7 @@
     								<td colspan = '3' align='left' valign='top'><%= link_to "#{course.deptabriev} #{course.number}: #{course.title}", {:controller=>"courses", :action=>"index", :id=>course.id}, {:class=>"newlink"} %></td>
     							</tr>
     							<tr height='1'>
-    								<td align='left' valign='top'><%= star_ratings(course.rating, course.total_ratings) %></td>
+    								<td align='left' valign='center'><%= star_ratings(course.rating) %>&nbsp;(&nbsp;<%= link_to course.total_ratings, :controller=>"courseratings", :action=>"index", :id=>course.id %>&nbsp;)</td>
     								<td align='left' valign='top'><img src='/images/credits/<%= course.credits %>.jpg' height='47' width='50'/></td>
     								<td  align='left' valign='top'><%= "#{course.students_enrolled}/#{course.enrollment_space}" %></td>
     							</tr>
