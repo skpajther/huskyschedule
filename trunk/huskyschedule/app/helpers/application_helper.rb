@@ -62,14 +62,16 @@ def mini_schedule(times, options={})
 		return result
   end
   
-  def star_ratings(rating, total_ratings)
-    i=0
+  def star_ratings(rating, size="32x32")
+    if(rating==nil)
+      rating = 0
+    end
     result = ""
-		i.times{
-			result = result + "<img src='/images/stars/star32x32.png'/>"
+		rating.times{
+			result = result + "<img src='/images/stars/star#{size}.png'/>"
 		}
-		(5-i).times{
-			result = result + "<img src='/images/stars/star_blank32x32.png'/>"
+		(5-rating).times{
+			result = result + "<img src='/images/stars/star_blank#{size}.png'/>"
 		}
 		return result
   end
@@ -104,6 +106,67 @@ def mini_schedule(times, options={})
 	  end
 	  return result
   end
+  
+  def class_review_summary(course)
+        ratings = CourseRating.find(:all, :conditions=>{:class_name=>"#{course.deptabriev} #{course.number}"})
+				total_ratings = ratings.size
+				
+  				all = [0,0,0,0,0]
+          for course_rating in ratings
+            all[course_rating.rating-1] = all[course_rating.rating-1] + 1
+          end
+          bartable = "<table>"
+  				5.times{|i|
+            i = i + 1
+  					bartable << "<tr><td>#{i}</td><td class='barrow'>"
+  					percent = ((all[i-1]/((total_ratings<1)? 1 : total_ratings))*100).to_i
+  					if(percent>0)
+  						bartable << "<img src='/images/bars/bar_yellowLeft.gif'>"
+  					end
+  					(percent-8).times{
+  						bartable << "<img src='/images/bars/bar_yellowMid.gif'>"
+  					}
+  					if(percent>0)
+  						bartable << "<img src='/images/bars/bar_yellowRight.gif'>"
+  				  end
+  					bartable << "</td><td>#{percent}%</td></tr>"
+  				}
+  				bartable << "</table>"
+  				example_rating = ratings[0]
+  				result = "<table width='100%'>
+  								<tr>
+  									<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;("+((total_ratings<1)? "" : "<a class='newlink' href='#'>read more reviews</a>,&nbsp;")+"<a class='newlink' href='./createclassreview.php?deptabriev=$deptab&number=$cl_num'>"+((total_ratings<1)? "Be the first to write a review" : "write a review")+")</a></td>
+  								</tr>
+  								<tr>
+  									<td>
+  										<table width='100%'>
+  											<tr>
+  												<td rowspan='2'>#{bartable}</td>
+  												<td height=1 align='right' valign='center'>Class Rating:</td>
+  												<td width='160' align='right'>#{star_ratings(course.rating)}</td>
+  											</tr>
+  											<tr><td colspan='2' valign='top'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Reviews:#{total_ratings}</td></tr>
+  										</table>
+  									</td>
+  								</tr>"
+  								
+          if(total_ratings > 0)				
+            result << "<tr>
+        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{example_rating.rating_name}</strong></a></td>
+        							 </tr>
+        							 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{example_rating.author.login} on #{example_rating.created_at}</td><td align='right'>#{star_ratings(example_rating.rating, "24x24")}</td></tr></table></tr>
+        							 <tr><td><strong>Pros:</strong>&nbsp;#{example_rating.pros}<td></tr>
+        							 <tr><td><strong>Cons:</strong>&nbsp;#{example_rating.cons}<td></tr>
+        							 <tr><td><strong>Other Thoughts:</strong>&nbsp;#{example_rating.other_thoughts}</td></tr>
+        						 </table>"
+        	else
+            result << "<tr>
+        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>No Current Ratings</strong></a></td>
+        							 </tr>
+        						 </table>"		 
+          end
+  				return result
+			end
   
   private 
   
