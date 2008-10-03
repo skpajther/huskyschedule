@@ -220,6 +220,68 @@ a:hover {
 	width:23px;
 	background-image:url(/images/Cat_over_other.jpg);
 }
+
+/* Maps Area */
+#side {
+	position:absolute;
+	width:160px;;
+	height:80px;
+	left:37px;
+	z-index:5;
+	left: 3px;
+	top: 95px;
+}
+#mainSection {
+	width:790px;
+	height:1000px;
+	position:absolute;
+	left:170px;;
+	top:115px;
+}
+#footer {
+	cursor:pointer;
+	top:1100px;
+	position:absolute;
+	left:300px;
+}
+#map {
+	width:780px;
+	height:600px;
+}
+#crumbs {
+	top:95px;
+	left: 170px;
+	position:absolute;
+	width: 791px;
+}
+#coordinates {
+	position:absolute;
+	width:600px;
+	text-align:left;
+	top:95px;
+	left:350px;
+}
+#sideTable {
+	width:160px;
+	position:absolute;
+	cursor:default;
+}
+#searchWithin {
+	top:90px;
+	left:760px;
+	position:absolute;
+}
+*.building_marker_opener {	
+	cursor:pointer;
+}
+#searchGoButton {
+	cursor:pointer;
+}
+*.customLink {
+	text-decoration:none;
+	color:black;
+}
+
 /* MENU BAR Spry Stuff */
 /* The outermost container of the Menu Bar, an auto width box with no margin or padding */
 ul.MenuBarHorizontal

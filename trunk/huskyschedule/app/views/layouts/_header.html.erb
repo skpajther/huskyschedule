@@ -14,7 +14,7 @@
 	<%= javascript_include_tag 'SpryMenuBar'%>
 	<!-- calendar_date_select_includes "blue" -->
 </head>
-<body>
+<body <%= (controller.controller_name=="buildings")? "onLoad=initialize(); onUnload=GUnload();" : "" %>>
 
 <div id="wrapper">
   <div id="wrapper-header">
