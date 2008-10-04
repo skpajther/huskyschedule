@@ -183,18 +183,6 @@
 			else
 				map.panTo(uw_center);
 		}
-		
-		function cleanText(text) {
-			if(text.match(/&/)) {
-				text.replace(/&/,"_AMP_");
-			}
-			return text;
-		}
-		
-		function searchForBuilding(text) {
-			text = cleanText(text);
-			window.location.href = "./map.php?find=" + text;
-		}
 	
 	</script>
 	<div id="mainSection">
@@ -241,20 +229,29 @@
     </div>
     <div id="crumbs">
 		<% if(@searching) %> 
-				<a href='./map.php'>Map</a>>Search Results
+            <%= link_to "Map", :controller => "buildings", :action => "map" %>>Search Results
 		<% else %>
 			Map
 	    <% end %>
 	</div>
 	<div id="coordinates"></div>
     <div id="searchWithin">
-    	<input name="textsearchwithin" 
+        <%= form_tag :controller => "buildings", :action => "map" %>
+    	<input name="search_text" 
         	   type="text" 
-               id="textsearchwithin" 
+               id="search_text" 
                value="Search Map" 
-               onFocus="if(this.value == 'Search Map') { this.value=''; }" 
-               onBlur="if(this.value == '') { this.value='Search Map'; }" 
-               onKeyDown="var val = this.value; if(!(val=='' || val=='Search Map') && event.keyCode == 13) { searchForBuilding(val); }">
+               onFocus="if(this.value == 'Search Map') { 
+                            this.value = ''; 
+                        }" 
+               onBlur="if(this.value == '') { 
+                            this.value='Search Map'; 
+                       }" 
+               onKeyDown="var val = this.value; 
+                          if(!(val=='' || val=='Search Map') && event.keyCode == 13) { 
+                              submit();   
+                          }"
+               >
         <img src='images/gobutton.png' align="texttop" id='searchGoButton' onclick="var val = document.getElementById('textsearchwithin').value; if(!(val=='' || val=='Search Map')) { searchForBuilding(val); }" />
     </div>
     <div id="footer"><img src="images/poweredby290.jpg" onclick="window.location.href = 'http://www.infymedia.com/';"></div>
