@@ -1,4 +1,4 @@
-class TeacherRating < ActiveRecord::Base
+class TeacherReview < ActiveRecord::Base
   
   has_one :teacher
   belongs_to :author, :class_name => "User", :foreign_key => "user_id"

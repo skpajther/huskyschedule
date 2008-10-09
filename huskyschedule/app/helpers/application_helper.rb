@@ -108,18 +108,18 @@ def mini_schedule(times, options={})
   end
   
   def class_review_summary(course)
-        ratings = CourseRating.find(:all, :conditions=>{:class_name=>"#{course.deptabriev} #{course.number}"})
-				total_ratings = ratings.size
+        reviews = CourseReview.find(:all, :conditions=>{:course_name=>"#{course.deptabriev} #{course.number}"})
+				total_reviews = reviews.size
 				
   				all = [0,0,0,0,0]
-          for course_rating in ratings
-            all[course_rating.rating-1] = all[course_rating.rating-1] + 1
+          for course_review in reviews
+            all[course_review.rating-1] = all[course_review.rating-1] + 1
           end
           bartable = "<table>"
   				5.times{|i|
             i = i + 1
   					bartable << "<tr><td>#{i}</td><td class='barrow'>"
-  					percent = ((all[i-1]/((total_ratings<1)? 1 : total_ratings))*100).to_i
+  					percent = ((all[i-1]/((total_reviews<1)? 1 : total_reviews))*100).to_i
   					if(percent>0)
   						bartable << "<img src='/images/bars/bar_yellowLeft.gif'>"
   					end
@@ -132,10 +132,10 @@ def mini_schedule(times, options={})
   					bartable << "</td><td>#{percent}%</td></tr>"
   				}
   				bartable << "</table>"
-  				example_rating = ratings[0]
+  				example_review = reviews[0]
   				result = "<table width='100%'>
   								<tr>
-  									<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;("+((total_ratings<1)? "" : "<a class='newlink' href='#'>read more reviews</a>,&nbsp;")+"<a class='newlink' href='./createclassreview.php?deptabriev=$deptab&number=$cl_num'>"+((total_ratings<1)? "Be the first to write a review" : "write a review")+")</a></td>
+  									<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;("+((total_reviews<1)? "" : "<a class='newlink' href='#'>read more reviews</a>,&nbsp;")+"<a class='newlink' href='#{url_for :controller=>'course_reviews', :action=>'new', :id=>course.id}'>"+((total_reviews<1)? "Be the first to write a review" : "write a review")+")</a></td>
   								</tr>
   								<tr>
   									<td>
@@ -145,23 +145,23 @@ def mini_schedule(times, options={})
   												<td height=1 align='right' valign='center'>Class Rating:</td>
   												<td width='160' align='right'>#{star_ratings(course.rating)}</td>
   											</tr>
-  											<tr><td colspan='2' valign='top'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Reviews:#{total_ratings}</td></tr>
+  											<tr><td colspan='2' valign='top'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Reviews:#{total_reviews}</td></tr>
   										</table>
   									</td>
   								</tr>"
   								
-          if(total_ratings > 0)				
+          if(total_reviews > 0)				
             result << "<tr>
-        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{example_rating.rating_name}</strong></a></td>
+        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{example_review.review_name}</strong></a></td>
         							 </tr>
-        							 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{example_rating.author.login} on #{example_rating.created_at}</td><td align='right'>#{star_ratings(example_rating.rating, "24x24")}</td></tr></table></tr>
-        							 <tr><td><strong>Pros:</strong>&nbsp;#{example_rating.pros}<td></tr>
-        							 <tr><td><strong>Cons:</strong>&nbsp;#{example_rating.cons}<td></tr>
-        							 <tr><td><strong>Other Thoughts:</strong>&nbsp;#{example_rating.other_thoughts}</td></tr>
+        							 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{example_review.author.login} on #{example_review.created_at}</td><td align='right'>#{star_ratings(example_review.rating, "24x24")}</td></tr></table></tr>
+        							 <tr><td><strong>Pros:</strong>&nbsp;#{example_review.pros}<td></tr>
+        							 <tr><td><strong>Cons:</strong>&nbsp;#{example_review.cons}<td></tr>
+        							 <tr><td><strong>Other Thoughts:</strong>&nbsp;#{example_review.other_thoughts}</td></tr>
         						 </table>"
         	else
             result << "<tr>
-        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>No Current Ratings</strong></a></td>
+        							   <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>No Current Reviews</strong></a></td>
         							 </tr>
         						 </table>"		 
           end

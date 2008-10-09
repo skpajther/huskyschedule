@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class CourseRatingTest < ActiveSupport::TestCase
+class TeacherReviewTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   def test_truth
     assert true

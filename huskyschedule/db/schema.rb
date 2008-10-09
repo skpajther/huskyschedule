@@ -9,17 +9,18 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080930004448) do
+ActiveRecord::Schema.define(:version => 20081009064622) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
-    t.integer  "lat",        :limit => 10, :precision => 10, :scale => 0
-    t.integer  "lng",        :limit => 10, :precision => 10, :scale => 0
+    t.float    "lat"
+    t.float    "lng"
     t.string   "abbrev"
-    t.integer  "uw_lat",     :limit => 10, :precision => 10, :scale => 0
-    t.integer  "uw_lng",     :limit => 10, :precision => 10, :scale => 0
+    t.float    "uw_lat"
+    t.float    "uw_lng"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "picture"
   end
 
   create_table "categories", :force => true do |t|
@@ -29,16 +30,17 @@ ActiveRecord::Schema.define(:version => 20080930004448) do
     t.datetime "updated_at"
   end
 
-  create_table "course_ratings", :force => true do |t|
+  create_table "course_reviews", :force => true do |t|
     t.integer  "quarter_taken",  :limit => 11
     t.integer  "teacher_id",     :limit => 11
     t.integer  "rating",         :limit => 11
     t.text     "pros"
     t.text     "cons"
     t.text     "other_thoughts"
-    t.text     "rating_name"
+    t.text     "review_name"
     t.integer  "user_id",        :limit => 11
-    t.string   "class_name"
+    t.string   "course_name"
+    t.integer  "year_taken",     :limit => 11
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -61,7 +63,7 @@ ActiveRecord::Schema.define(:version => 20080930004448) do
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
-    t.integer  "quarter",           :limit => 11
+    t.integer  "quarter_id",        :limit => 11
     t.integer  "building_id",       :limit => 11
     t.string   "room"
     t.datetime "created_at"
@@ -89,6 +91,13 @@ ActiveRecord::Schema.define(:version => 20080930004448) do
     t.datetime "updated_at"
   end
 
+  create_table "quarters", :force => true do |t|
+    t.integer  "quarter",    :limit => 11
+    t.integer  "year",       :limit => 11
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "quiz_sections", :force => true do |t|
     t.integer  "sln",               :limit => 11
     t.integer  "teacher_id",        :limit => 11
@@ -109,6 +118,19 @@ ActiveRecord::Schema.define(:version => 20080930004448) do
   end
 
   create_table "teacher_ratings", :force => true do |t|
+    t.integer  "teacher_id",       :limit => 11
+    t.integer  "course_taught_id", :limit => 11
+    t.integer  "rating",           :limit => 11
+    t.text     "pros"
+    t.text     "cons"
+    t.text     "other_thoughts"
+    t.string   "name"
+    t.integer  "user_id",          :limit => 11
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "teacher_reviews", :force => true do |t|
     t.integer  "teacher_id",       :limit => 11
     t.integer  "course_taught_id", :limit => 11
     t.integer  "rating",           :limit => 11

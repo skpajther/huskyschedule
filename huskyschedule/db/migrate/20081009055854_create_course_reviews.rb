@@ -1,21 +1,22 @@
-class CreateCourseRatings < ActiveRecord::Migration
+class CreateCourseReviews < ActiveRecord::Migration
   def self.up
-    create_table :course_ratings do |t|
+    create_table :course_reviews do |t|
       t.integer :quarter_taken
       t.integer :teacher_id
       t.integer :rating
       t.text :pros
       t.text :cons
       t.text :other_thoughts
-      t.text :rating_name
+      t.text :review_name
       t.integer :user_id
-      t.string :class_name
-
+      t.string :course_name
+      t.integer :year_taken
+      
       t.timestamps
     end
   end
 
   def self.down
-    drop_table :course_ratings
+    drop_table :course_reviews
   end
 end
