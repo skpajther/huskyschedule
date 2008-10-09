@@ -1,6 +1,6 @@
-class CreateTeacherRatings < ActiveRecord::Migration
+class CreateTeacherReviews < ActiveRecord::Migration
   def self.up
-    create_table :teacher_ratings do |t|
+    create_table :teacher_reviews do |t|
       t.integer :teacher_id
       t.integer :course_taught_id
       t.integer :rating
@@ -15,6 +15,6 @@ class CreateTeacherRatings < ActiveRecord::Migration
   end
 
   def self.down
-    drop_table :teacher_ratings
+    drop_table :teacher_reviews
   end
 end

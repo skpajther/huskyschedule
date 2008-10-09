@@ -1,0 +1,94 @@
+<div id="apDiv3">
+  <table width="100%" height="100%" border="0">
+    <tr>
+      <td height="1">breadcrumbs</td>
+    </tr>
+    <tr>
+      <td valign="top" height="56"><div id="pagetitle"><strong>Write A Class Review</strong></div>Husky Schedule's Class Rating let's you interact with other students and contribute to blah blah</td>
+    </tr>
+    <tr>
+      <td height="1"><%= link_to "#{@course.deptabriev} #{@course.number}: #{@course.title}", :controller=>"courses", :action=>"index", :id=>@course.id %><br/>What other info should Go HERE!!!Credits?Current Rating?ETC?
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><table>
+      		<tr><hr width=100%></tr>
+            <tr>
+      		<td valign="top" width=40%><strong>Class Review Guidelines</strong><br/>
+This site reads all reviews before posting them and reserves the right to deny any review. Here are some of the things that can cause a review to be denied:<br/>
+•	Offensive or abusive language.<br/>
+•	References to cheating or other behavior not condoned by the university.<br/>
+•	Hyperlinks / URLs.<br/>
+•	Replies to existing reviews; please do not attempt to initiate discussions here.<br/>
+•	Criticism of this site<br/>
+•	Illegal content<br/>
+•	Invasion of personal privacy<br/>
+•	Pornography or obscenity<br/>
+•	Hate or incitement of violence, threats of harm or safety of a person<br/>
+•	Graphic violence or other acts resulting in serious injury or death.<br/>
+•	Any violations of copyright.<br/>
+•	Any violations of laws and/or copyrighted musical works.<br/></td>
+            <td>
+                <% form_for(@course_review, :url=>{:controller=>"course_reviews", :action=>"new", :nextpage=>{:controller=>"courses", :action=>"index", :id=>@course.id}}) do |f| %>
+            		<table width="100%">
+                   	  <tr><td >Review Title:</td>
+                   	  <td ><%= f.text_field :review_name %></td></tr>
+                    	<tr><td>Overall Rating:*</td><td><label>
+                    	<%= f.select :rating, CourseReview::RATING_TYPES.insert(0, ["Please Choose A Value", 0]), {}, {:selected => 0} %>
+                    	</label></td></tr>
+                        <tr><td>When Did You Take This Class:*</td><td><label>Quarter:&nbsp;
+                    	<%= f.select :quarter_taken, Course::QUARTER_TYPES.insert(0, ["Please Choose A Value", 0]), {}, {} %>
+                    	</label>
+                        Year:&nbsp;<%= f.text_field :year_taken, {:size=>"8", :maxlength=>"4"} %>
+                        </td></tr>
+                        <tr><td height="69">Pros:*<br/>(1,000 characters max)</td><td><%= f.text_area :pros, {:rows=>"7", :cols=>"50", :onKeyDown=>"limitText(this.form.pros,1000);", :onKeyUp=>"limitText(this.form.pros,1000);" }%></td></tr>
+                        <tr><td height="69">Cons:*<br/>(1,000 characters max)</td><td><%= f.text_area :cons, {:rows=>"7", :cols=>"50", :onKeyDown=>"limitText(this.form.cons,1000);", :onKeyUp=>"limitText(this.form.cons,1000);" }%></td></tr>
+                        <tr><td height="69">Other Thoughts:<br/>(1,000 characters max)</td><td><%= f.text_area :other_thoughts, {:rows=>"7", :cols=>"50", :onKeyDown=>"limitText(this.form.other_thoughts,1000);", :onKeyUp=>"limitText(this.form.other_thoughts,1000);" }%></td></tr>
+                        <tr><td >(If Guest (change this in code to check if is guest))Nickname:</td>
+                   	  <td><input type="text" name="r_username" /></td></tr>
+                      <tr><td><input type="submit" value="Submit" /></td></tr>
+                    </table>
+            	 <% end %>    
+            </td>
+            </tr>
+      	  </table>
+      </td>
+    </tr>
+  </table>
+</div>
+</div>
+
+<script type="text/javascript">
+var MenuBar1 = new Spry.Widget.MenuBar("MenuBar1");
+	function validate_form(thisform){
+		noerrors = true;
+		if(thisform.r_rating.value==0)
+			noerrors = false;
+		if(thisform.r_quarter.value==0)
+			noerrors = false;
+		noerrors = (noerrors && checkYear(thisform.r_year));
+		//alert(thisform.r_rating);
+		return noerrors;
+	}
+	
+	function checkYear(formyear){
+		if(strlen(thisform.r_year.value)==2){
+			if(intval(year)<50)
+				thisform.r_year.value = "20"+year;
+			else
+				thisform.r_year.value = "19"+year;
+		}
+		if(strlen(thisform.r_year.value)!=4){
+			return false;
+		}
+		return true;
+	}
+	
+	function limitText(limitField, limitNum) {
+		if (limitField.value.length > limitNum) {
+			limitField.value = limitField.value.substring(0, limitNum);
+		}/* else {
+			limitCount.value = limitNum - limitField.value.length;
+		}*/
+	}
+</script>
