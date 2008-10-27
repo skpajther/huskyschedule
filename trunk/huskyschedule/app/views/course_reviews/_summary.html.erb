@@ -1,0 +1,25 @@
+<% if(!defined?(links))
+       links = false
+   end %>
+<table width='100%'>
+    <tr>
+        <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;(<%= ((course.total_ratings<1)? "" : link_to("read all #{course.total_ratings} reviews", {:controller=>"course_reviews", :action=>"index", :id=>course.id}, {:class=>"newlink"})+",&nbsp;") %><a class='newlink' href='<%= url_for :controller=>'course_reviews', :action=>'new', :id=>course.id %>'><%= ((course.total_ratings<1)? "Be the first to write a review" : "write a review") %></a>)</td>
+  	</tr>
+    <tr>
+        <td>
+            <table width='100%'>
+                <tr>
+                    <td rowspan='2'><%= review_percent_table(course, {:links=>links}) %></td>
+  					<td height=1 align='right' valign='center'>Class Rating:</td>
+  					<td width='160' align='right'><%= star_ratings(course.rating) %></td>
+  				</tr>
+  				<tr><td colspan='2' valign='top'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Reviews:<%= course.total_ratings %></td></tr>
+  			</table>
+  		</td>
+  	</tr>
+  	<% if course_reviews!= nil %>
+      	<% for course_review in course_reviews %>
+      	     <%= formatted_review(course_review) %>
+      	<% end %>
+    <% end %>
+</table>

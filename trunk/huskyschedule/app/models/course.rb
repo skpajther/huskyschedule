@@ -23,4 +23,8 @@ class Course < ActiveRecord::Base
     [ "Summer",           QUARTER_SUMMER ]
   ]
   
+  def name
+    return "#{self.deptabriev} #{self.number}"
+  end
+  
 end

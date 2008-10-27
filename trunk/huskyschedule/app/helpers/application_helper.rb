@@ -67,16 +67,17 @@ def mini_schedule(times, options={})
       rating = 0
     end
     result = ""
-		rating.times{
+    rating = rating + 0.5
+		rating.to_i.times{
 			result = result + "<img src='/images/stars/star#{size}.png'/>"
 		}
-		(5-rating).times{
+		(5-rating.to_i).times{
 			result = result + "<img src='/images/stars/star_blank#{size}.png'/>"
 		}
 		return result
   end
   
-  def bread_crumbs(category_or_course)
+  def bread_crumbs(category_or_course, include_self_link=false)
     @familypath = []
     @familypath.push(category_or_course)
     while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parent!=nil)
@@ -91,13 +92,13 @@ def mini_schedule(times, options={})
     result = link_to "Home"
 	  while (parent = @familypath.pop)!=nil
 	    if(parent.is_a?(Course))
-	      if(!@familypath.empty?)
+	      if(!@familypath.empty? || include_self_link)
 	        result = result + " > " + link_to("SLN: #{parent.sln}", :controller=>"courses", :action=>"index", :id=>parent.id)
 	      else
 	        result = result + " > " + "SLN: #{parent.sln}"
 	      end
 	    else
-	      if(!@familypath.empty?)
+	      if(!@familypath.empty? || include_self_link)
 	        result = result + " > " + link_to(parent.name, :controller=>"categories", :action=>"index", :id=>parent.id)
 	      else
 	        result = result + " > " + parent.name
@@ -107,9 +108,54 @@ def mini_schedule(times, options={})
 	  return result
   end
   
-  def class_review_summary(course)
-        reviews = CourseReview.find(:all, :conditions=>{:course_name=>"#{course.deptabriev} #{course.number}"})
-				total_reviews = reviews.size
+def review_percent_table(course, options={})
+    reviews = CourseReview.find(:all, :conditions=>{:course_name=>course.name})
+		total_reviews = course.total_ratings
+				
+  	all = [0,0,0,0,0]
+    for course_review in reviews
+      all[course_review.rating-1] = all[course_review.rating-1] + 1
+    end
+    bartable = "<table width='100%'>"
+    5.times{|i|
+          i = i + 1
+					bartable << "<tr><td><table><tr><td>#{i}</td>"
+					percent = (((all[i-1]*1.0)/((total_reviews<1)? 1 : total_reviews))*100).to_i
+					if(percent>0)
+						bartable << "<td class='barrow'><img src='/images/bars/bar_yellowLeft.gif'>"
+					end
+					(percent-8).times{
+						bartable << "<img src='/images/bars/bar_yellowMid.gif'>"
+					}
+					if(percent>0)
+						bartable << "<img src='/images/bars/bar_yellowRight.gif'></td>"
+					else
+						bartable << "<td class='barrow'></td>"
+				  end
+					bartable << "<td>#{percent}%</td></tr></table></td>"
+				  if(options[:links]==true)
+						bartable << "<td>"+link_to( all[i-1].to_s+" reviews", :controller=>"course_reviews", :action=>"index", :id=>course.id) +"</td>"
+					end
+          bartable << "</tr>"
+		}
+		bartable << "</table>"
+		return bartable
+  end
+	
+	def formatted_review(course_review)
+      return " <tr>
+        					<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{course_review.review_name}</strong></a></td>
+        			 </tr>
+        			 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{(course_review.author!=nil)? course_review.author.login : 'Anonymous'} on #{course_review.created_at}</td><td align='right'>#{star_ratings(course_review.rating, "24x24")}</td></tr></table></tr>
+        			 <tr><td><strong>Pros:</strong>&nbsp;#{course_review.pros}<td></tr>
+        			 <tr><td><strong>Cons:</strong>&nbsp;#{course_review.cons}<td></tr>
+        		   <tr><td><strong>Other Thoughts:</strong>&nbsp;#{course_review.other_thoughts}</td></tr>"
+			 
+	end
+						
+=begin  def class_review_summary(course)
+        reviews = CourseReview.find(:all, :conditions=>{:course_name=>course.name})
+				total_reviews = course.total_ratings
 				
   				all = [0,0,0,0,0]
           for course_review in reviews
@@ -119,7 +165,7 @@ def mini_schedule(times, options={})
   				5.times{|i|
             i = i + 1
   					bartable << "<tr><td>#{i}</td><td class='barrow'>"
-  					percent = ((all[i-1]/((total_reviews<1)? 1 : total_reviews))*100).to_i
+  					percent = (((all[i-1]*1.0)/((total_reviews<1)? 1 : total_reviews))*100).to_i
   					if(percent>0)
   						bartable << "<img src='/images/bars/bar_yellowLeft.gif'>"
   					end
@@ -167,7 +213,7 @@ def mini_schedule(times, options={})
           end
   				return result
 			end
-  
+=end  
   private 
   
   def getTableRow(num, times, scale=1)
