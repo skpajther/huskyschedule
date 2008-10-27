@@ -1,5 +1,9 @@
 class CourseReviewsController < ApplicationController
   
+  def index
+    @course = Course.find(params[:id])
+  end
+  
   def new
     begin course_review = CourseReview.new(params[:course_review]) rescue course_review = nil end
     begin course = Course.find(params[:id]) rescue course=nil end

@@ -282,6 +282,10 @@ a:hover {
 	color:black;
 }
 
+.barrow {
+	width:100px;
+}
+
 /* MENU BAR Spry Stuff */
 /* The outermost container of the Menu Bar, an auto width box with no margin or padding */
 ul.MenuBarHorizontal
