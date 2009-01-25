@@ -7,24 +7,21 @@ class Course < ActiveRecord::Base
   has_many :labs, :class_name => "Lab", :foreign_key => "parent_id"
   has_many :quiz_sections, :class_name => "QuizSection", :foreign_key => "parent_id"
   
+  Course.partial_updates = false
   serialize :times
   serialize :credit_type
   
-  QUARTER_AUTUMN = 1
-  QUARTER_WINTER = 2
-  QUARTER_SPRING = 3
-  QUARTER_SUMMER = 4
-  
-  QUARTER_TYPES = [
-    # Displayed        stored in db
-    [ "Autmn",          QUARTER_AUTUMN ],
-    [ "Winter",         QUARTER_WINTER ],
-    [ "Spring",        QUARTER_SPRING ],
-    [ "Summer",           QUARTER_SUMMER ]
-  ]
+  def self.quarter_disp_name(quarter_id)
+    if(quarter_id > 0 && quarter_id < 6)
+      return QUARTER_DISPLAY_NAMES[quarter_id-1]
+    else
+      return "Unknown"
+    end
+  end
   
   def name
     return "#{self.deptabriev} #{self.number}"
   end
+  
   
 end

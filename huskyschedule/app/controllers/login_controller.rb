@@ -17,7 +17,11 @@ class LoginController < ApplicationController
         self.current_user.remember_me
         cookies[:auth_token] = { :value => self.current_user.remember_token , :expires => self.current_user.remember_token_expires_at }
       end
-      redirect_back_or_default(:controller => '/login', :action => 'index')
+      if(params[:next_page]!=nil)
+        redirect_to params[:next_page]
+      else
+        redirect_back_or_default(:controller => '/login', :action => 'index')
+      end
       flash[:notice] = "Logged in successfully"
     end
   end

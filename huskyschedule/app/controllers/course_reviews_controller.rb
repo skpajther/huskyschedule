@@ -2,6 +2,11 @@ class CourseReviewsController < ApplicationController
   
   def index
     @course = Course.find(params[:id])
+    if(params[:rating_val]==nil || params[:rating_val].to_i > 5 || params[:rating_val].to_i < 1)
+      @course_reviews = CourseReview.find_all_by_course_name(@course.name)
+    else
+      @course_reviews = CourseReview.find(:all, :conditions=>{:course_name=>@course.name, :rating=>params[:rating_val]})
+    end
   end
   
   def new

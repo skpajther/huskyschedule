@@ -1,0 +1,7 @@
+<div>
+    <%= form_tag({:action => 'all_photos'}, :multipart => true) %>
+        <p><label for="upload_file">Upload Photo</label> : 
+        <%= file_field 'upload', 'datafile' %></p>
+        <%= submit_tag "Upload" %>
+    </form>
+</div>
