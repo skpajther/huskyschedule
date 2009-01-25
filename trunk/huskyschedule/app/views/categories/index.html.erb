@@ -81,7 +81,7 @@
     								<td align='left' valign='top' colspan='3'><%= course.description %></td>
     							</tr>
     							<tr>
-    								<td colspan='2' align='left' valign='top'><table><tr><td><% if(course.teacher.current_photo_location!=nil) %><%= image_tag course.teacher.current_photo_location, :height=>"48px" %><% else %><img src='/images/teachers/default.png'/><% end %></td><td align='left' valign='top'><%= course.teacher.name %></td></tr></table></td>
+    								<td colspan='2' align='left' valign='top'><table><tr><td><%= image_tag course.teacher.current_photo_location, :height=>"48px" %></td><td align='left' valign='top'><%= link_to course.teacher.name, :controller=>"teachers", :action=>"index", :id=>course.teacher.id %></td></tr></table></td>
     								
     							</tr>
     							<tr><td><%= course.category.name %></td></tr>

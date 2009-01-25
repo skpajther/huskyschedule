@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081017025405) do
+ActiveRecord::Schema.define(:version => 20081223164058) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -70,6 +70,7 @@ ActiveRecord::Schema.define(:version => 20081017025405) do
     t.datetime "updated_at"
     t.float    "rating"
     t.integer  "total_ratings",     :limit => 11
+    t.integer  "year",              :limit => 11
   end
 
   create_table "labs", :force => true do |t|
@@ -117,6 +118,17 @@ ActiveRecord::Schema.define(:version => 20081017025405) do
     t.datetime "updated_at"
   end
 
+  create_table "teacher_infos", :force => true do |t|
+    t.integer  "teacher_id", :limit => 11
+    t.string   "office"
+    t.integer  "sex",        :limit => 11
+    t.string   "website"
+    t.string   "email"
+    t.string   "department"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "teacher_reviews", :force => true do |t|
     t.integer  "teacher_id",       :limit => 11
     t.integer  "course_taught_id", :limit => 11
@@ -132,9 +144,12 @@ ActiveRecord::Schema.define(:version => 20081017025405) do
 
   create_table "teachers", :force => true do |t|
     t.string   "name"
-    t.string   "current_photo_location"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "photolocation_vote_map"
+    t.integer  "total_photo_votes",      :limit => 11
+    t.text     "user_vote_map"
+    t.integer  "next_photo_name",        :limit => 11
   end
 
   create_table "users", :force => true do |t|

@@ -9,7 +9,36 @@
                     Reviews are not necessarily based on the specific course above, but rather the same course offered possibly a different year and or quarter.
             </div>
             <div>
-                <%= render :partial => "course_reviews/summary", :locals => { :course => @course, :links=>true }%>
+                <%= render :partial => "course_reviews/summary", :locals => { :course => @course, :links=>true, :read_all_link=>false }%>
             </div>
         </td>
     </tr>
+    <tr>
+    
+        <table>
+            <tr>
+                <td colspan="2"><% if(params[:rating_val]!=nil) %><b>You are looking at only ratings of <%= params[:rating_val] %></b> (<%= link_to "View All", :controller=>"course_reviews", :action=>"index", :id=>@course.id %>)<% end %></td>
+            </tr>
+            <tr>
+                <td>Reviewer</td>
+                <td>Product Review</td>
+            </tr>
+            <% for course_review in @course_reviews %>
+            <tr>
+                <td><b><% if(course_review.author!=nil) %><%= course_review.author.login %><% else %>Anonymous<% end %></b><br/>Taken: <%= "#{Course.quarter_disp_name(course_review.quarter_taken)}, #{course_review.year_taken}" %><br/>Taught By: <% if(course_review.teacher!=nil) %><%= link_to course_review.teacher.name, :controller=>"teachers", :action=>"index", :id=>course_review.teacher.id %><% else %><%= "Unknown" %><% end %></td>
+                <td>
+                    <table>
+                        <tr>
+                            <td><%= star_ratings(course_review.rating, size="24x24") %> <b><%= course_review.review_name %></b><td>
+                            <td><%= course_review.created_at %></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" ><b>Pros:</b><%= course_review.pros %><br/><b>Cons:</b><%= course_review.cons %><br/><b>Other Thoughts:</b><%= course_review.other_thoughts %></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <% end %>
+        </table>
+    </tr>
+</table>

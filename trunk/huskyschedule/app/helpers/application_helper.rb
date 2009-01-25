@@ -134,7 +134,7 @@ def review_percent_table(course, options={})
 				  end
 					bartable << "<td>#{percent}%</td></tr></table></td>"
 				  if(options[:links]==true)
-						bartable << "<td>"+link_to( all[i-1].to_s+" reviews", :controller=>"course_reviews", :action=>"index", :id=>course.id) +"</td>"
+						bartable << "<td>"+link_to( all[i-1].to_s+" reviews", :controller=>"course_reviews", :action=>"index", :id=>course.id, :rating_val=>i) +"</td>"
 					end
           bartable << "</tr>"
 		}
@@ -152,8 +152,39 @@ def review_percent_table(course, options={})
         		   <tr><td><strong>Other Thoughts:</strong>&nbsp;#{course_review.other_thoughts}</td></tr>"
 			 
 	end
+        		   
+  def votable_image(location, vote_count, total_votes, vote_url, options={})
+      pic_size = ImageSpec::Dimensions.new(location)
+      pic_width = pic_size.width
+      pic_height = pic_size.height
+      if(options[:max_width]!=nil && ((pic_width - options[:max_width]) > (pic_height - ((options[:max_height]!=nil)? options[:max_height] : pic_height))) &&  pic_width > options[:max_width])
+        pic_height = (options[:max_width]*pic_height)/pic_width
+        pic_width = options[:max_width]
+      elsif(options[:max_height]!=nil && pic_height > options[:max_height])
+        pic_width = (options[:max_height]*pic_width)/pic_height
+        pic_height = options[:max_height]
+      end
+      percent = "#{((vote_count*1.0)/total_votes)*100}%"
+      top_lettering_pos = pic_height-20
+      if(location.index("public")<=1)
+        location = location.split("public")[1]
+      end
+      vote_button = ""
+      if(vote_url!=nil)
+        vote_button = "<div style='float:left;padding-left:5px;padding-top:#{top_lettering_pos}px;'><a class='vote_b' href='#{vote_url}'>Vote</a></div>"
+      end
+      return "<div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;'>
+                <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
+                <div style='z-index:1;position:absolute;width:#{pic_width}px;height:#{pic_height}px;'>
+                  #{vote_button}
+                  <div style='float:right;padding-right:5px;padding-top:#{top_lettering_pos}px;'><span class='vote_percent'>#{percent.to_i}%</span></div>
+                </div>
+              </div>"
+  end
 						
-=begin  def class_review_summary(course)
+=begin  
+  #{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}
+      def class_review_summary(course)
         reviews = CourseReview.find(:all, :conditions=>{:course_name=>course.name})
 				total_reviews = course.total_ratings
 				

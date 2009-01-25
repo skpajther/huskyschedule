@@ -1,9 +1,16 @@
-<% if(!defined?(links))
+<% if(!defined?(links) || links == nil)
        links = false
-   end %>
+   end 
+   if(!defined?(read_all_link) || read_all_link == nil)
+       read_all_link = true
+   end 
+   if(!defined?(course_reviews))
+       course_reviews = nil
+   end
+   %>
 <table width='100%'>
     <tr>
-        <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;(<%= ((course.total_ratings<1)? "" : link_to("read all #{course.total_ratings} reviews", {:controller=>"course_reviews", :action=>"index", :id=>course.id}, {:class=>"newlink"})+",&nbsp;") %><a class='newlink' href='<%= url_for :controller=>'course_reviews', :action=>'new', :id=>course.id %>'><%= ((course.total_ratings<1)? "Be the first to write a review" : "write a review") %></a>)</td>
+        <td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>Class Review Summary</strong></a>&nbsp;(<%= ((course.total_ratings<1 || !read_all_link )? "" : link_to("read all #{course.total_ratings} reviews", {:controller=>"course_reviews", :action=>"index", :id=>course.id}, {:class=>"newlink"})+",&nbsp;") %><a class='newlink' href='<%= url_for :controller=>'course_reviews', :action=>'new', :id=>course.id %>'><%= ((course.total_ratings<1)? "Be the first to write a review" : "write a review") %></a>)</td>
   	</tr>
     <tr>
         <td>
@@ -17,7 +24,7 @@
   			</table>
   		</td>
   	</tr>
-  	<% if course_reviews!= nil %>
+  	<% if course_reviews != nil %>
       	<% for course_review in course_reviews %>
       	     <%= formatted_review(course_review) %>
       	<% end %>

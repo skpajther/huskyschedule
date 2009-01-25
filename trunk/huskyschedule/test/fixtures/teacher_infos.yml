@@ -1,0 +1,17 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  teacher_id: 1
+  office: MyString
+  sex: 1
+  website: MyString
+  email: MyString
+  department: MyString
+
+two:
+  teacher_id: 1
+  office: MyString
+  sex: 1
+  website: MyString
+  email: MyString
+  department: MyString

@@ -22,7 +22,7 @@
               <div class="TabbedPanelsContentGroup">
                 <div class="TabbedPanelsContent">
                     <%= @course.description %><br/><br/>
-                    <% if(@course.teacher.current_photo_location!=nil) %><%= image_tag @course.teacher.current_photo_location, :height=>"48px" %><% else %><img src='/images/teachers/default.png'/><% end %>&nbsp;&nbsp;&nbsp;<%= link_to @course.teacher.name, :controller=>"teachers", :action=>"index", :id=>@course.teacher.id %>
+                    <%= image_tag @course.teacher.current_photo_location, :height=>"48px" %>&nbsp;&nbsp;&nbsp;<%= link_to @course.teacher.name, :controller=>"teachers", :action=>"index", :id=>@course.teacher.id %>
                     <%= render :partial => "course_reviews/summary", :locals => { :course => @course, :course_reviews => [@course_reviews[0]] }%>
                 </div>
                 <div class="TabbedPanelsContent">

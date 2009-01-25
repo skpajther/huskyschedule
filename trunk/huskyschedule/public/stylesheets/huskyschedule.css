@@ -286,6 +286,16 @@ a:hover {
 	width:100px;
 }
 
+#vote_image .vote_b {
+	color:white;
+	text-decoration:none;	
+}
+
+#vote_image .vote_percent {
+	color:white;
+		
+}
+
 /* MENU BAR Spry Stuff */
 /* The outermost container of the Menu Bar, an auto width box with no margin or padding */
 ul.MenuBarHorizontal
