@@ -42,7 +42,7 @@
                     Future<br/>
                         None Known Yet<br/>
                     Present
-                        <% for course in @teacher.courses_present(2008, Course::QUARTER_AUTUMN) %>
+                        <% for course in @teacher.courses_present(2008, Quarter::QUARTER_AUTUMN) %>
                             <% link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %>
                         <% end %>
                     Past
