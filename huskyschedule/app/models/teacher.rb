@@ -8,15 +8,15 @@ class Teacher < ActiveRecord::Base
   serialize :user_vote_map
   
   def courses_present(year, quarter)
-  Course.find(:all, :conditions => {:teacher_id=>self.id, :year=>year, :quarter_id=>quarter})
+    Course.find(:all, :conditions => {:teacher_id=>self.id, :year=>year, :quarter_id=>quarter})
   end
   
   def courses_past(year, quarter)
-    
+    Course.find(:all, :conditions => "teacher_id = '#{self.id}' AND (year < '#{year}' OR (year = '#{year}' AND quarter_id < '#{quarter}'))")
   end
   
   def courses_future(year, quarter)
-    
+    Course.find(:all, :conditions => "teacher_id = '#{self.id}' AND (year > '#{year}' OR (year = '#{year}' AND quarter_id > '#{quarter}'))")
   end
   
   def self.vote_for_photo(teacher, location, curr_user)

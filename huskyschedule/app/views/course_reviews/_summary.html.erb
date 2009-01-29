@@ -24,7 +24,7 @@
   			</table>
   		</td>
   	</tr>
-  	<% if course_reviews != nil %>
+  	<% if course_reviews != nil && course_reviews[0]!=nil %>
       	<% for course_review in course_reviews %>
       	     <%= formatted_review(course_review) %>
       	<% end %>
