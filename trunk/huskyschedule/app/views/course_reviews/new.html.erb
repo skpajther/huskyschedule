@@ -37,7 +37,7 @@ This site reads all reviews before posting them and reserves the right to deny a
                     	<%= f.select :rating, CourseReview::RATING_TYPES.insert(0, ["Please Choose A Value", 0]), {}, {:selected => 0} %>
                     	</label></td></tr>
                         <tr><td>When Did You Take This Class:*</td><td><label>Quarter:&nbsp;
-                    	<%= f.select :quarter_taken, Course::QUARTER_TYPES.insert(0, ["Please Choose A Value", 0]), {}, {} %>
+                    	<%= f.select :quarter_taken, Quarter::QUARTER_TYPES.insert(0, ["Please Choose A Value", 0]), {}, {} %>
                     	</label>
                         Year:&nbsp;<%= f.text_field :year_taken, {:size=>"8", :maxlength=>"4"} %>
                         </td></tr>

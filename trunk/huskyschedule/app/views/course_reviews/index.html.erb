@@ -25,7 +25,7 @@
             </tr>
             <% for course_review in @course_reviews %>
             <tr>
-                <td><b><% if(course_review.author!=nil) %><%= course_review.author.login %><% else %>Anonymous<% end %></b><br/>Taken: <%= "#{Course.quarter_disp_name(course_review.quarter_taken)}, #{course_review.year_taken}" %><br/>Taught By: <% if(course_review.teacher!=nil) %><%= link_to course_review.teacher.name, :controller=>"teachers", :action=>"index", :id=>course_review.teacher.id %><% else %><%= "Unknown" %><% end %></td>
+                <td><b><% if(course_review.author!=nil) %><%= course_review.author.login %><% else %>Anonymous<% end %></b><br/>Taken: <%= "#{Quarter.quarter_disp_name(course_review.quarter_taken)}, #{course_review.year_taken}" %><br/>Taught By: <% if(course_review.teacher!=nil) %><%= link_to course_review.teacher.name, :controller=>"teachers", :action=>"index", :id=>course_review.teacher.id %><% else %><%= "Unknown" %><% end %></td>
                 <td>
                     <table>
                         <tr>
