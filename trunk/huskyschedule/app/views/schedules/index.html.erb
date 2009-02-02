@@ -1,0 +1,34 @@
+<table>
+    <tr>
+        <td>
+            <div id="grab_bag">
+                Possible Courses<br/>
+                <% if (@grab_bag != nil && @grab_bag.get_courses != nil) %>
+                    <% for course in @grab_bag.get_courses %>
+                        <div id="<%= "course_#{course.id}" %>"><%= "#{course.sln}: #{course.deptabriev} #{course.number} #{course.section}" %></div>
+                        
+                    <% end %>
+                <% end %>
+                <a href="#">View Trash</a>
+            </div>
+        </td>
+        <td>
+        </td>
+        <td>
+            <div id="tabs" style="width:100px;height:100px;background:#9fcfba;">
+            
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
+        <% for course in @grab_bag.get_courses %>
+            new Draggable("<%= "course_#{course.id}" %>", {revert: 'failure'});
+        <% end %>
+    <% end %>
+
+  Droppables.add("grab_bag",{onDrop: function() {}});
+  Droppables.add("tabs",{onDrop: function() {}});
+</script>

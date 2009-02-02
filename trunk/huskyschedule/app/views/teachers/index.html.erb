@@ -40,10 +40,13 @@
                 <div>
                     Courses Taught<br/>
                     Future<br/>
-                        <% for course in @teacher.courses_past(2008, Quarter::CURRENT) %>
+                        <% future_courses = @teacher.courses_future(2008, Quarter::CURRENT) %>
+                        <% for course in future_courses %>
                             <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
                         <% end %>
-                        None Known Yet<br/>
+                        <% if future_courses.size == 0 %>
+                            None Known Yet<br/>
+                        <% end %>
                     Present<br />
                         <% for course in @teacher.courses_present(2008, Quarter::CURRENT) %>
                             <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
