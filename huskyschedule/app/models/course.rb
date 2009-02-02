@@ -10,6 +10,7 @@ class Course < ActiveRecord::Base
   Course.partial_updates = false
   serialize :times
   serialize :credit_type
+  serialize :rendezvous
 
   #status constants
   STATUS_CLOSED = 0
