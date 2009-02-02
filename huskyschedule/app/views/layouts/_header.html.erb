@@ -19,7 +19,7 @@
 <div id="wrapper">
   <div id="wrapper-header">
     <% if flash[:notice]!=nil %><a id="flash" class="flash"><%= flash[:notice] %></a><% end %>
-    <% if(current_user != nil && current_user != :false) %><span><strong><%= current_user.login.upcase %></strong></span><%= link_to "LOGOUT", :controller => 'login', :action => 'logout' %><a href="#">SETTINGS </a><% else %><%= link_to "LOGIN", :controller=>"login", :action=>"login" %><% end %>&nbsp;&nbsp;&nbsp;<a href="#">HELP</a>
+    <% if(current_user != nil && current_user != :false && !current_user.tmp_user) %><span><strong><%= current_user.login.upcase %></strong></span><%= link_to "LOGOUT", :controller => 'login', :action => 'logout' %><a href="#">SETTINGS </a><% else %><%= link_to "LOGIN", :controller=>"login", :action=>"login" %><% end %>&nbsp;&nbsp;&nbsp;<a href="#">HELP</a>
   </div>
     <div id="top_bar">
         

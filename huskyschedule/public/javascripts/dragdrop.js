@@ -424,8 +424,8 @@ var Draggable = Class.create({
     if(revert && Object.isFunction(revert)) revert = revert(this.element);
     
     var d = this.currentDelta();
-    if(revert && this.options.reverteffect) {
-      if (dropped == 0 || revert != 'failure')
+    
+      if(revert && this.options.reverteffect && (dropped == 0 || revert != 'failure')) {
         this.options.reverteffect(this.element,
           d[1]-this.delta[1], d[0]-this.delta[0]);
     } else {

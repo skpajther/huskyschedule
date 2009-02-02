@@ -6,11 +6,14 @@
     </tr>
    	<tr>
         <td></td>
-   	    <td height="28" colspan="2" align="left" valign="top"><%= "#{@course.deptabriev} #{@course.number}: #{@course.title}" %></td>
+   	    <td height="28" colspan="2" align="left" valign="top"><%= "#{@course.deptabbrev} #{@course.number}: #{@course.title}" %></td>
     </tr>
    	<tr>
    	    <td width="37"></td>
-   	    <td valign='top' width="417"><%= mini_schedule(@course.times, {:by_hour=>false, :end_hour=>20.5}) %></td>
+   	    <td valign='top' width="417">
+   	        <%= mini_schedule(@course.times, {:by_hour=>false, :end_hour=>20.5}) %>
+   	        <br/>Other Sections:
+   	    </td>
         <td width="488" valign="top">
             <div id="TabbedPanels1" class="TabbedPanels">
               <ul class="TabbedPanelsTabGroup">

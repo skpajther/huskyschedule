@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20081223164058) do
+ActiveRecord::Schema.define(:version => 20090202053144) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -54,8 +54,8 @@ ActiveRecord::Schema.define(:version => 20081223164058) do
     t.integer  "students_enrolled", :limit => 11
     t.integer  "enrollment_space",  :limit => 11
     t.integer  "credits",           :limit => 11
-    t.boolean  "restrictions"
-    t.string   "deptabriev"
+    t.boolean  "restricted"
+    t.string   "deptabbrev"
     t.text     "notes"
     t.text     "credit_type"
     t.string   "section"
@@ -71,6 +71,8 @@ ActiveRecord::Schema.define(:version => 20081223164058) do
     t.float    "rating"
     t.integer  "total_ratings",     :limit => 11
     t.integer  "year",              :limit => 11
+    t.integer  "variable_credit",   :limit => 11
+    t.text     "rendezvous"
   end
 
   create_table "labs", :force => true do |t|
@@ -118,6 +120,18 @@ ActiveRecord::Schema.define(:version => 20081223164058) do
     t.datetime "updated_at"
   end
 
+  create_table "schedules", :force => true do |t|
+    t.integer  "user_id",    :limit => 11
+    t.text     "courses"
+    t.integer  "quarter",    :limit => 11
+    t.integer  "year",       :limit => 11
+    t.string   "name"
+    t.integer  "rank",       :limit => 11
+    t.boolean  "grab_bag"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "teacher_infos", :force => true do |t|
     t.integer  "teacher_id", :limit => 11
     t.string   "office"
@@ -127,6 +141,7 @@ ActiveRecord::Schema.define(:version => 20081223164058) do
     t.string   "department"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "other"
   end
 
   create_table "teacher_reviews", :force => true do |t|
@@ -161,6 +176,8 @@ ActiveRecord::Schema.define(:version => 20081223164058) do
     t.datetime "updated_at"
     t.string   "remember_token"
     t.datetime "remember_token_expires_at"
+    t.datetime "last_used"
+    t.boolean  "tmp_user"
   end
 
 end

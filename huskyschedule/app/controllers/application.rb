@@ -19,4 +19,16 @@ class ApplicationController < ActionController::Base
   # Uncomment this to filter the contents of submitted sensitive data parameters
   # from your application log (in this case, all fields with names like "password"). 
   # filter_parameter_logging :password
+  before_filter :validate_access
+  
+  def validate_access
+    if logged_in?
+      #check is done continue
+    else
+      self.current_user = User.create(:login=>request.remote_ip, :email => request.remote_ip, :tmp_user => true, :last_used => Time.today.utc)
+      self.current_user.remember_me
+      cookies[:auth_token] = { :value => self.current_user.remember_token , :expires => self.current_user.remember_token_expires_at }
+    end
+  end
+  
 end
