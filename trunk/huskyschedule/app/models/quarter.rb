@@ -9,7 +9,7 @@ class Quarter < ActiveRecord::Base
   QUARTER_SUMMER = 4
   CURRENT = QUARTER_AUTUMN
   
-  QUARTER_DISPLAY_NAMES = ["Autmn", "Winter", "Spring", "Summer"]
+  QUARTER_DISPLAY_NAMES = ["Autumn", "Winter", "Spring", "Summer"]
     
   QUARTER_TYPES = [
     # Displayed        stored in db
@@ -27,4 +27,13 @@ class Quarter < ActiveRecord::Base
     end
   end
   
+  def self.quarter_constant(quarter_display_name)
+    QUARTER_DISPLAY_NAMES.size.times{ |i|
+      if(QUARTER_DISPLAY_NAMES[i] == quarter_display_name)
+        return i+1
+      end
+    }
+    return -1
+  end   
+ 
 end
