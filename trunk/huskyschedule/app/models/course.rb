@@ -10,7 +10,7 @@ class Course < ActiveRecord::Base
   Course.partial_updates = false
   serialize :times
   serialize :credit_type
-  
+
   #status constants
   STATUS_CLOSED = 0
   STATUS_OPEN = 1
@@ -27,6 +27,10 @@ class Course < ActiveRecord::Base
   CREDITTYPE_D = 7
   CREDITTYPE_H = 8
   CREDITTYPE_S = 9
+  
+  def name
+    return "#{self.deptabbrev} #{self.number}"
+  end
   
   def self.get_credit_types(string_representation)
     elements = string_representation.split(",")
@@ -57,9 +61,36 @@ class Course < ActiveRecord::Base
       return "Unknown"
     end
   end
+
+end
+
+class Rendezvous
+  @times
+  @building_id
+  @room
   
-  def name
-    return "#{self.deptabriev} #{self.number}"
+  def initialize(options = {})
+    if(options[:times]!=nil)
+      if(options[:times].kind_of? Array)
+        @times = options[:times]
+      else
+        raise Exception.new("times must be an Array")
+      end
+    end
+    if(options[:building_id]!=nil)
+      if(options[:times].kind_of? FixNum)
+        @building_id = options[:building_id]
+      else
+        raise Exception.new("building_id must be an FixNum")
+      end
+    end
+    if(options[:room]!=nil)
+      if(options[:room].kind_of? String)
+        @room = options[:room]
+      else
+        raise Exception.new("room must be a String")
+      end
+    end
   end
-      
+  
 end
