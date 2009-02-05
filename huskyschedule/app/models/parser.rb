@@ -1,7 +1,7 @@
 class Parser < ActiveRecord::Base
   
   def self.category_parser(url)
-    uri = URI.parse("http://www.washington.edu/students/timeschd/WIN2009/quantsci.html")
+    uri = URI.parse("http://www.washington.edu/students/timeschd/WIN2009/chem.html")
     response = Net::HTTP.get_response(uri)
     contents = response.body.split("\n")
     i=0
@@ -55,7 +55,7 @@ class Parser < ActiveRecord::Base
         i+=1
         while(i<contents.length)
           line = contents[i]
-          matches = line.match(/NAME=([A-Za-z]+)(\d+)>/i) #<A NAME=academ198>
+          matches = line.match(/NAME=([A-Za-z]+)([0-9]+)>/i) #<A NAME=academ198>
           if(!matches.nil?) #ready to process all lectures/quiz sections of a course
             dept_abbrev = matches[1].upcase
             course_number = matches[2].to_i
@@ -110,28 +110,30 @@ class Parser < ActiveRecord::Base
       if(!lab_or_quiz)
         c.credits = get_credit_amount(line, c.sln, c.section)
         c.restricted = get_restricted(line)
+        #check_for_additional_credit_types(c, line) TODO: fix this
       end
-      check_for_additional_credit_types(c, line)
+      #check_for_additional_credit_types(c, line) do we want to do this for quiz sections?
       times = get_times(c.sln, c.section, line)
       building_id = get_building_id(line)
-      c.building_id = get_building_id(line)
+      building = Building.find_by_id(building_id)
+      #c.building_id = get_building_id(line)
       if(c.building_id != -1)
-        room = get_room_number(line, c.building.abbrev)
+        room = get_room(line, building.abbrev)
         c.teacher_id = get_teacher_id(room, line)
       else
-        room = -1
+        room = -1.to_s
       end
       c.rendezvous = [Rendezvous.new(:times=>times, :building_id=>building_id, :room=>room)]
       c.crnc = get_crnc(line)
       c.status = get_status(line)
       assign_enrollment_ratio(c, line)
+      c.description += get_course_fee(line)
       #notes
       i+=1
       notes = ""
       while(i < contents.size)
         line2 = contents[i]
         if(is_line_of_class_times(line2))
-          puts("Processing line #{line2}\n")
           process_line_of_class_times(c, line2)
         elsif(/^<\/td>/.match(line2))
           break
@@ -155,7 +157,7 @@ class Parser < ActiveRecord::Base
     i=0
     while(i<contents.length)
       line2 = contents[i]
-      matches2 = line2.match(/^<P><B><A NAME=.*#{course_number}.*>.*#{course_number}.<\/A>(.*)\(/i)
+      matches2 = line2.match(/#{course_number}\s?<\/A>\s+([^\(]+)\(/i)
       if(!matches2.nil?)
         return matches2[1].strip
       else
@@ -298,8 +300,8 @@ class Parser < ActiveRecord::Base
     end  
   end
   
-  def self.get_room_number(line, abbrev)
-    return line.match(/#{abbrev}>\s*#{abbrev}\s*<\/A>\s+([A-Z\d]+)\s+/)[1]
+  def self.get_room(line, building_abbrev)
+    return line.match(/>#{building_abbrev}<\/a>\s+([0-9A-Z]+)\s+/i)[1]
   end
   
   def self.get_teacher_id(room, line)
@@ -307,20 +309,24 @@ class Parser < ActiveRecord::Base
     if(/#{room}\s+\d+\//.match(line))
       id = -2 #no teacher assigned yet
     else
-      matches = line.match(/#{room}\s+([A-Z,\s]+)\s+[OpenClosed\d]+/)
-      if(matches.nil?)
-        matches = line.match(/<A HREF=.*>([A-Z,\s]+)<\/A>.*[OpenClosed\d]+/i)
+      name = ""
+      matches_link = line.match(/#{room}\s+<a href=.*>([A-Z-,\s\.]+)<\/a>\s+[OpenClosed0-9]+/i)
+      if(!matches_link.nil?)
+        name = matches_link[1]
+      else
+        matches_no_link = line.match(/#{room}\s+([A-Z-,\s\.]+)\s+[OpenClosed\d]+/)
+        if(!matches_no_link.nil?)
+          name = matches_no_link[1]
+        else
+          return -1 #not found
+        end
       end
-      if(matches.nil?)
-        return -1
-      end
-      name = matches[1]
       if(/,/.match(name))  #BRIGGS,DAVID G  to DAVID G BRIGGS
         name_split = name.split(",")
         name = name_split[1].strip + " " + name_split[0].strip
       end
       if(name.strip.empty?)
-        return -1
+        return -1 #not found
       else
         teacher = Teacher.find_by_name(name)
         if(!teacher.nil?)
@@ -349,7 +355,7 @@ class Parser < ActiveRecord::Base
   end
   
   def self.assign_enrollment_ratio(c, line)
-    matches = line.match(/(\d+)\/\s*(\d+)\s+/)
+    matches = line.match(/([0-9]+)\/\s*([0-9]+)E?\s+/)
     c.students_enrolled = matches[1].to_i
     c.enrollment_space = matches[2].to_i
   end
@@ -373,20 +379,32 @@ class Parser < ActiveRecord::Base
   end
 
   def self.process_line_of_class_times(c, line)
+    puts("I'm looking at line #{line}\n")
     matches = line.match(/([MTWhF]+)\s+([0-9]+)-([0-9P]+)\s+.*>([A-Z]+)<\/A>\s+([A-Z0-9]+)/)
-    days_of_week = matches[1]
-    start_time_string = matches[2]
-    end_time_string = matches[3]
-    times = build_times_array(days_of_week, start_time_string, end_time_string)
-    abbrev = matches[4]
-    building = Building.find_by_abbrev(abbrev)
-    if(building.nil?) #building is already in there
-      building = Building.create(:abbrev => abbrev)
-      building.save()
+    if(!matches.nil?)
+      days_of_week = matches[1]
+      start_time_string = matches[2]
+      end_time_string = matches[3]
+      times = build_times_array(days_of_week, start_time_string, end_time_string)
+      abbrev = matches[4]
+      building = Building.find_by_abbrev(abbrev)
+      if(building.nil?) #building is already in there
+        building = Building.create(:abbrev => abbrev)
+        building.save()
+      end
+      room = matches[5]
+      c.rendezvous.push(Rendezvous.new(:times=>times, :room=>room, :building_id=>building.id))
+    end  
+  end 
+  
+  def self.get_course_fee(line)
+    matches = line.match(/\s+\$([0-9]+)\s+/)
+    if(!matches.nil?)
+      return "Course fee: $#{matches[1]}."
+    else
+      return ""
     end
-    room = matches[5]
-    c.rendezvous.push(Rendezvous.new(:times=>times, :room=>room, :building_id=>building.id))  
-  end  
+  end 
   
   def self.check_for_additional_credit_types(c, line)
     #TODO: Finish this
