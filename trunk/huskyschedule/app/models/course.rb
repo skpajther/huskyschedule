@@ -20,21 +20,28 @@ class Course < ActiveRecord::Base
   #credit type contants
   CREDITTYPE_NW = 0
   CREDITTYPE_QSR = 1
-  CREDITTYPE_W = 2
-  CREDITTYPE_IS = 3 #I&S
-  CREDITTYPE_J = 4
-  CREDITTYPE_UNKNOWN = 5
-  CREDITTYPE_NOTLISTED = 6
-  CREDITTYPE_D = 7
-  CREDITTYPE_H = 8
-  CREDITTYPE_S = 9
+  CREDITTYPE_IS = 2 #I&S
+  CREDITTYPE_VLPA = 3
+  CREDITTYPE_UNKNOWN = 4
+  CREDITTYPE_NOTLISTED = 5
+  CREDITTYPE_C = 6 #composition
+  
+  #special char contstants
+  ADDITIONALINFO_D = 0 #Distance learning (51% or more of the course instruction for this course is through some mode of distance learning) 
+  ADDITIONALINFO_H = 1 #Honors section
+  ADDITIONALINFO_J = 2 #Offered jointly with another course
+  ADDITIONALINFO_R = 3 #Research
+  ADDITIONALINFO_S = 4 #Service learning
+  ADDITIONALINFO_W = 5 #Writing
+  ADDITIONALINFO_PERCENT = 6 #New course, added to the General Catalog within one academic year
+  ADDITIONALINFO_POUND = 7 #Course is not elligible for some or all types of financial aid
   
   def name
     return "#{self.deptabbrev} #{self.number}"
   end
   
   def self.get_credit_types(string_representation)
-    elements = string_representation.split(",")
+    elements = string_representation.split(/[,\/]/)
     types = []
     for element in elements
       element = element.strip
@@ -42,18 +49,53 @@ class Course < ActiveRecord::Base
         types.push(CREDITTYPE_NW)
       elsif(element == "QSR")
         types.push(CREDITTYPE_QSR)
-      elsif(element == "W")
-        types.push(CREDITTYPE_W)
       elsif(element == "I&S")
         types.push(CREDITTYPE_IS)
-      elsif(element == "J")
-        types.push(CREDITTYPE_J)
+      elsif(element == "VLPA")
+        types.push(CREDITTYPE_VLPA)
+      elsif(element == "C")
+        types.push(CREDITTYPE_C)
       else
         types.push(CREDITTYPE_UNKNOWN)
       end
     end
     return types    
   end  
+  
+  def self.get_additional_info(string) 
+    chars = string.split(//)
+    types = []
+    for char in chars
+      if(char == "D")
+        types.push(ADDITIONALINFO_D)
+      elsif(char == "H")
+        types.push(ADDITIONALINFO_H)
+      elsif(char == "J")
+        types.push(ADDITIONALINFO_J)
+      elsif(char == "R")
+        types.push(ADDITIONALINFO_R)
+      elsif(char == "S")
+        types.push(ADDITIONALINFO_S)
+      elsif(char == "W")
+        types.push(ADDITIONALINFO_W)
+      elsif(char == "%")
+        types.push(ADDITIONALINFO_PERCENT)
+      elsif(char == "#")
+        types.push(ADDITIONALINFO_POUND)
+      end
+    end
+    return types
+  end
+  
+  def self.get_status(line)
+    if(/Open/.match(line))
+      return STATUS_OPEN
+    elsif(/Closed/.match(line))
+      return STATUS_CLOSED
+    else
+      return STATUS_UNKNOWN
+    end    
+  end
   
   def self.quarter_disp_name(quarter_id)
     if(quarter_id > 0 && quarter_id < 6)
@@ -66,9 +108,7 @@ class Course < ActiveRecord::Base
 end
 
 class Rendezvous
-  @times
-  @building_id
-  @room
+  attr_accessor :times, :building_id, :room
   
   def initialize(options = {})
     if(options[:times]!=nil)
@@ -79,10 +119,10 @@ class Rendezvous
       end
     end
     if(options[:building_id]!=nil)
-      if(options[:times].kind_of? FixNum)
+      if(options[:building_id].kind_of? Fixnum)
         @building_id = options[:building_id]
       else
-        raise Exception.new("building_id must be an FixNum")
+        raise Exception.new("building_id must be a Fixnum")
       end
     end
     if(options[:room]!=nil)
