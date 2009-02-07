@@ -1,7 +1,7 @@
 class Parser < ActiveRecord::Base
   
   def self.category_parser(url)
-    uri = URI.parse("http://www.washington.edu/students/timeschd/WIN2009/chem.html")
+    uri = URI.parse("http://www.washington.edu/students/timeschd/WIN2009/chid.html")
     response = Net::HTTP.get_response(uri)
     contents = response.body.split("\n")
     i=0
@@ -108,10 +108,11 @@ class Parser < ActiveRecord::Base
       return i+1
     else
       if(!lab_or_quiz)
-        c.credits = get_credit_amount(line, c.sln, c.section)
+        assign_credit_amount(c, line, c.sln, c.section)
         c.restricted = get_restricted(line)
         #check_for_additional_credit_types(c, line) TODO: fix this
       end
+      c.additional_info = get_additional_info(line)
       #check_for_additional_credit_types(c, line) do we want to do this for quiz sections?
       times = get_times(c.sln, c.section, line)
       building_id = get_building_id(line)
@@ -125,9 +126,14 @@ class Parser < ActiveRecord::Base
       end
       c.rendezvous = [Rendezvous.new(:times=>times, :building_id=>building_id, :room=>room)]
       c.crnc = get_crnc(line)
-      c.status = get_status(line)
+      c.status = Course.get_status(line)
       assign_enrollment_ratio(c, line)
+      #puts("Assigned enrollment ratio correctly for #{c.inspect}\n")
+      if(c.description.nil?)
+        c.description = ""
+      end
       c.description += get_course_fee(line)
+      #puts("assigned course fee correctly, description = #{c.description}\n\n")
       #notes
       i+=1
       notes = ""
@@ -209,9 +215,16 @@ class Parser < ActiveRecord::Base
     end
   end
   
-  def self.get_credit_amount(line, sln, section)
-    matches = line.match(/#{sln}.*>.*<\/A>\s+#{section}\s+(\d)/i)
-    return matches[1].to_i
+  def self.assign_credit_amount(c, line, sln, section)
+    matches = line.match(/#{sln}.*>.*<\/A>\s+#{section}\s+([0-9-]+)/i)
+    credits = matches[1]
+    if(/-/.match(credits))
+      split = credits.split(/-/)
+      c.credits = split[0].to_i #lowest = most significant
+      c.variable_credit = split[1].to_i #highest = variable
+    else
+      c.credits = credits.to_i
+    end
   end
   
   MONDAY = Time.parse("Monday January 26, 2009")
@@ -344,16 +357,6 @@ class Parser < ActiveRecord::Base
     return !(/CR\/NC/.match(line).nil?)
   end
   
-  def self.get_status(line)
-    if(/Open/.match(line))
-      return Course::STATUS_OPEN
-    elsif(/Closed/.match(line))
-      return Course::STATUS_CLOSED
-    else
-      return Course::STATUS_UNKNOWN
-    end
-  end
-  
   def self.assign_enrollment_ratio(c, line)
     matches = line.match(/([0-9]+)\/\s*([0-9]+)E?\s+/)
     c.students_enrolled = matches[1].to_i
@@ -406,16 +409,10 @@ class Parser < ActiveRecord::Base
     end
   end 
   
-  def self.check_for_additional_credit_types(c, line)
-    #TODO: Finish this
-    if(/\sW\s/.match(line))
-      c.credit_type.push(Course::CREDITTYPE_W)
-    end
-    if(/\sJ\s/.match(line))
-      c.credit_type.push(Course::CREDITTYPE_J)
-    end
-    if(/\sD\s/.match(line))
-      c.credit_type.push(Course::CREDITTYPE_D)
+  def self.get_additional_info(line)
+    matches = line.match(/([DHJRSW%#]+)\s*$/)
+    if(!matches.nil?)
+       return Course.get_additional_info(matches[1])
     end
   end
 
