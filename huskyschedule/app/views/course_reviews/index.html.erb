@@ -5,7 +5,7 @@
             <%= mini_schedule(@course.times, {:by_hour=>false}) %>
         </td>
         <td valign="top">
-            <div>Student Reviews for <%= link_to "#{@course.deptabriev} #{@course.number}: #{@course.title}", :controller=>"courses", :action=>"index", :id=>@course.id %><br/>
+            <div>Student Reviews for <%= link_to "#{@course.deptabbrev} #{@course.number}: #{@course.title}", :controller=>"courses", :action=>"index", :id=>@course.id %><br/>
                     Reviews are not necessarily based on the specific course above, but rather the same course offered possibly a different year and or quarter.
             </div>
             <div>
