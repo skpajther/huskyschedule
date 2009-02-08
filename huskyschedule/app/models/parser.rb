@@ -1,10 +1,215 @@
 class Parser < ActiveRecord::Base
   
-  def self.category_parser(url)
-    uri = URI.parse("http://www.washington.edu/students/timeschd/WIN2009/chid.html")
+  def self.get_html_array(url)
+    uri = URI.parse(url)
     response = Net::HTTP.get_response(uri)
-    contents = response.body.split("\n")
-    i=0
+    return response.body.split("\n")
+  end
+  
+  #remove &nbps; and #amp;
+  def self.clean_text(text)
+    split = text.split("&nbsp;")
+    result = ""
+    for s in split
+      result += " " + s
+    end
+    split = result.split("&amp;")
+    if(!split.nil?)
+      result = split[0]
+      1.upto(split.length-1) { |i| result += "&" + split[i] }
+    end
+    return result.strip
+  end
+    
+#################################################################################################
+#parser for list of categories
+#################################################################################################
+  def self.time_schedule_parser(url)
+    url = "http://www.washington.edu/students/timeschd/SPR2009/"
+    sql = ActiveRecord::Base.connection();
+    sql.execute("DELETE FROM huskyschedule_development.categories")
+    #sql.execute("DELETE FROM huskyschedule_development.labs")
+    #sql.execute("DELETE FROM huskyschedule_development.courses")
+    #sql.execute("DELETE FROM huskyschedule_development.quiz_sections")
+    
+    #Undergraduate Interdisciplinary Programs
+    college = Category.create(:name=>"Undergraduate Interdisciplinary Programs")
+    category = Category.create(:name=>"University Academy", :abbrev=>"(ACADEM)", :parent_id=>college.id, :url=>"academ.html")
+    category = Category.create(:name=>"Program on the Environment", :abbrev=>"(ENVIR)", :parent_id=>college.id, :url=>"envst.html")
+    category = Category.create(:name=>"Quantitative Science (Fisheries and Forest Resources)", :abbrev=>"(Q SCI)", :parent_id=>college.id, :url=>"quantsci.html")
+    
+    #Arts & Sciences
+    college = Category.create(:name=>"College of Arts and Science")
+    top_category = Category.create(:name=>"American Ethnic Studies", :parent_id=>college.id)
+    Category.create(:name=>"Afro-American Studies", :parent_id=>top_category.id, :abbrev=>"AFRAM", :url=>"afamst.html")
+    Category.create(:name=>"American Ethnic Studies", :parent_id=>top_category.id, :abbrev=>"AES", :url=>"aes.html")
+    Category.create(:name=>"Asian-American Studies", :parent_id=>top_category.id, :abbrev=>"AAS", :url=>"asamst.html")
+    Category.create(:name=>"Chicano Studies", :parent_id=>top_category.id, :abbrev=>"CHSTU", :url=>"chist.html")
+    Category.create(:name=>"American Indian Studies", :abbrev=>"AIS", :parent_id=>college.id, :url=>"ais.html")
+    top_category = Category.create(:name=>"Anthropology", :parent_id=>college.id)
+    Category.create(:name=>"Anthropology", :abbrev=>"ANTH", :parent_id=>top_category.id, :url=>"anthro.html")
+    Category.create(:name=>"Archaeology", :abbrev=>"ARCHY", :parent_id=>top_category.id, :url=>"archeo.html")
+    Category.create(:name=>"Biocultural Anthropology", :abbrev=>"BIO A", :parent_id=>top_category.id, :url=>"bioanth.html")
+    Category.create(:name=>"Applied Mathematics", :abbrev=>"AMATH", :parent_id=>college.id, :url=>"appmath.html")
+    Category.create(:name=>"Art", :abbrev=>"ART", :parent_id=>college.id, :url=>"art.html")
+    Category.create(:name=>"Art History", :abbrev=>"ART H", :parent_id=>college.id, :url=>"arthis.html")
+    top_category = Category.create(:name=>"Asian Languages and Literature", :parent_id=>college.id)
+    Category.create(:name=>"Altai", :parent_id=>top_category.id, :abbrev=>"ALTAI", :url=>"altai.html")
+    Category.create(:name=>"Asian Languages and Literature", :parent_id=>top_category.id, :abbrev=>"ASIAN", :url=>"asianll.html")
+    Category.create(:name=>"Bengali", :parent_id=>top_category.id, :abbrev=>"BENG", :url=>"beng.html")
+    Category.create(:name=>"Chinese", :parent_id=>top_category.id, :abbrev=>"CHIN", :url=>"chinese.html")
+    Category.create(:name=>"Hindi", :parent_id=>top_category.id, :abbrev=>"HINDI", :url=>"hindi.html")
+    Category.create(:name=>"Indian", :parent_id=>top_category.id, :abbrev=>"INDN", :url=>"indian.html")
+    Category.create(:name=>"Indonesian", :parent_id=>top_category.id, :abbrev=>"INDON", :url=>"indones.html")
+    Category.create(:name=>"Japanese", :parent_id=>top_category.id, :abbrev=>"JAPAN", :url=>"japanese.html")
+    Category.create(:name=>"Korean", :parent_id=>top_category.id, :abbrev=>"KOREAN", :url=>"korean.html")
+    Category.create(:name=>"Sanskrit", :parent_id=>top_category.id, :abbrev=>"SNKRT", :url=>"sanskrit.html")
+    Category.create(:name=>"Tagalog", :parent_id=>top_category.id, :abbrev=>"TAGLG", :url=>"asamst.html") #special
+    Category.create(:name=>"Tamil", :parent_id=>top_category.id, :abbrev=>"TAMIL", :url=>"tamil.html")
+    Category.create(:name=>"Thai", :parent_id=>top_category.id, :abbrev=>"THAI", :url=>"thai.html")
+    Category.create(:name=>"Tibetan", :parent_id=>top_category.id, :abbrev=>"TIB", :url=>"tibetan.html")
+    Category.create(:name=>"Urdu", :parent_id=>top_category.id, :abbrev=>"URDU", :url=>"urdu.html")
+    Category.create(:name=>"Vietnamese", :parent_id=>top_category.id, :abbrev=>"VIET", :url=>"viet.html")
+    Category.create(:name=>"Astronomy", :abbrev=>"ASTR", :url=>"astro.html", :parent_id=>college.id)
+    Category.create(:name=>"Astrobiology", :abbrev=>"ASTBIO", :url=>"astbio.html", :parent_id=>college.id)
+    Category.create(:name=>"Atmospheric Sciences", :abbrev=>"ATM S", :url=>"atmos.html", :parent_id=>college.id)
+    Category.create(:name=>"Biology", :abbrev=>"BIOL", :url=>"biology.html", :parent_id=>college.id)
+    Category.create(:name=>"Botany", :abbrev=>"BOT", :url=>"biology.html", :parent_id=>college.id) #special
+    Category.create(:name=>"Center for Statistics and Social Sciences", :abbrev=>"CS&SS", :url=>"cs&ss.html", :parent_id=>college.id)
+    Category.create(:name=>"Center for Studies in Demography and Ecology", :abbrev=>"CSDE", :url=>"csde.html", :parent_id=>college.id)
+    Category.create(:name=>"Center for the Humanities", :abbrev=>"HUM", :url=>"centhum.html", :parent_id=>college.id)
+    Category.create(:name=>"Chemistry", :abbrev=>"CHEM", :url=>"chem.html", :parent_id=>college.id)
+    top_category = Category.create(:name=>"Classics", :parent_id=>college.id)
+    Category.create(:name=>"Classical Archaeology", :abbrev=>"CL AR", :url=>"clarch.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Classical Linguistics", :abbrev=>"CL LI", :url=>"cling.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Classics", :abbrev=>"CLAS", :url=>"clas.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Greek", :abbrev=>"GREEK", :url=>"greek.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Latin", :abbrev=>"LATIN", :url=>"latin.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Communication", :abbrev=>"COM", :url=>"com.html", :parent_id=>college.id)
+    Category.create(:name=>"Comparative History of Ideas", :abbrev=>"CHID", :url=>"chid.html", :parent_id=>college.id)
+    Category.create(:name=>"Comparative Literature", :abbrev=>"C LIT", :url=>"complit.html", :parent_id=>college.id)
+    Category.create(:name=>"Computer Science", :abbrev=>"CSE", :url=>"cse.html", :parent_id=>college.id) #special
+    Category.create(:name=>"Dance", :abbrev=>"DANCE", :url=>"dance.html", :parent_id=>college.id)
+    Category.create(:name=>"Digital Arts and Experimental Media", :abbrev=>"DXARTS", :url=>"dxarts.html", :parent_id=>college.id)
+    Category.create(:name=>"Drama", :abbrev=>"DRAMA", :url=>"drama.html", :parent_id=>college.id)
+    
+  end
+  
+  #  def self.time_schedule_parser(url)
+#    
+#    sql.execute("DELETE FROM huskyschedule_development.categories")
+#    active_subcategory = nil
+#    contents = get_html_array(url)
+#    i=0
+#    while(i < contents.length) #main loop
+#      line = contents[i]
+#      if(/^<a name=/i.match(line) && !(/<!--/.match(contents[i-1]))) #no html comment before
+#        #processing a college
+#        #<P><B><a name="O">College of Ocean and Fishery Sciences</a></B><BR>
+#        matches = line.match(/^<A name="(.*)"><B>([^<]+)</i)
+#        if(matches.nil?)
+#          matches = line.match(/^<P><B><A NAME="(.*)">([^<]+)<\/A>/i)
+#        end
+#        if(!matches.nil?)
+#          abbrev = matches[1] #what to do with this
+#          college_name = clean_text(matches[2])
+#          if(college_name == "Extended MPH Degree Program")
+#            break
+#          end
+#          puts("College name: #{college_name}\n\n")
+#          college = Category.create(:name=>college_name, :abbrev=>"College")
+#          college.save()
+#          i+=1
+#          while(i < contents.length) #ready to loop through categories of the college, <UL> loop
+#            line2 = contents[i]
+#            if(/^<UL>/i.match(line2)) #main <UL> for an entire college
+#              i+=1
+#              while(i < contents.length) #<LI> loop
+#                line3 = contents[i]
+#                if((/^<LI>.*<\/LI>/i.match(line3) && !/<a/i.match(line3)) ||
+#                   ((/^<LI>/i.match(line3) && !(/<a/i.match(line3))) || 
+#                   (/^<LI><A name/i.match(line3))) && 
+#                   !(/^<LI>.*<\/LI>/i.match(line3) && !/<a/i.match(line3))) #sub categories
+#                  matches = line3.match(/^<LI><A NAME=.*>(.*)<\/A>/i)
+#                  if(matches.nil?)
+#                    matches = line3.match(/^<LI>(.*)<\/LI>$/i)
+#                    if(matches.nil?)
+#                      matches = line3.match(/^<LI>(.*)$/i)
+#                    end
+#                  end
+#                  category_name = clean_text(matches[1].strip)
+#                  category = Category.create(:name=>category_name, :abbrev=>"Top Category")
+#                  category.parent_id = college.id
+#                  category.save()
+#                  puts("Found a topcat #{category.name}\n")
+#                  while(i < contents.length) #sub categories
+#                    line4 = contents[i]
+#                    if(/^<LI><A/.match(line4) && !(/<\/A>/.match(line4)))
+#                      i+=1
+#                      line4 += " " + contents[i]
+#                    end
+#                    matches_subcategory = line4.match(/^<LI><A HREF=([A-Za-z\.]+)>(.*)<\/A>/i)
+#                    if(!matches_subcategory.nil?)
+#                      subcategory_url = matches_subcategory[1]
+#                      subcategory_name = clean_text(matches_subcategory[2])
+#                      sub_category = Category.new(:name=>subcategory_name, :parent_id=>category.id)
+#                      sub_category.save()
+#                      puts("Found a subcat #{sub_category.name}\n\n")
+#                      #category_parser(url+subcategory_url, sub_category.id)
+#                      i+=1 #continue searching
+#                    elsif(/^<\/LI>$/i.match(line4) || /^<\/UL><\/LI>$/i.match(line4) || /^<\/UL>$/i.match(line4))
+#                      i+=1
+#                      puts("Breaking out of subcat loop i=#{i}\n\n")
+#                      break #done processing sub categories
+#                    else
+#                      i+=1
+#                    end
+#                  end #done processing sub categories
+#                elsif(/^<LI>/i.match(line3) && /^<LI><A/i.match(line3) && !(/<!--/.match(contents[i-1])) && !/see\s/i.match(line3))
+#                  if(/^<LI><A/.match(line3) && !(/<\/A>/.match(line3)))
+#                    i+=1
+#                    line3 += " " + contents[i]
+#                  end
+#                  matches = line3.match(/^<LI><A.*=([^>]+)>(.*)<\/A>/i)
+#                  category_url = matches[1]
+#                  category_name = clean_text(matches[2])
+#                  category = Category.new(:name=>category_name, :parent_id=>college.id)
+#                  category.save()
+#                  puts("Found a category #{category.name}\n\n")
+#                  #category_parser(url+category_url, category.id)
+#                  i+=1 #continue searching
+#                elsif(/^<\/UL>/i.match(line3))
+#                  puts("breaking out of college loop i=#{i}\n\n")
+#                  break #out of <LI> loop
+#                else
+#                  i+=1
+#                end
+#              end
+#            elsif(/^<\/UL>$/i.match(line2) || /^<div id="footer">/i.match(line2)) #end of this college's data
+#              break #out of <UL> loop
+#            else #if(/^<UL>/i.match(line_category))
+#              i+=1
+#            end
+#          end
+#        else #matches = line.match(/^<A name="(.*)"><B>(.*)<\/B>/i) if(!matches.nil?)
+#          i+=1
+#        end
+#      elsif(/^<div id="footer">/i.match(line))
+#        break
+#      else #if(/^<a name=/i.match(line) && !(/<!--/.match(contents[i-1]))) no html comment before
+#        i+=1
+#      end
+#    end #main while loop
+#    return "Complete."
+#  end
+    
+#################################################################################################  
+#parser for a specific category   
+#################################################################################################
+  
+  def self.category_parser(url, parent_id)
+    contents = get_html_array(url)
+    
     #variables to be filled
     quarter = Quarter::CURRENT
     year = 0
@@ -23,6 +228,8 @@ class Parser < ActiveRecord::Base
     #end variables to be filled
     
     #get category from <TITLE> tags
+    
+    i=0
     while(i<contents.length)
       line = contents[i]
       matches = line.match(/^<TITLE>(.*)<\/TITLE>$/)
@@ -47,7 +254,6 @@ class Parser < ActiveRecord::Base
       end
     end
     
-    #TODO: Course fees
     while(i<contents.length)
       line = contents[i]
       if(/^<br>$/i.match(line))
@@ -73,6 +279,7 @@ class Parser < ActiveRecord::Base
                 if(!lab_or_quiz) #lecture
                   c = Course.create(:deptabbrev=>dept_abbrev, :number=>course_number, :title=>course_title, :description=>course_description, :credit_type=>credit_type, :quarter_id=>quarter, :year=>year)
                   active_lecture = c
+                  c.parent_id = parent_id
                 elsif(/LB/.match(line2))
                   c = Lab.create(:parent_id=>active_lecture.id)
                 else
@@ -87,7 +294,7 @@ class Parser < ActiveRecord::Base
               else
                 i+=1 #continue advancing through the lines
               end
-            end #finished processing a lecture, check for quiz sections
+            end
           elsif(/^<br>$/i.match(line))
             break
           else
@@ -95,7 +302,8 @@ class Parser < ActiveRecord::Base
           end
         end #finished processing a course  
       elsif(!(line.match(/^<div id="footer"/i).nil?))
-        return "breaking"
+        message = "Finished."
+        break
       else
         i+=1 #continue advancing through the lines
       end
@@ -110,14 +318,11 @@ class Parser < ActiveRecord::Base
       if(!lab_or_quiz)
         assign_credit_amount(c, line, c.sln, c.section)
         c.restricted = get_restricted(line)
-        #check_for_additional_credit_types(c, line) TODO: fix this
       end
       c.additional_info = get_additional_info(line)
-      #check_for_additional_credit_types(c, line) do we want to do this for quiz sections?
       times = get_times(c.sln, c.section, line)
       building_id = get_building_id(line)
       building = Building.find_by_id(building_id)
-      #c.building_id = get_building_id(line)
       if(c.building_id != -1)
         room = get_room(line, building.abbrev)
         c.teacher_id = get_teacher_id(room, line)
@@ -150,6 +355,11 @@ class Parser < ActiveRecord::Base
       end
       c.notes = notes.strip
       #c.times = times
+      buildings = []
+      for rendezvous in c.rendezvous
+        buildings.push(rendezvous.building_id)
+      end
+      c.buildings = buildings
       return i
     end
   end
@@ -157,9 +367,7 @@ class Parser < ActiveRecord::Base
   def self.get_course_title(line, course_number)
     matches = line.match(/<a href=(.*#{course_number})>(.*)<\/A>/i)
     url = matches[1]
-    uri = URI.parse("http://www.washington.edu#{url}")
-    response = Net::HTTP.get_response(uri)
-    contents = response.body.split("\n")
+    contents = get_html_array("http://www.washington.edu#{url}")
     i=0
     while(i<contents.length)
       line2 = contents[i]
@@ -176,9 +384,7 @@ class Parser < ActiveRecord::Base
   def self.get_course_description(line, course_number)
     matches = line.match(/<a href=(.*#{course_number})>(.*)<\/A>/i)
     url = matches[1]
-    uri = URI.parse("http://www.washington.edu#{url}")
-    response = Net::HTTP.get_response(uri)
-    contents = response.body.split("\n")
+    contents = get_html_array("http://www.washington.edu#{url}")
     i=0
     while(i<contents.length)
       line2 = contents[i]
@@ -304,10 +510,10 @@ class Parser < ActiveRecord::Base
     if(!matches.nil?)
       building_abbrev = matches[1]
       building = Building.find_by_abbrev(building_abbrev)
-      if(building.nil?) #building is already in there
+      if(building.nil?) #building not already in there
         building = Building.create(:abbrev => building_abbrev)
       end
-       return building.id
+      return building.id
     else
       return -1
     end  
@@ -342,12 +548,10 @@ class Parser < ActiveRecord::Base
         return -1 #not found
       else
         teacher = Teacher.find_by_name(name)
-        if(!teacher.nil?)
-          id = teacher.id
-        else
+        if(teacher.nil?)
           teacher = Teacher.create(:name => name)
-          id = teacher.id
         end
+        id = teacher.id
       end
     end
     return id
@@ -382,7 +586,6 @@ class Parser < ActiveRecord::Base
   end
 
   def self.process_line_of_class_times(c, line)
-    puts("I'm looking at line #{line}\n")
     matches = line.match(/([MTWhF]+)\s+([0-9]+)-([0-9P]+)\s+.*>([A-Z]+)<\/A>\s+([A-Z0-9]+)/)
     if(!matches.nil?)
       days_of_week = matches[1]
@@ -393,7 +596,6 @@ class Parser < ActiveRecord::Base
       building = Building.find_by_abbrev(abbrev)
       if(building.nil?) #building is already in there
         building = Building.create(:abbrev => abbrev)
-        building.save()
       end
       room = matches[5]
       c.rendezvous.push(Rendezvous.new(:times=>times, :room=>room, :building_id=>building.id))
