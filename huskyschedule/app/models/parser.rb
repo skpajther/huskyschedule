@@ -390,6 +390,45 @@ class Parser < ActiveRecord::Base
     Category.create(:name=>"Health Services", :abbrev=>"HSERV", :url=>"hlthsvcs.html", :parent_id=>top_category.id)
     Category.create(:name=>"Health Services Management", :abbrev=>"HSMGMT", :url=>"hsmgmt.html", :parent_id=>top_category.id)
     Category.create(:name=>"Pathobiology", :abbrev=>"PABIO", :url=>"pathobio.html", :parent_id=>college.id)
+    
+    #Reserve Officers Training Corps Programs
+    college = Category.create(:name=>"Reserve Officers Training Corps Programs")
+    Category.create(:name=>"Aerospace Studies", :abbrev=>"A S", :url=>"88aerosci.html", :parent_id=>college.id)
+    Category.create(:name=>"Military Science", :abbrev=>"M SCI", :url=>"88milsci.html", :parent_id=>college.id)
+    Category.create(:name=>"Naval Science", :abbrev=>"N SCI", :url=>"88navsci.html", :parent_id=>college.id)
+    
+    #School of Social Work
+    college = Category.create(:name=>"School of Social Work")
+    Category.create(:name=>"Social Welfare BASW", :abbrev=>"SOC WF", :url=>"socwlbasw.html", :parent_id=>college.id)
+    Category.create(:name=>"Social Welfare", :abbrev=>"SOC WL", :url=>"socwl.html", :parent_id=>college.id)
+    Category.create(:name=>"Social Work (MSW)", :abbrev=>"SOC W", :url=>"socwk.html", :parent_id=>college.id)
+    
+    #Extended MPH Degree Program
+    college = Category.create(:name=>"Extended MPH Degree Program")
+    top_category = Category.create(:name=>"School of Public Health", :parent_id=>college.id)
+    Category.create(:name=>"Biostatistics", :abbrev=>"BIOST", :url=>"94biostat.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Environmental Health", :abbrev=>"ENV H", :url=>"94envh.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Epidemiology", :abbrev=>"EPI", :url=>"94epidem.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Public Health Genetics", :abbrev=>"PHG", :url=>"94phg.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Health Services", :abbrev=>"HSERV", :url=>"94hlthsvcs.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Health Services Management", :abbrev=>"HSMGMT", :url=>"94hsmgmt.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Nutritional Science", :abbrev=>"NUTR", :url=>"94nutrit.html", :parent_id=>top_category.id)
+    
+    #Friday Harbor Laboratories
+    college = Category.create(:name=>"Friday Harbor Laboratories")
+    top_category = Category.create(:name=>"College of Arts and Sciences", :parent_id=>college.id)
+    Category.create(:name=>"Biology", :abbrev=>"BIOL", :url=>"91biology.html", :parent_id=>top_category.id)
+    top_category = Category.create(:name=>"College of Ocean and Fishery Sciences", :parent_id=>college.id)
+    Category.create(:name=>"Aquatic and Fishery Sciences", :abbrev=>"FISH", :url=>"91fish.html", :parent_id=>top_category.id)
+    Category.create(:name=>"School of Marine Affairs", :abbrev=>"SMA", :url=>"91marine.html", :parent_id=>top_category.id)
+    Category.create(:name=>"Oceanography", :abbrev=>"OCEAN", :url=>"91ocean.html", :parent_id=>top_category.id)
+    
+    #process each category
+    categories = Category.find_by_sql("SELECT * FROM huskyschedule_development.categories WHERE url!=''")
+    for category in categories
+      category_parser(url+category.url, category.id)
+    end
+    
   end
   
   #  def self.time_schedule_parser(url)
