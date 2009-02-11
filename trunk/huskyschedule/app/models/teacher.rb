@@ -7,6 +7,32 @@ class Teacher < ActiveRecord::Base
   serialize :photolocation_vote_map
   serialize :user_vote_map
   
+  
+  #Constants
+  TEACHER_NOTLISTED = -2 #no teacher assigned yet
+  TEACHER_NOTFOUND = -1 #Regex failed
+  
+  def self.get_teacher_id(name)
+    name = prepare_name(name)
+    if(name.empty?)
+      return TEACHER_NOTFOUND
+    else
+      teacher = Teacher.find_by_name(name)
+      if(teacher.nil?)
+        teacher = Teacher.create(:name=>name)
+      end
+      return teacher.id   
+    end    
+  end
+  
+  def self.prepare_name(name)
+    if(/,/.match(name))  #BRIGGS,DAVID G  to DAVID G BRIGGS
+       name_split = name.split(",")
+       name = name_split[1].strip + " " + name_split[0].strip
+    end
+    return name.strip
+  end
+  
   def courses_present(year, quarter)
     Course.find(:all, :conditions => {:teacher_id=>self.id, :year=>year, :quarter_id=>quarter})
   end
