@@ -6,7 +6,7 @@ class Parser < ActiveRecord::Base
     return response.body.split("\n")
   end
   
-  #remove &nbps; and #amp;
+  #remove &nbps; and &amp;
   def self.clean_text(text)
     split = text.split("&nbsp;")
     result = ""
@@ -25,9 +25,35 @@ class Parser < ActiveRecord::Base
 #parser for list of categories
 #################################################################################################
   def self.time_schedule_parser(url)
-    url = "http://www.washington.edu/students/timeschd/SPR2009/"
+    contents = get_html_array(url)
+    quarter = -1
+    year = -1
+    
+    #get quarter, year
+    i=0
+    while(i < contents.length)
+      matches = contents[i].match(/^<H1>University of Washington Time Schedule<BR>([^\s]+)\s+Quarter\s+([0-9]+)<\/H1>$/i)
+      if(!matches.nil?)
+        quarter = Quarter.quarter_constant(matches[1])
+        year = matches[2].to_i
+        break
+      else
+        i+=1
+      end
+    end
+    
+    #Clear out all the data for the current schedule
     sql = ActiveRecord::Base.connection();
-    sql.execute("DELETE FROM huskyschedule_development.categories")
+    courses = Category.find_by_sql("SELECT * FROM courses WHERE quarter_id = #{quarter} AND year = #{year}")
+    for c in courses
+      sql.execute("DELETE FROM labs WHERE parent_id = #{c.id}")
+      sql.execute("DELETE FROM quiz_sections WHERE parent_id = #{c.id}")
+      sql.execute("DELETE FROM courses WHERE id = #{c.id}")
+    end
+    
+    #TODO remove this
+    sql.execute("DELETE FROM categories")
+    sql.execute("DELETE FROM teachers")
     
     #Undergraduate Interdisciplinary Programs
     college = Category.create(:name=>"Undergraduate Interdisciplinary Programs")
@@ -361,7 +387,7 @@ class Parser < ActiveRecord::Base
     
     #College of Ocean and Fishery Sciences
     college = Category.create(:name=>"College of Ocean and Fishery Sciences")
-    Category.create(:name=>"Aquatic and Fishery Sciences", :abbrev=>"FISH", :url=>"fish.html", :parent_id=>college.id)
+    cat = Category.create(:name=>"Aquatic and Fishery Sciences", :abbrev=>"FISH", :url=>"fish.html", :parent_id=>college.id)
     Category.create(:name=>"School of Marine Affairs", :abbrev=>"SMA", :url=>"marine.html", :parent_id=>college.id)
     Category.create(:name=>"Oceanography", :abbrev=>"OCEAN", :url=>"ocean.html", :parent_id=>college.id)
     
@@ -423,13 +449,16 @@ class Parser < ActiveRecord::Base
     Category.create(:name=>"School of Marine Affairs", :abbrev=>"SMA", :url=>"91marine.html", :parent_id=>top_category.id)
     Category.create(:name=>"Oceanography", :abbrev=>"OCEAN", :url=>"91ocean.html", :parent_id=>top_category.id)
     
-    #process each category
+    #process each category (DO VERK)
     categories = Category.find_by_sql("SELECT * FROM huskyschedule_development.categories WHERE url!=''")
     for category in categories
-      category_parser(url+category.url, category.id)
+      category_parser(url+category.url, quarter, year, category.id)
     end
     
+    #category_parser("http://www.washington.edu/students/timeschd/SPR2009/fish.html", 3, 2009, cat.id)
+  
   end
+
   
   #  def self.time_schedule_parser(url)
 #    
@@ -543,52 +572,15 @@ class Parser < ActiveRecord::Base
 #parser for a specific category   
 #################################################################################################
   
-  def self.category_parser(url, parent_id)
+  def self.category_parser(url, quarter, year, parent_id)
     contents = get_html_array(url)
     
     #variables to be filled
-    quarter = Quarter::CURRENT
-    year = 0
-    category = ""
-    course_number = 0
-    dept_abbrev = ""
-    course_title = ""
-    course_description = ""
-    credit_type = ""
-    restricted = false
-    section = ""
-    sln = 0
-    creditAmount = 0
     message = ""
     active_lecture = nil
     #end variables to be filled
     
-    #get category from <TITLE> tags
-    
-    i=0
-    while(i<contents.length)
-      line = contents[i]
-      matches = line.match(/^<TITLE>(.*)<\/TITLE>$/)
-      if(!matches.nil?)
-        category = matches[1]
-        break
-      else
-        i+=1
-      end
-    end
-    
-    #get quarter, year from <h1> tags
-    while(i<contents.length)
-      line = contents[i]
-      matches = line.match(/^<h1>([A-Za-z]+).*(\d\d\d\d).*<\/h1>$/)
-      if(!matches.nil?)
-         quarter = Quarter.quarter_constant(matches[1])
-         year = matches[2].to_i
-         break
-      else
-        i+=1
-      end
-    end
+    i=0 #main counter for the parser
     
     while(i<contents.length)
       line = contents[i]
@@ -599,14 +591,15 @@ class Parser < ActiveRecord::Base
           line = contents[i]
           matches = line.match(/NAME=([A-Za-z]+)([0-9]+)>/i) #<A NAME=academ198>
           if(!matches.nil?) #ready to process all lectures/quiz sections of a course
-            dept_abbrev = matches[1].upcase
+            dept_abbrev = matches[1].upcase #TODO only find this once
             course_number = matches[2].to_i
             course_title = get_course_title(line, course_number)
             course_description = get_course_description(line, course_number)
             credit_type = get_credit_type(line)
+            puts("CREDIT TYPE = #{credit_type} for #{dept_abbrev} #{course_number}\n")
             while(i<contents.length) #ready to start gathering data about the lectures/sections
               line2 = contents[i]
-              matches2 = line2.match(/SLN=(\d+)>/i)
+              matches2 = line2.match(/SLN=([0-9]{5})>/i)
               if(!matches2.nil?) #process this class's data
                 sln = matches2[1].to_i
                 section = get_section(line2, sln)
@@ -618,7 +611,7 @@ class Parser < ActiveRecord::Base
                   c.parent_id = parent_id
                 elsif(/LB/.match(line2))
                   c = Lab.create(:parent_id=>active_lecture.id)
-                else
+                else #quiz section
                   c = QuizSection.create(:parent_id=>active_lecture.id)
                 end
                 c.sln = sln
@@ -659,11 +652,15 @@ class Parser < ActiveRecord::Base
       times = get_times(c.sln, c.section, line)
       building_id = get_building_id(line)
       building = Building.find_by_id(building_id)
-      if(c.building_id != -1)
+      if(building_id != Building::BUILDING_NOTFOUND)
         room = get_room(line, building.abbrev)
-        c.teacher_id = get_teacher_id(room, line)
+        if(room != "Not listed")
+          c.teacher_id = get_teacher_id(room, line)
+        else
+          c.teacher_id = get_teacher_id_no_room(building.abbrev, line)
+        end
       else
-        room = -1.to_s
+        room = "Not listed"
       end
       c.rendezvous = [Rendezvous.new(:times=>times, :building_id=>building_id, :room=>room)]
       c.crnc = get_crnc(line)
@@ -687,14 +684,27 @@ class Parser < ActiveRecord::Base
         end
         i+=1
       end
-      c.notes = notes.strip
-      #c.times = times
+      c.notes = check_notes(notes)
+      c.times = times
       buildings = []
       for rendezvous in c.rendezvous
         buildings.push(rendezvous.building_id)
       end
       c.buildings = buildings
       return i
+    end
+  end
+  
+  def self.check_notes(notes)
+    split = notes.split("\377") #stupid edge case
+    if(split.length > 0)
+      result = ""
+      for s in split
+        result += " " + s.strip
+      end
+      return result.strip
+    else
+      return notes.strip
     end
   end
   
@@ -733,7 +743,7 @@ class Parser < ActiveRecord::Base
   end
   
   def self.get_credit_type(line)
-    matches = line.match(/<b>\((.*)\)<\/b>/i)
+    matches = line.match(/<b>\(([^\)]+)\)<\/b>/i)
     if(!matches.nil?)
       return Course.get_credit_types(matches[1])
     else
@@ -746,8 +756,7 @@ class Parser < ActiveRecord::Base
   end
   
   def self.get_section(line, sln)
-    matches = line.match(/#{sln}.*>.*<\/A>\s(\S{1,2})/i)
-    matches2 = line.match(/<\/A>\s\S{1,2}\s/)
+    matches = line.match(/#{sln}<\/A>\s([A-Z0-9]+)\s+/i)
     if(!matches.nil?)
        return matches[1]
     else
@@ -756,14 +765,24 @@ class Parser < ActiveRecord::Base
   end
   
   def self.assign_credit_amount(c, line, sln, section)
-    matches = line.match(/#{sln}.*>.*<\/A>\s+#{section}\s+([0-9-]+)/i)
-    credits = matches[1]
-    if(/-/.match(credits))
-      split = credits.split(/-/)
-      c.credits = split[0].to_i #lowest = most significant
-      c.variable_credit = split[1].to_i #highest = variable
+    matches = line.match(/>#{sln}<\/A>\s+#{section}\s+([0-9-]+)/i)
+    if(matches.nil?)
+      matches2 = line.match(/#{sln}.*>.*<\/A>\s+#{section}\s+[^\d]+/i) #"VAR" or something else
+      if(!matches2.nil?)
+        c.credits = 1
+        c.variable_credit = 11 #Max # of credits i've seen
+      else
+        c.credits = -1 #error
+      end
     else
-      c.credits = credits.to_i
+      credits = matches[1]
+      if(/-/.match(credits))
+        split = credits.split(/-/)
+        c.credits = split[0].to_i #lowest = most significant
+        c.variable_credit = split[1].to_i #highest = variable
+      else
+        c.credits = credits.to_i
+      end
     end
   end
   
@@ -843,27 +862,25 @@ class Parser < ActiveRecord::Base
     matches = line.match(/>([A-Z]{2,5})</)
     if(!matches.nil?)
       building_abbrev = matches[1]
-      building = Building.find_by_abbrev(building_abbrev)
-      if(building.nil?) #building not already in there
-        building = Building.create(:abbrev => building_abbrev)
-      end
-      return building.id
+      puts("BUILDING ABBREV = #{building_abbrev}")
+      return Building.get_building_id(building_abbrev)
     else
-      return -1
+      return Building::BUILDING_NOTFOUND
     end  
   end
   
   def self.get_room(line, building_abbrev)
-    return line.match(/>#{building_abbrev}<\/a>\s+([0-9A-Z]+)\s+/i)[1]
+    matches = line.match(/>#{building_abbrev}<\/a>\s+([0-9A-Z]+)\s+/i)
+    return (matches.nil?)? "Not listed" : matches[1]
   end
   
   def self.get_teacher_id(room, line)
     id = 0
     if(/#{room}\s+\d+\//.match(line))
-      id = -2 #no teacher assigned yet
+      return Teacher::TEACHER_NOTLISTED 
     else
       name = ""
-      matches_link = line.match(/#{room}\s+<a href=.*>([A-Z-,\s\.]+)<\/a>\s+[OpenClosed0-9]+/i)
+      matches_link = line.match(/#{room}\s+<a href=.*>([^<]+)<\/a>\s+[OpenClosed0-9]+/i)
       if(!matches_link.nil?)
         name = matches_link[1]
       else
@@ -871,24 +888,29 @@ class Parser < ActiveRecord::Base
         if(!matches_no_link.nil?)
           name = matches_no_link[1]
         else
-          return -1 #not found
+          return Teacher::TEACHER_NOTFOUND
         end
       end
-      if(/,/.match(name))  #BRIGGS,DAVID G  to DAVID G BRIGGS
-        name_split = name.split(",")
-        name = name_split[1].strip + " " + name_split[0].strip
-      end
-      if(name.strip.empty?)
-        return -1 #not found
-      else
-        teacher = Teacher.find_by_name(name)
-        if(teacher.nil?)
-          teacher = Teacher.create(:name => name)
-        end
-        id = teacher.id
-      end
+      return Teacher.get_teacher_id(name)
     end
-    return id
+  end
+  
+  #for when the room number isn't given
+  def self.get_teacher_id_no_room(building_abbrev, line)
+    id = 0
+    matches_link = line.match(/>#{building_abbrev}<\/A>\s+<A HREF=.*>([^<]+)<\/A>/i)
+    name = ""
+    if(matches_link.nil?)
+      matches_no_link = line.match(/<#{building_abbrev}<\/A>\s+([A-Z-,\s\.]+)\s+[OpenClosed\d]+/i)
+      if(matches_no_link.nil?)
+        return Teacher::TEACHER_NOTFOUND
+      else
+        name = matches_no_link[1]
+      end
+    else
+      name = matches_link[1]
+    end
+    return Teacher.get_teacher_id(name)
   end
   
   def self.get_crnc(line)
