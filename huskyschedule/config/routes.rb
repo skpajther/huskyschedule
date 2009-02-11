@@ -1,5 +1,10 @@
 ActionController::Routing::Routes.draw do |map|
   
+  map.category_parser "parser/parse",
+        :controller => "parser",
+        :action => "parse",
+        :method => "get"
+  
 
   # The priority is based upon order of creation: first created -> highest priority.
 
