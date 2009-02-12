@@ -2,11 +2,9 @@ class Teacher < ActiveRecord::Base
   
   has_many :courses
   
-  
   Teacher.partial_updates = false
   serialize :photolocation_vote_map
   serialize :user_vote_map
-  
   
   #Constants
   TEACHER_NOTLISTED = -2 #no teacher assigned yet
@@ -15,7 +13,7 @@ class Teacher < ActiveRecord::Base
   def self.get_teacher_id(name)
     name = prepare_name(name)
     if(name.empty?)
-      return TEACHER_NOTFOUND
+      return TEACHER_NOTFOUND #Regex failed
     else
       teacher = Teacher.find_by_name(name)
       if(teacher.nil?)
