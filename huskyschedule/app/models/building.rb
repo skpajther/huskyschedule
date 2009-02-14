@@ -13,4 +13,6 @@ class Building < ActiveRecord::Base
     return building.id
   end
   
+  
+  
 end
