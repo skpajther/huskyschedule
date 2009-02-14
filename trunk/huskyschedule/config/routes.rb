@@ -5,7 +5,12 @@ ActionController::Routing::Routes.draw do |map|
         :action => "parse",
         :method => "get"
   
-
+  map.connect_map_loader "buildings/map_loader.xml",
+    :controller => "buildings",
+    :action => "map_loader",
+    :method => "get"
+  
+    
   # The priority is based upon order of creation: first created -> highest priority.
 
   # Sample of regular route:

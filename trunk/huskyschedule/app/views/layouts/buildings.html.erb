@@ -1,5 +1,8 @@
-<%= render :partial => "layouts/header2", :locals => {}%>
-    <%= yield  %>
-<%= render :partial => "layouts/footer", :locals => {}%>
-</body>
-</html>
+<% if(controller.action_name=="map_loader") %><%= yield %>
+<% else %>
+    <%= render :partial => "layouts/header2", :locals => {}%>
+        <%= yield  %>
+    <%= render :partial => "layouts/footer", :locals => {}%>
+    </body>
+    </html>
+<% end %>

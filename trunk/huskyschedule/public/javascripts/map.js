@@ -1,52 +1,79 @@
 //GLOBAL VARIABLES
 var map;
 var markers;
+var selectedMarker;
 var currentMapType;
-var smallMapControl;
 var icon;
 var uw_center;
 var center;
-var selectedMarker;
+var displayCenter;
+var width;
+var height;
+var opening;
 //END GLOBAL VARIABLES
-		
-function initialize() {
-	 if(GBrowserIsCompatible()) {
-	 	initializeFields();
+	
+//window.onresize = function(){ resizer(); };
+	
+function initialize(abbrev, path) {
+	if(GBrowserIsCompatible()) {
+		initializeFields(path);
+ 		prepareMap();
+ 		setMinimumZoomLevels();
+ 		calculateDimensions();
 	 	mapListeners();
-		loadMarkers();
+		loadMarkers(abbrev, path);
+	}
+	else {
+		alert("Your browser is incompatible. Please use IE, Firefox, Chrome, or if nothing else, Safari.");
 	}
 }
 		
 function prepareMap() {
 	map = new GMap2(document.getElementById("map"));
-	map.setCenter(center, 16); //UW campus
+	map.setCenter(center, 17); //UW campus
 	map.addMapType(G_SATELLITE_MAP);
 	map.addMapType(G_HYBRID_MAP);
 	map.removeMapType(G_NORMAL_MAP);
 	map.setMapType(currentMapType);
 	map.enableContinuousZoom();
 	map.enableScrollWheelZoom();
-	map.addControl(smallMapControl, new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(10, 10)));
+	map.addControl(new GSmallMapControl(), new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(10, 10)));
 	map.addControl(new GMapTypeControl());
-	//document.getElementById("map").style.backgroundColor = 'white';
 	var customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
 	map.addMapType(customMapType);
 }
 		
-function initializeFields() {
+function initializeFields(path) {
 	currentMapType = G_SATELLITE_MAP;
-	center = new GLatLng(47.6544,-122.3080);
-	uw_center = new GLatLng(1.93359375,-5.2734375);
-	smallMapControl = new GSmallMapControl();
-	prepareMap();
+	//center = new GLatLng(47.6544,-122.3080);
+	center = new GLatLng(47.6538037015491, -122.30777084827423);
+	//uw_center = new GLatLng(1.93359375,-5.2734375);
+	uw_center = new GLatLng(-5.5810546875, -10.37109375);
 	markers = new Array();
-	makeIcon();
+	makeIcon(path);
+	displayCenter = center;
+	opening = false;
 }
 
-function makeIcon() {
+function calculateDimensions() {
+	var bounds = map.getBounds();
+	var sw = bounds.getSouthWest();
+	var ne = bounds.getNorthEast();
+	height = ne.lat() - sw.lat();
+	width = ne.lng() - sw.lng();
+}
+
+function setMinimumZoomLevels() {
+	var mapTypes = map.getMapTypes();
+	mapTypes[0].getMinimumResolution = function() { return 15; } //G_SATELLITE_MAP
+	mapTypes[1].getMinimumResolution = function() { return 15; } //G_HYBRID_MAP
+	mapTypes[2].getMinimumResolution = function() { return 3; }  //UW Map
+}
+
+function makeIcon(path) {
 	icon = new GIcon();
-	icon.image = "./images/maps/wlogo.gif";
-	icon.transparent = "./images/maps/wlogo_onclick.png";
+	icon.image = path+"images/map/wlogo.gif";
+	icon.transparent = path+"images/map/wlogo_onclick.png";
 	icon.printImage = icon.image;
 	icon.mozPrintImage = icon.image;
 	icon.iconSize = new GSize(25,25);
@@ -56,123 +83,129 @@ function makeIcon() {
 	icon.maxHeight = 5;
 }
 
+function resizer() {
+	var verticalSpan = Geometry.getViewportHeight();
+	//TODO: finish this
+}
+
 function mapListeners() {
-	GEvent.addListener(map,"click", 
-		function(a,c){
-                  document.getElementById("coordinates").innerHTML = c.lat()+", "+c.lng();
-			document.getElementById("textsearchwithin").blur();   
-   			}
-	);
 	GEvent.addListener(map,"maptypechanged", 
-		function(e) {
+		function() {
 			var newMapType = map.getCurrentMapType();
 			if((newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)&&
 			  !(currentMapType==G_HYBRID_MAP || currentMapType==G_SATELLITE_MAP)) {
-				currentMapType = newMapType;
-				map.enableScrollWheelZoom();
-				map.setCenter(center, 17); //UW campus
-				map.addControl(smallMapControl,new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(10, 10)));
-				for(var i=0; i<markers.length; i++) {
-					var markerData = markers[i];
+			  	map.setCenter(center, 17);
+				for(i in markers) {
+					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.normal);
 				}
 			}
 			else if(!(newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)) { //custom
-				currentMapType = newMapType;
-				map.disableScrollWheelZoom();
-				map.setCenter(uw_center, 4); //middle of UW map
-				map.removeControl(smallMapControl);
-				for(var i=0; i<markers.length; i++) {
-					var markerData = markers[i];
+				map.setCenter(uw_center, 4);
+				for(i in markers) {
+					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.uw);
 				}
 			}
+			currentMapType = newMapType;
 		}
 	);
+	GEvent.addListener(map, "moveend",
+		function() {
+			displayCenter = map.getCenter();
+		}
+	);
+	
 }
 		
-function loadMarkers() {
-	//var selected = ""
-	//var url = "http://www.huskyschedule.com/infy/huskyschedule/map_loader.php";
-	if(selected.length > 0)
-		url += "?show="+selected;
-	GDownloadUrl(url, 
-		function(data) {  
-			var xml = GXml.parse(data);  
-			var data = xml.documentElement.getElementsByTagName("marker"); 
+function loadMarkers(abbrev, path) {
+	GDownloadUrl(path+"buildings/map_loader.xml", 
+		function(data) {
+			data = data.split("<respond_to?:to_xml/><to_xml/>")[0];  //remove this crap
+			var xml = GXml.parse(data);
+			var data = xml.documentElement.getElementsByTagName("building"); 
 			for (var i=0; i<data.length; i++)
-				createMarker(data[i]);
-			if(selected.length > 0) {
-				var show = xml.documentElement.getElementsByTagName("panTo");
-				openMarker(show[0].getAttribute("show"));
-			}
+				createMarker(data[i], path);
+			if(abbrev.length > 0)
+				openMarker(abbrev)
 		}
 	);
 }
 
-function createMarker(data) {
+function createMarker(data, path) {
 	var name = data.getAttribute("name");  
 	var lat = data.getAttribute("lat");
 	var lng = data.getAttribute("lng");
 	var uw_lat = data.getAttribute("uw_lat");
 	var uw_lng = data.getAttribute("uw_lng");
-	var regularPoint = new GLatLng(lat,lng);
-	var uwPoint = new GLatLng(uw_lat,uw_lng);
+	var regularPoint = new GLatLng(lat, lng);
+	var uwPoint = new GLatLng(uw_lat, uw_lng);
+	var abbrev = data.getAttribute("abbrev");
 	var gmarker = new GMarker(regularPoint, icon);
-	var abbreviation = data.getAttribute("abbreviation");
-	gmarker.title = name;
-	var html = makeMarkerHTML(name, data, abbreviation)
+	gmarker.title = abbrev;
+	var html = makeMarkerHTML(name, abbrev, path);
 	gmarker.bindInfoWindowHtml(html);
-	GEvent.addListener(gmarker,"infowindowopen",
-		function() { 
-	selectedMarker = gmarker;
-			document.getElementById("crumbs").innerHTML = "<font style='text-decoration:underline; color:blue; cursor:pointer;' onclick='clearSelected();'>Map</font>>"+name;
+	GEvent.addListener(gmarker, "click", 
+		function(e) {
+			var options = document.getElementById("mapmenu").options;
+	       	var first = 0;
+	       	var last = options.length;
+	       	var mid = 0;
+	       	while(first <= last) {
+	       		mid = Math.floor((first + last) / 2); 
+	       		var optionValue = options[mid].value;
+	       		if (optionValue == gmarker.title)
+           			break;
+           		else if(optionValue > gmarker.title) 
+           			last = mid - 1; 
+       			else
+           			first = mid + 1;     
+   			}
+   			document.getElementById("mapmenu").selectedIndex = mid;
 		}
 	);
-	GEvent.addListener(gmarker,"infowindowclose",
+	GEvent.addListener(gmarker, "infowindowclose", 
 		function() {
-			document.getElementById("crumbs").innerHTML = "Map";
+			if(!opening)
+				document.getElementById("mapmenu").selectedIndex = -1;
+			selectedMarker = null;
+		}
+	);
+	GEvent.addListener(gmarker, "infowindowopen",
+		function() {
+			selectedMarker = gmarker;
 		}
 	);
 	map.addOverlay(gmarker);
-	markers.push( {marker:gmarker, name:name, abbrev:abbreviation, normal:regularPoint, uw:uwPoint, html:html} );
+	markers[abbrev] = {marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html};
 }
 
-function makeMarkerHTML(name, data, abbreviation) {
-	var picture = data.getAttribute("picture");
+function makeMarkerHTML(name, abbrev, path) {
+    var picture = abbrev + ".JPG";
 	var html = "<html>\n";
-	html += "\t<b>"+name+"&nbsp;("+abbreviation+")</b><br>\n";
+	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
+	html += "<div style='height:210px;width:300px;'>";
 	if(picture.length > 0) {
-		var picture_path = "./images/maps/building_pictures/" + picture;
-		var large_picture_path = "./images/maps/building_pictures_large/" + picture;
-		html += "\t<center><a href=\""+large_picture_path+"\" target=\"_blank\"><img src=\""+picture_path+"\" width=\"300\" height\"199\" border=\"0\"></a></center><br>\n";
+		var picture_path = path+"images/buildings/small/" + picture;
+		html += "<img src=\""+picture_path+"\" width=\"300\" height\"199\" border=\"0\"><br>\n";
 	}
-	html += "\t<a href=\"./building.php?building="+abbreviation+"\"><font style='color:blue; text-decoration:underline;'>View more info</font></a>&nbsp;<b><font style='color:red;'>New!</font></b><br><br>\n";
-	html += "\t<center><img src=\"./images/poweredby290.jpg\" width=\"190\" height=\"30\" /></center>\n";
-	html += "</html>";
+	html += "</div>\n</html>";
 	return html;
 }       
 
-function openMarker(given_abbrev) {
-	for(var i=0; i<markers.length; i++) {
-		var m = markers[i];
-		if(m.abbrev == given_abbrev) {
-			document.getElementById("crumbs").innerHTML = "<font style='text-decoration:underline; color:darkblue; cursor:pointer;' onclick='clearSelected();'>Map</font>>"+m.name;
-			if(currentMapType == G_SATELLITE_MAP || currentMapType == G_HYBRID_MAP)
-				map.panTo(m.normal);
-			else //custon
-				map.panTo(m.uw);
-			m.marker.openInfoWindowHtml(m.html);
-			selectedMarker = m.marker;
-			break;
-		}
-	}
-} 
+function openMarker(abbrev) {
+	element = markers[abbrev];
+	if(currentMapType == G_SATELLITE_MAP || currentMapType == G_HYBRID_MAP)
+		map.panTo(element.normal);
+	else //UW Map
+		map.panTo(element.uw);
+	opening = true;
+	element.marker.openInfoWindowHtml(element.html);
+	opening = false;
+}
 
 function clearSelected() {
-	selectedMarker.closeInfoWindow();
-	selectedMarker = null;
-	document.getElementById("crumbs").innerHTML = "Map";
+	map.closeInfoWindow();
 	if(currentMapType == G_HYBRID_MAP || currentMapType == G_SATELLITE_MAP)
 		map.panTo(center);
 	else
