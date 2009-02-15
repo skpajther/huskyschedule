@@ -34,5 +34,9 @@ class BuildingsController < ApplicationController
       format.xml{render :xml => @xml }
     end
   end
+  
+  def search_results
+    @buildings = Building.search(params[:search_text])
+  end
 
 end

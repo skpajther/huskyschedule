@@ -4,7 +4,7 @@
 <!-- Last updated: February 6, 2009 -->
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-   <link rel="SHORTCUT ICON" href="favicon.gif" />
+   <link rel="SHORTCUT ICON" href="<%= url_for(:controller=>"/", :only_path=>false) %>/images/favicon.gif" />
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
    <title>HuskySchedule :: Map</title>
    <%= stylesheet_link_tag 'default_style.css'%>
@@ -25,7 +25,7 @@
 <li id="space2"></li>
 <li id="classes"><a href="classes.html"><span class="normal" title="Current class schedule with reviews">Classes</span></a></li>
 <li id="teachers"><a href="teachers.html" title="Search for and rate instructors and professors."><span class="normal">Teachers</span></a></li>
-<li><a href="map.html" title="Navigate the UW Seattle campus with ease."><span class="normal" id="me">Map</span></a></li>
+<li><a href="map" title="Navigate the UW Seattle campus with ease."><span class="normal" id="me">Map</span></a></li>
 <li><a href="myschedule.html" title="Organize a custom class schedule."><span class="normal">mySchedule</span></a></li>
 <li id="space3"></li>
 <li id="search"><input type="text" title="Search" value="Search" /></li>
