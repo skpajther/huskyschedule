@@ -1,4 +1,4 @@
-<% if(controller.action_name=="map_loader") %><%= yield %>
+<% if(controller.action_name=="map_loader" || controller.action_name=="search_results") %><%= yield %>
 <% else %>
     <%= render :partial => "layouts/header2", :locals => {}%>
         <%= yield  %>

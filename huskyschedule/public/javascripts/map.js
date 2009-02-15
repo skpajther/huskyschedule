@@ -1,15 +1,23 @@
 //GLOBAL VARIABLES
 var map;
-var markers;
-var selectedMarker;
-var currentMapType;
+var markers; //holds the markers
+var selectedMarker; //the open marker
+var currentMapType; //the maptype in use
 var icon;
-var uw_center;
-var center;
-var displayCenter;
-var width;
+var uw_center; //center of UW Map
+var center; //center of G_SATELLITE_MAP & G_HYBRID_MAP
+var displayCenter; //center of the map the user has moved to
+var width; 
 var height;
-var opening;
+var opening; //currently opening a marker, avoid certain behavior
+var displayingSearchResults;
+var markerOpen; //true if a marker is open
+var mapDiv; //div that holds the map
+var searchResultsDiv; //div that holds the search restuls
+var contentDiv; //div that holds all the content
+var buildingsListDiv; //div with all the building options
+var searchStartDate; //when we started a search
+var breadcrumbsDiv; //div with the breadcrumbs
 //END GLOBAL VARIABLES
 	
 //window.onresize = function(){ resizer(); };
@@ -24,7 +32,7 @@ function initialize(abbrev, path) {
 		loadMarkers(abbrev, path);
 	}
 	else {
-		alert("Your browser is incompatible. Please use IE, Firefox, Chrome, or if nothing else, Safari.");
+		alert("Your browser is incompatible. Please use IE, Firefox, Chrome, Safari, or Opera.");
 	}
 }
 		
@@ -52,7 +60,12 @@ function initializeFields(path) {
 	markers = new Array();
 	makeIcon(path);
 	displayCenter = center;
-	opening = false;
+	mapDiv = document.getElementById("map");
+	searchResultsDiv = document.getElementById("searchResults");
+	contentDiv = document.getElementById("content");
+	contentDiv.removeChild(searchResultsDiv);
+	buildingsListDiv = document.getElementById("mapmenu");
+	breadcrumbsDiv = document.getElementById("crumbs");
 }
 
 function calculateDimensions() {
@@ -94,17 +107,29 @@ function mapListeners() {
 			var newMapType = map.getCurrentMapType();
 			if((newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)&&
 			  !(currentMapType==G_HYBRID_MAP || currentMapType==G_SATELLITE_MAP)) {
-			  	map.setCenter(center, 17);
-				for(i in markers) {
+			  	for(i in markers) {
 					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.normal);
 				}
+				if(markerOpen) {
+					map.setZoom(17);
+					openMarker(selectedMarker.abbrev);
+				}
+				else {
+					map.setCenter(center, 17);
+				}
 			}
 			else if(!(newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)) { //custom
-				map.setCenter(uw_center, 4);
 				for(i in markers) {
 					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.uw);
+				}
+				if(markerOpen) {
+					openMarker(selectedMarker.abbrev);
+					map.setZoom(4);
+				}
+				else {
+					map.setCenter(uw_center, 4);
 				}
 			}
 			currentMapType = newMapType;
@@ -142,42 +167,42 @@ function createMarker(data, path) {
 	var uwPoint = new GLatLng(uw_lat, uw_lng);
 	var abbrev = data.getAttribute("abbrev");
 	var gmarker = new GMarker(regularPoint, icon);
-	gmarker.title = abbrev;
+	gmarker.abbrev = abbrev;
+	gmarker.title = name;
 	var html = makeMarkerHTML(name, abbrev, path);
 	gmarker.bindInfoWindowHtml(html);
 	GEvent.addListener(gmarker, "click", 
 		function(e) {
-			var options = document.getElementById("mapmenu").options;
-	       	var first = 0;
-	       	var last = options.length;
-	       	var mid = 0;
-	       	while(first <= last) {
-	       		mid = Math.floor((first + last) / 2); 
-	       		var optionValue = options[mid].value;
-	       		if (optionValue == gmarker.title)
-           			break;
-           		else if(optionValue > gmarker.title) 
-           			last = mid - 1; 
-       			else
-           			first = mid + 1;     
-   			}
-   			document.getElementById("mapmenu").selectedIndex = mid;
+			buildingsListDiv.selectedIndex = getOptionIndex(gmarker.abbrev);
 		}
 	);
 	GEvent.addListener(gmarker, "infowindowclose", 
 		function() {
-			if(!opening)
-				document.getElementById("mapmenu").selectedIndex = -1;
+			if(!opening) {
+				buildingsListDiv.selectedIndex = -1;
+				breadcrumbsDiv.innerHTML = crumbs();
+			}
+			markerOpen = false;
 			selectedMarker = null;
 		}
 	);
 	GEvent.addListener(gmarker, "infowindowopen",
 		function() {
 			selectedMarker = gmarker;
+			markerOpen = true;
+			breadcrumbsDiv.innerHTML = crumbsPlus(gmarker.title);
 		}
 	);
 	map.addOverlay(gmarker);
 	markers[abbrev] = {marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html};
+}
+
+function crumbsPlus(append) {
+	return crumbs() + " > " + append;
+}
+
+function crumbs() {
+	return "<a href='index.html'>Home</a> > <a href='#' onclick='if(displayingSearchResults) { hideResultsClearSelected(); } else { clearSelected(); }'>Map</a>";
 }
 
 function makeMarkerHTML(name, abbrev, path) {
@@ -194,6 +219,11 @@ function makeMarkerHTML(name, abbrev, path) {
 }       
 
 function openMarker(abbrev) {
+	if(displayingSearchResults) {
+		contentDiv.removeChild(searchResultsDiv);
+		contentDiv.appendChild(mapDiv);
+		displayingSearchResults = false;
+	}
 	element = markers[abbrev];
 	if(currentMapType == G_SATELLITE_MAP || currentMapType == G_HYBRID_MAP)
 		map.panTo(element.normal);
@@ -204,10 +234,97 @@ function openMarker(abbrev) {
 	opening = false;
 }
 
+function searchFor(searchField, URL) {
+	if(searchField != "") {
+		buildingsListDiv.options.selectedIndex = -1;
+		XMLHttpPost(URL + "?search_text=" + searchField);
+	}	
+}
+
+function XMLHttpPost(strURL) {
+	var xmlHttpReq = null;
+    var self = this;
+    if (window.XMLHttpRequest) // Mozilla/Safari
+        self.xmlHttpReq = new XMLHttpRequest();
+    else if (window.ActiveXObject) // Old IE
+        self.xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+    if(self.xmlHttpReq != null) {
+	    self.xmlHttpReq.open('GET', strURL, true);
+	    self.xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	    self.xmlHttpReq.onreadystatechange = function() {
+	        if (self.xmlHttpReq.readyState == 4) {
+	        	if(self.xmlHttpReq.status == 200)
+	            	showResults(self.xmlHttpReq.responseText);
+	            else
+	            	alert("Problem retrieving AJAX data");
+	        }
+	    }
+	    searchStartDate = new Date();
+	    self.xmlHttpReq.send(null);
+	}
+	else {
+		alert("Sorry, this browser does not support AJAX.");
+	}
+}
+
+function showResults(results) {
+	if(displayingSearchResults) {
+		contentDiv.removeChild(searchResultsDiv);
+	}
+	else {
+		map.closeInfoWindow();
+		contentDiv.removeChild(mapDiv);
+		displayingSearchResults = true;
+	}
+	breadcrumbsDiv.innerHTML = crumbsPlus("Search Results");
+	var deltaMillis = (new Date()).getTime() - searchStartDate.getTime();
+	var deltaSeconds = deltaMillis / 1000;
+	results += "<br><br>Completed in " + deltaSeconds + " seconds.";
+	searchResultsDiv.innerHTML = results;
+	contentDiv.appendChild(searchResultsDiv);
+}	
+
+function hideResultsOpenMarker(abbrev) {
+	contentDiv.removeChild(searchResultsDiv);
+	contentDiv.appendChild(mapDiv);
+	displayingSearchResults = false;
+	buildingsListDiv.selectedIndex = getOptionIndex(abbrev);
+	openMarker(abbrev);
+}
+
+function hideResultsClearSelected() {
+	contentDiv.removeChild(searchResultsDiv);
+	contentDiv.appendChild(mapDiv);
+	breadcrumbsDiv.innerHTML = crumbs();
+	displayingSearchResults = false;
+	buildingsListDiv.selectedIndex = -1;
+	if(currentMapType == G_HYBRID_MAP || currentMapType == G_SATELLITE_MAP)
+		map.panTo(center);
+	else
+		map.panTo(uw_center);
+}
+
 function clearSelected() {
 	map.closeInfoWindow();
 	if(currentMapType == G_HYBRID_MAP || currentMapType == G_SATELLITE_MAP)
 		map.panTo(center);
 	else
 		map.panTo(uw_center);
+}
+
+function getOptionIndex(abbrev) {
+	var options = buildingsListDiv.options;
+	var first = 0;
+   	var last = options.length;
+   	while(first <= last) {
+   		var mid = Math.floor((first + last) / 2); 
+   		var optionValue = options[mid].value;
+   		if (optionValue == abbrev)
+   			return mid;
+   		else if(optionValue > abbrev) 
+   			last = mid - 1; 
+		else
+    		first = mid + 1;     
+	}
+	return -1;
 }
