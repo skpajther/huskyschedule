@@ -1,6 +1,167 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
   
+def military_to_standard_hour(hour)
+  if(hour>12)
+    hour -= 12
+  end
+  return hour
+end
+
+def generate_schedule(rendezvous, options={})
+  by_hour = true
+  show_times = true
+  show_days = true
+  show_text_schedule = true
+  start_hour = 7
+  end_hour = 20
+  
+  if(options[:by_hour]!=nil)
+    by_hour = options[:by_hour]
+  end
+  if(options[:start_hour]!=nil && options[:start_hour].kind_of?(Fixnum))
+    start_hour = options[:start_hour]
+  end
+  if(options[:end_hour]!=nil && options[:end_hour].kind_of?(Fixnum))
+    end_hour = options[:end_hour]
+  end
+  if(options[:show_times]!=nil)
+    show_times = options[:show_times]
+  end
+  if(options[:show_days]!=nil)
+    show_days = options[:show_days]
+  end
+  if(options[:show_text_schedule]!=nil)
+    show_text_schedule = options[:show_text_schedule]
+  end
+  
+  default_rowspan = (by_hour)? 2 : 1;
+  
+  rows = []
+  6.times{|j|
+    span_count = 0
+    ((end_hour-start_hour)*2).times{|i|
+      if(i%2==0)
+        if(j==0)
+          if(show_times)
+            rows[i] = "<tr><td rowspan=#{default_rowspan} class='time'>#{military_to_standard_hour(start_hour+(i/2))}:00</td>"
+            if(by_hour)
+              rows[i+1] = "<tr>"
+            else
+              rows[i+1] = "<tr><td rowspan=#{default_rowspan} class='time'>#{military_to_standard_hour(start_hour+(i/2))}:30</td>"
+            end
+          else
+            rows[i] = "<tr>"
+            rows[i+1] = "<tr>"
+          end
+        else
+          if(span_count==0 && rendezvous!=nil)
+            place_half = false
+            for rende in rendezvous
+              k = 0
+              while(k < rende.times.size)
+                if(rende.times[k][0].wday == j && rende.times[k][0].hour == (start_hour+(i/2)))
+                  if(rende.times[k][0].min < 20)
+                    span_count = 2*(rende.times[k][1].hour - rende.times[k][0].hour)
+                  elsif(rende.times[k][0].min >= 20)
+                    span_count = 2*(rende.times[k][1].hour - rende.times[k][0].hour)
+                    place_half = true
+                  end
+                  if(rende.times[k][1].min >= 20)
+                    span_count += 1
+                  end
+                end
+                k+=1
+              end
+            end
+            if(span_count>0)
+              if(place_half)
+                rows[i] += "<td rowspan=1 class='half'></td>"
+                if(span_count>1)
+                  rows[i+1] += "<td rowspan=#{span_count-1} class='class'></td>"
+                end
+              else
+                rows[i] += "<td rowspan=#{span_count} class='class'></td>"
+              end
+            end
+          end
+          if(span_count == 0)
+            rows[i] += "<td rowspan=#{default_rowspan} class='normal'></td>"
+            if(!by_hour)
+              rows[i+1] += "<td rowspan=#{default_rowspan} class='normal'></td>"
+            end
+          elsif(span_count > 0)
+            if(span_count==1)
+              rows[i+1] += "<td rowspan=1 class='halfsize'></td>"
+              span_count = 0
+            else
+              span_count -= 2
+            end
+          end
+        end
+      end
+    }
+  }
+  st = "<table #{(by_hour)? 'class="smallschedule"' : ''}> \n"
+  days = "<tr> \n
+            #{(show_times)? '<td class=\'blank\'></td>' : ''}
+            <td class='important tableheader'>M</td> \n
+            <td class='important tableheader'>Tu</td> \n
+            <td class='important tableheader'>W</td> \n
+            <td class='important tableheader'>Th</td> \n
+            <td class='important tableheader'>F</td> \n
+          </tr> \n"
+  if(show_days)
+    st += days
+  end
+  rows.size.times{|i|
+  st += rows[i]+"</tr> \n"
+  }
+  st += "</table>"
+  buildings_hash = {}
+  if(show_text_schedule && rendezvous!=nil)
+    for rende in rendezvous
+      if(!buildings_hash.key?([rende.building_id, rende.room]))
+        buildings_hash[[rende.building_id, rende.room]] = {}
+      end
+      times_hash = buildings_hash[[rende.building_id, rende.room]]
+      for duration in rende.times
+        found = false
+        times_hash.each_key{|k| if(k[0].hour == duration[0].hour && k[0].min == duration[0].min && k[1].hour == duration[1].hour && k[1].min == duration[1].min)
+                                  times_hash[k].push(duration[0].wday)
+                                  found = true
+                                  break
+                                end
+                           }
+        if(!found)
+          times_hash[duration] = [duration[0].wday]
+        end
+      end
+    end
+    text_sched = ""
+    buildings_hash.each_key{|k| 
+      if(k[0]<0)
+        building_abbrev = "Unknown"
+        building_id = -1
+      else
+        building = Building.find(k[0])
+        building_abbrev = building.abbrev
+        building_id = building.id
+      end
+      text_sched += "#{link_to(building_abbrev, :controller=>'buildings', :action=>'map', :id=>building_id)} #{k[1]}:\t"
+      buildings_hash[k].each_key{|duration|
+                                  wdayst = ""
+                                  wdays = ["Su", "M", "Tu", "W", "Th", "F", "Sa"]
+                                  buildings_hash[k][duration].each{|d| wdayst += " #{wdays[d]}"}
+                                  text_sched += "#{wdayst} #{duration[0].strftime('%I:%M')}-#{duration[1].strftime('%I:%M')}<br/>"
+                                }
+      
+                           }
+    st += "<div class='classtime'>#{text_sched}</div>"
+  end
+  return st
+end
+
 def mini_schedule(times, options={})
     by_hour = true
     start_hour = 7

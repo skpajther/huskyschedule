@@ -12,7 +12,7 @@
 
 body {
 overflow-y: scroll;
-background-image: url(bg.gif);
+background-image: url(../images/bg.gif);
 background-repeat: repeat-x;
 margin-top: 2px;
 margin-bottom: 0px;
@@ -253,14 +253,14 @@ color: #999999;
 }
 
 #home span {
-background: transparent url(logo2.gif) no-repeat 0 0;
+background: transparent url(../images/logo2.gif) no-repeat 0 0;
 float: left;
 width: 160px;
 color: #552277;
 }
 
 #home span:hover {
-background: url(logo2.gif) no-repeat 0 -30px;
+background: url(../images/logo2.gif) no-repeat 0 -30px;
 }
 
 .topbar a, span {
@@ -409,7 +409,7 @@ color: #C5B358;
 font: 0.8em arial, sans-serif;
 color: #ffffff;
 margin: 10px 0 0 0;
-background: url('credits.png') #552277;
+background: url('../images/credits.png') #552277;
 text-align: center;
 width: 60px;
 height: 60px;
@@ -434,7 +434,7 @@ width: 529px;
 }
 
 .classfullness {
-background: url('seating.png') #552277;
+background: url('../images/seating.png') #552277;
 width: 60px;
 height: 60px;
 margin: 10px 0 0 0;
@@ -442,11 +442,11 @@ float: left;
 }
 
 .full {
-background: url('seating.png') #ad0000;
+background: url('../images/seating.png') #ad0000;
 }
 
 .semifull {
-background: url('seating.png') #c5b538;
+background: url('../images/seating.png') #c5b538;
 }
 
 .numerator {
@@ -609,12 +609,12 @@ text-decoration: none;
 }
 
 #section0, #section1, #section2, #section3, #section4, #section5, #section6, #section7, #section8, #section9 {
-background-image: url('transparent.png');
+background-image: url('../images/transparent.png');
 }
 
 .classtime2 input {
 border: 1px solid #552277;
-background: #552277 url(transparent.png);
+background: #552277 url(../images/transparent.png);
 font: 1em arial, sans-serif;
 font-weight: bold;
 color: #552277;
@@ -716,7 +716,7 @@ color: #ffffff;
 }
 
 #tabs li a:hover {
-background: url('tab.gif') #c5b358;
+background: url('../images/tab.gif') #c5b358;
 }
 
 #tabbedwindow {
@@ -737,11 +737,11 @@ text-align: left;
 }
 
 .tabme {
-background: url('tab.gif') #C5B358;
+background: url('../images/tab.gif') #C5B358;
 }
 
 .normtab {
-background: url('tab.gif') #552277;
+background: url('../images/tab.gif') #552277;
 }
 
 .hidden {

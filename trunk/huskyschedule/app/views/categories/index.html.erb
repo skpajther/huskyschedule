@@ -1,101 +1,76 @@
-<div id="apDiv3">
-    <table width="955" height="300" border="0" cellpadding="0" cellspacing="0">
-      <tr>
-        <td width="160" valign="top">
-            <table width="160" border="0" cellpadding="3" cellspacing="0" bgcolor="#DED1ED">
-                <tr>
-                    <td bgcolor="#412164">
-                        <% if(@category!=nil) %>
-                            <b><font color="#ffffff"><%= @category.name %></font></b>
-                        <% end %>
-                    </td>
-                </tr>
-                <% if(@category!=nil) %>
-                  <% for child in @category.children %>
-                    <tr>
-                        <td>
-                            <%= link_to child.name, :controller=>"categories", :action=>"index", :id=>child.id %>
-                        </td>
-                    </tr>
-                  <% end %>
-                <% end %>
-            </table>
-        </td>
-        <td width="768" align="left" valign="top" >
-          <div align="left">
-            <table width="100%" height="181" border="0" cellpadding="0" cellspacing="0">
-              <tr>
-                <td height="18" align="left" valign="top">
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td align="left">
-                           <%= link_to "Home" %>
-                    	   <% while (parent = @familypath.pop)!=nil %>
-                    	       > <%= link_to parent.name, :controller=>"categories", :action=>"index", :id=>parent.id %>
-                    	   <% end %>
-                    	</td>
-                    </tr>
-                    <tr>
-					    <td align="right">
-					       put page numbers here
-					    </td>
-			  		</tr>
-                    <tr>
-                    	<td align="right">
-                    	   <input name="textsearchwithin" type="text" id="textsearchwithin" value="Search Within">
-                           <select name="classperpage" id="classperpage">
-                        	  <option selected>Best Class Rating</option>
-                        	  <option>Best Teacher Rating</option>
-                        	  <option>Number of Credits</option>
-                        	  <option>Credit Type</option>
-                        	  <option>Earliest</option>
-                        	  <option>Latest</option>
-                   	       </select>
-                           <select onChange="onPerPageChange(this.options[this.selectedIndex].value,<?php echo($startclass);?>);" name="sortby" id="sortby">
-                        	  <option value="5" <?php if($classesperpage==5)echo("selected"); ?>>5</option>
-                        	  <option value="10" <?php if($classesperpage==10)echo("selected");?>>10</option>
-                        	  <option value="20" <?php if($classesperpage==20)echo("selected");?>>20</option>
-                              <option value="50" <?php if($classesperpage==50)echo("selected");?>>50</option>
-                           </select>                       	
-                        </td>
-                    </tr>
-                  </table>
-            	</tr>
-              <tr>
-                <td height="118" align="left" valign="top">
-                  <table width="100%" border="1" cellpadding="10" cellspacing="0" bordercolor="#CCCCCC" FRAME=VOID RULES=ALL>
-                    <% for course in @courses %>
-                        <tr>
-                            <td align='left' bgcolor='#FFFFFF'>
-                                <table border='0' cellpadding='3' cellspacing='0'>
-    							<tr height='1'>
-    								<td rowspan='6' width = '1' align='left'><%= mini_schedule(@test_schedule) %></td>
-    								<td colspan = '3' align='left' valign='top'><%= link_to "#{course.deptabbrev} #{course.number}: #{course.title}", {:controller=>"courses", :action=>"index", :id=>course.id}, {:class=>"newlink"} %></td>
-    							</tr>
-    							<tr height='1'>
-    								<td align='left' valign='center'><%= star_ratings(course.rating) %>&nbsp;(&nbsp;<%= link_to course.total_ratings, :controller=>"course_reviews", :action=>"index", :id=>course.id %>&nbsp;)</td>
-    								<td align='left' valign='top'><img src='/images/credits/<%= course.credits %>.jpg' height='47' width='50'/></td>
-    								<td  align='left' valign='top'><%= "#{course.students_enrolled}/#{course.enrollment_space}" %></td>
-    							</tr>
-    							<tr>
-    								<td align='left' valign='top' colspan='3'><%= course.description %></td>
-    							</tr>
-    							<tr>
-    								<td colspan='2' align='left' valign='top'><table><tr><td><%= image_tag course.teacher.current_photo_location, :height=>"48px" %></td><td align='left' valign='top'><%= link_to course.teacher.name, :controller=>"teachers", :action=>"index", :id=>course.teacher.id %></td></tr></table></td>
-    								
-    							</tr>
-    							<tr><td><%= course.category.name %></td></tr>
-    							</table>
-                            </td>
-                        </tr>
+<div id="wrapper">
+    <div id="side">
+        <div id="credit_type">
+            <% for ct in Course::CREDITTYPES %>
+                <% query = "credit_type LIKE '%#{ct[1]}%'" %>
+                <% if(@limitors["custom"]!=nil && @limitors["custom"].include?(query)) %>
+                    
+                <% else %>
+                    <% if(@limitors["custom"]==nil) %>
+                        <% @limitors["custom"] = [query] %>
+                    <% else %>
+                        <% @limitors["custom"].push(query) %>
                     <% end %>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </div>
-        </td>
-        <td width="27" valign="top">&nbsp;</td>
-      </tr>
-    </table>
+                    <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                    <% if(numcourses>0) %>
+                        <%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :limitors => @limitors %>
+                    <% end %>
+                    <% @limitors["custom"].delete(query) %>
+                 <% end %>
+            <% end %>
+        </div>
+        <div id="categories">
+            <% if(@category!=nil) %>
+              <% for child in @category.children %>
+                <%= link_to child.name, :controller=>"categories", :action=>"index", :id=>child.id %>
+              <% end %>
+            <% end %>
+        </div>
+    </div>
+    <div class="content" id="content">
+        <div class="breadcrumbs">
+           <%= bread_crumbs(@category) %>
+        </div>
+        <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
+        <% for course in @courses %>
+            <div class="classcontainer">
+                <div class="sampleclassschedule">
+                    <%= generate_schedule(course.rendezvous) %>
+                </div>
+                <div class="classinformationcontainer">
+                    <div class="titlecredits">
+                        <div class="titleprofessor">
+                            <div class="title">
+                                <%= link_to "#{course.name}: #{course.title}", :controller=>"courses", :action=>"index", :id=>course.id %>
+                            </div>
+                            <div class="professor">
+                                <% if course.teacher != nil %>
+                                    <%= link_to "#{course.teacher.name}", :controller=>"teachers", :action=>"index", :id=>course.teacher.id %>
+                                <% end %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="description">
+                        <%= course.description %>
+                    </div>
+                    <% if course.students_enrolled!=nil && course.enrollment_space!=nil %>
+                        <% enroll_frac = course.students_enrolled/course.enrollment_space %>
+                        <div class="<%= (enroll_frac < 0.5)? 'classfullness' : ((enroll_frac < 0.75)? 'classfullness semi' : 'classfullness full') %>">
+                    <% else %>
+                        <div class="classfullness">
+                    <% end %>
+                        <div class="numerator"><p class="number"><%= (course.students_enrolled!=nil)? course.students_enrolled : "Unavailable" %></p>Enrolled</div>
+                        <div class="denominator"><p class="number"><%= (course.enrollment_space!=nil)? course.enrollment_space : "Unavailable" %></p>Possible</div>
+                    </div>
+                    <div class="credits"><p class="creditsnum"><%= course.credits %><%= (course.variable_credit!=nil)? "-#{course.variable_credit}" : "" %></p>Credits</div>
+                    <div id="addtoschedule">
+                        <a href=""><img src="/images/addtoschedule.gif" /></a>
+                    </div>
+                    <div class="rating">
+                        <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">
+                    </div>
+                </div>
+            </div>
+        <% end %>
+    </div>
 </div>
