@@ -25,6 +25,16 @@ class Course < ActiveRecord::Base
   CREDITTYPE_UNKNOWN = 4
   CREDITTYPE_NOTLISTED = 5
   CREDITTYPE_C = 6 #composition
+  CREDITTYPES = [
+    #Displayed      stored in db
+    ["NW (Natural World)",                           CREDITTYPE_NW], 
+    ["QSR (Quantatative Science and Resoning)",      CREDITTYPE_QSR],
+    ["I&S (Individuals and Scocieties)",             CREDITTYPE_IS],
+    ["VLPA (Visual, Literary, and Performing Arts)", CREDITTYPE_VLPA],
+    ["C (Composition)",                              CREDITTYPE_C],
+    ["Unknown",                                      CREDITTYPE_UNKNOWN],
+    ["Not Listed",                                   CREDITTYPE_NOTLISTED]
+  ]
   
   #special char contstants
   ADDITIONALINFO_D = 0 #Distance learning (51% or more of the course instruction for this course is through some mode of distance learning) 
@@ -103,6 +113,72 @@ class Course < ActiveRecord::Base
     else
       return "Unknown"
     end
+  end
+  
+  def self.find_or_count_by_limitors(options={})
+    query = ""
+    first = true
+    if(options[:limitors]!=nil)
+      limitors = options[:limitors]
+      if(limitors["custom"]!=nil)
+        for q in limitors["custom"]
+          if(first)
+            query += "#{q}"
+            first = false
+          else
+            query += " AND #{q}"
+          end
+        end
+      end
+      limitors.each_key{ |k|
+        if(k!="custom")
+          k2 = k
+          if(k=="category_id")
+            k2 = "parent_id"
+          end
+          if(first)
+            query += "courses.#{k2}='#{limitors[k]}'"
+            first = false
+          else
+            query += " AND courses.#{k2}='#{limitors[k]}'"
+          end
+        end
+      }
+    end
+    return self.find_or_count_by_sql(query, options)
+  end
+  
+  def self.find_or_count_by_sql(query, options={})
+    if(options.key?(:count_only) && options[:count_only])
+      if(query==nil || query.length == 0)
+        query = "FROM courses"
+      else
+        query = "FROM courses WHERE "+query
+      end
+      courses = Course.count_by_sql("SELECT COUNT(*) "+query)
+    else
+      order_by_str = ""
+      if(options.key?(:order_by))
+        tmp = options[:order_by].sub(/[{,(].*[},)]/, "")
+        order_by_str = " ORDER BY "+tmp
+        if(options.key?(:descending))
+          order_by_str += ((options[:descending]==false.to_s)? " ASC" : " DESC")
+        end
+      end
+      if(options.key?(:table_name) && options.key?(:foreign_key))
+        query = "SELECT courses.* FROM coursess LEFT JOIN "+options[:table_name]+" ON tasks."+options[:foreign_key]+"="+options[:table_name]+".id WHERE ("+query+")"
+      elsif(query==nil || query.length == 0)
+        query = "SELECT * FROM courses"
+      else
+        query = "SELECT * FROM courses WHERE "+query
+      end
+      if(options.key?(:page) && options[:page]!=false)
+        courses = Course.paginate_by_sql(query+order_by_str, :page => options[:page], :per_page => options[:per_page])
+      else
+        courses = Course.find_by_sql(query+order_by_str)
+      end
+    end
+    return courses
   end
 
 end

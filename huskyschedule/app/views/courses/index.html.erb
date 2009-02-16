@@ -1,60 +1,90 @@
-<%= javascript_include_tag 'SpryTabbedPanels'%>
-<div id="apDiv3">
-  <table width="958" height="172">
-    <tr>
-        <td height="36" colspan="3" valign="top"><%= bread_crumbs(@course) %></td>
-    </tr>
-   	<tr>
-        <td></td>
-   	    <td height="28" colspan="2" align="left" valign="top"><%= "#{@course.deptabbrev} #{@course.number}: #{@course.title}" %></td>
-    </tr>
-   	<tr>
-   	    <td width="37"></td>
-   	    <td valign='top' width="417">
-   	        <%= mini_schedule(@course.times, {:by_hour=>false, :end_hour=>20.5}) %>
-   	        <br/>Other Sections:
-   	    </td>
-        <td width="488" valign="top">
-            <div id="TabbedPanels1" class="TabbedPanels">
-              <ul class="TabbedPanelsTabGroup">
-                <li onclick="handleTabClicks('overview')" class="TabbedPanelsTab" id="overview" tabindex="0"><div style="width:92px; height:15px"></div></li>
-                <li onclick="handleTabClicks('classreviews')" id="classreviews" class="TabbedPanelsTab" tabindex="0"><div style="width:100px; height:15px"></div></li>
-                <li onclick="handleTabClicks('teacherreviews')" id="teacherreviews" class="TabbedPanelsTab" tabindex="0"><div style="width:112px; height:15px"></div></li>
-                <li onclick="handleTabClicks('specifications')" id="specifications" class="TabbedPanelsTab" tabindex="0"><div style="width:104px; height:15px"></div></li>
-              </ul>
-              <div class="TabbedPanelsContentGroup">
-                <div class="TabbedPanelsContent">
-                    <%= @course.description %><br/><br/>
-                    <%= image_tag @course.teacher.current_photo_location, :height=>"48px" %>&nbsp;&nbsp;&nbsp;<%= link_to @course.teacher.name, :controller=>"teachers", :action=>"index", :id=>@course.teacher.id %>
-                    <%= render :partial => "course_reviews/summary", :locals => { :course => @course, :course_reviews => [@course_reviews[0]] }%>
-                </div>
-                <div class="TabbedPanelsContent">
-                    <%= render :partial => "course_reviews/summary", :locals => { :course => @course, :course_reviews => @course_reviews }%>
-                </div>
-                <div class="TabbedPanelsContent">Content 3</div>
-                <div class="TabbedPanelsContent">Content 4</div>
-              </div>
-            </div>        
-        </td>
-    </tr>
-  </table>
+<div id="singlewrapper">
+
+<div id="addtoschedule2"><a href=""><img src="addtoschedule.gif" /></a></div>
+
+
+<%= bread_crumbs @course, false %>
+
+<div id="classschedule">
+
+<%= generate_schedule(@course.rendezvous, :by_hour=>true) %>
+<div class="classtime2">
+<div class="lecture">
+Lecture: Tu 10:30 - 11:50
 </div>
-<script type="text/javascript">
-var TabbedPanels1 = new Spry.Widget.TabbedPanels("TabbedPanels1");
-function handleTabClicks(id){
-	//alert("madeit1"+id);
-	//var tab = document.getElementById(id);
-	var hover = new Array("url('/images/tabs/Tab_overview_over.jpg')","url('/images/tabs/Tab_classreview_over.jpg')","url('/images/tabs/Tab_teacherreview_over.jpg')","url('/images/tabs/Tab_specifications_over.jpg')");
-	var normal = new Array("url('/images/tabs/Tab_overview.jpg')","url('/images/tabs/Tab_classreview.jpg')","url('/images/tabs/Tab_teacherreview.jpg')","url('/images/tabs/Tab_specifications.jpg')");
-	var ids = new Array("overview","classreviews","teacherreviews","specifications");
-	//tab.style.backgroundImage=hover[ids.indexof(id)];
-			for(var i=0;i<ids.length;i++){
-				if(ids[i] == id)
-					document.getElementById(id).style.backgroundImage=hover[i];
-				else
-					document.getElementById(ids[i]).style.backgroundImage=normal[i];
-			}
-	//tab.style.backgroundImage="url('images/Tab_overview_over.jpg')";
-	//alert("madeit"+document.getElementById(id));
-}
-</script>
+Quiz Section: M 1:30 - 2:20<input type="button" onclick="changeSection(0)" value="AA" />
+<br />
+Quiz Section: W 1:30 - 2:20<input type="button" onclick="changeSection(1)" value="AB" />
+<br />
+Quiz Section: F 1:30 - 2:20<input type="button" onclick="changeSection(2)" value="AC" />
+<br />
+</div>
+
+</div>
+
+<div id="titleabovetabbedwindow"><%= "#{@course.name}: #{@course.title}" %></div>
+
+
+
+<div id="tabs">
+<ul>
+<li class="tabme" id="overviewtab"><a href="javascript:overview();">Overview</a></li>
+<li class="normtab" id="classreviewstab"><a href="javascript:classreviews();">Class Reviews</a></li>
+<li class="normtab" id="teacherreviewstab"><a href="javascript:teacherreviews();">Teacher Reviews</a></li>
+<li class="normtab" id="maptab"><a href="javascript:map();">Map</a></li>
+</ul>
+</div>
+
+<div id="tabbedwindow"></div>
+
+<div class="hidden" id="overview">
+<p><%= @course.description %></p>
+
+<p>Teacher: <%= (@course.teacher!=nil)? @course.teacher.name : "Unknown" %></p>
+
+<p><%= @course.students_enrolled %>/<%= @course.enrollment_space %></p>
+
+</div>
+
+<div class="hidden" id="classreviews">
+
+<p>This class is an easy 4.0 for just about anybody.</p>
+
+
+</div>
+
+
+<div class="hidden" id="teacherreviews">
+
+<p>I've never had this professor before, but because it's an easy class, the professor must be awesome!</p>
+
+</div>
+
+<div class="hidden" id="mapwindow">
+
+<div id="mapname"></div>
+<img src="samplemap.jpg" style="width: 100%; margin-top: 10px;" />
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>

@@ -21,6 +21,9 @@
         </td>
     </tr>
 </table>
+<div>
+    <%= generate_schedule([Rendezvous.new(:times=>[Time.parse("Monday February 9 2009 10:30 am"), Time.parse("Monday February 9 2009 10:00 pm"), Time.parse("Wednesday February 11 2009 10:30 am"), Time.parse("Wednesday February 11 2009 1:30 pm")])], {:show_times=>true}) %>
+</div>
 
 <script type="text/javascript">
     <% if @grab_bag != nil && @grab_bag.get_courses != nil %>

@@ -1,8 +1,6 @@
 <% if(controller.action_name=="map_loader" || controller.action_name=="search_results") %><%= yield %>
 <% else %>
-    <%= render :partial => "layouts/header2", :locals => {}%>
+    <%= render :partial => "layouts/header2", :locals => {:title=>"HuskySchedule :: Buildings"}%>
         <%= yield  %>
     <%= render :partial => "layouts/footer", :locals => {}%>
-    </body>
-    </html>
 <% end %>
