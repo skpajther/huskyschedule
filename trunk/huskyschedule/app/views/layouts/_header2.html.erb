@@ -23,7 +23,6 @@
 <li id="space"></li>
 <li id="home"><a href="index.html"><span class="normal"> </span></a></li>
 <li id="space2"></li>
-<<<<<<< .mine
 <li id="classes"><a href="<%= url_for :controller=>"categories", :action=>"index" %>"><span class="normal" title="Current class schedule with reviews" <%= (controller.controller_name == "Courses" || controller.controller_name == "categories")? "id='me'" : "" %>>Classes</span></a></li>
 <li id="teachers"><a href="<%= url_for :controller=>"teachers", :action=>"index" %>" title="Search for and rate instructors and professors."><span class="normal" <%= (controller.controller_name == "teachers")? "id='me'" : "" %>>Teachers</span></a></li>
 <li><a href="<%= url_for :controller=>"buildings", :action=>"map" %>" title="Navigate the UW Seattle campus with ease."><span class="normal" <%= (controller.controller_name == "buildings")? "id='me'" : "" %>>Map</span></a></li>

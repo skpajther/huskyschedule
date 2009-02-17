@@ -1,8 +1,9 @@
 <div id="wrapper">
     <div id="side">
         <div id="credit_type">
+            <% first = true %>
             <% for ct in Course::CREDITTYPES %>
-                <% query = "credit_type LIKE '%#{ct[1]}%'" %>
+                <% query = "courses.credit_type LIKE '%#{ct[1]}%'" %>
                 <% if(@limitors["custom"]!=nil && @limitors["custom"].include?(query)) %>
                     
                 <% else %>
@@ -13,17 +14,56 @@
                     <% end %>
                     <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
                     <% if(numcourses>0) %>
-                        <%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :limitors => @limitors %>
+                        <% if(first) %>
+                            Credit Types
+                            <ul>
+                            <% first = false %>
+                        <% end %>
+                        <li><%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :limitors => @limitors %></li>
                     <% end %>
                     <% @limitors["custom"].delete(query) %>
                  <% end %>
             <% end %>
+            </ul>
         </div>
+        
+        <div id="credit_amount">
+            <% if(@limitors["credits"]==nil) %>
+                <% first = true %>
+                <% 6.times{|i| %>
+                    <% @limitors["credits"] = i %>
+                    <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                    <% if(numcourses>0) %>
+                        <% if(first) %>
+                            Credit Amount
+                            <ul>
+                            <% first = false %>
+                        <% end %>
+                        <li><%= link_to "#{i} credits (#{numcourses})", :controller=>"categories", :action=>"index", :limitors=>@limitors %></li>
+                    <% end %>
+                    <% @limitors.delete("credits") %>
+                <% } %>
+                </ul>
+            <% end %>
+        </div>
+        
         <div id="categories">
+            <% if(@category.children.size>0) %>
+                Categories
+                <ul>
+            <% end %>
             <% if(@category!=nil) %>
               <% for child in @category.children %>
-                <%= link_to child.name, :controller=>"categories", :action=>"index", :id=>child.id %>
+                <% @limitors["parent_id"] = child.id %>
+                <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                <% if(numcourses>0) %>
+                    <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :id=>child.id, :limitors=>@limitors %></li>
+                <% end %>
+                <% @limitors.delete("parent_id") %>
               <% end %>
+            <% end %>
+            <% if(@category.children.size>0) %>
+                </ul>
             <% end %>
         </div>
     </div>

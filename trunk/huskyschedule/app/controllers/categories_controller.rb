@@ -12,11 +12,29 @@ class CategoriesController < ApplicationController
         curr = curr.parent
       end
       
-      if(params[:limitors]!=nil)
-        params[:limitors]["category_id"] = @category.id
+      if(@category.children.size>0)
+        query = "courses.parent_id IN (#{@category.children.map{|child| child.id }.inspect.delete!('[]')})"
+        if(params[:limitors]!=nil)
+          if(params[:limitors]["custom"]!=nil && params[:limitors]["custom"].include?(query))
+            #do nothing the query is already here
+          else
+            if(params[:limitors]["custom"]==nil)
+              params[:limitors]["custom"] = [query]
+            else
+              params[:limitors]["custom"].push(query)
+            end
+          end
+        else
+          params[:limitors] = {:custom=>[query]}
+        end
       else
-        params[:limitors] = {"category_id" => @category.id}
+        if(params[:limitors]!=nil)
+          params[:limitors]["category_id"] = @category.id
+        else
+          params[:limitors] = {"category_id" => @category.id}
+        end
       end
+      
       if(!params.key?(:page) || params[:page]=="")
         params[:page] = 1
       end
