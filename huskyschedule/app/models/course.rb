@@ -27,13 +27,13 @@ class Course < ActiveRecord::Base
   CREDITTYPE_C = 6 #composition
   CREDITTYPES = [
     #Displayed      stored in db
-    ["NW (Natural World)",                           CREDITTYPE_NW], 
-    ["QSR (Quantatative Science and Resoning)",      CREDITTYPE_QSR],
-    ["I&S (Individuals and Scocieties)",             CREDITTYPE_IS],
-    ["VLPA (Visual, Literary, and Performing Arts)", CREDITTYPE_VLPA],
-    ["C (Composition)",                              CREDITTYPE_C],
-    ["Unknown",                                      CREDITTYPE_UNKNOWN],
-    ["Not Listed",                                   CREDITTYPE_NOTLISTED]
+    ["NW",          CREDITTYPE_NW], 
+    ["QSR",         CREDITTYPE_QSR],
+    ["I&S",         CREDITTYPE_IS],
+    ["VLPA",        CREDITTYPE_VLPA],
+    ["C",           CREDITTYPE_C],
+    ["Unknown",     CREDITTYPE_UNKNOWN],
+    ["Not Listed",  CREDITTYPE_NOTLISTED]
   ]
   
   #special char contstants
