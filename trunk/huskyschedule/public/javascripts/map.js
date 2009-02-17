@@ -207,12 +207,13 @@ function crumbs() {
 
 function makeMarkerHTML(name, abbrev, path) {
     var picture = abbrev + ".JPG";
+    var picture_path = path + "images/buildings/small/" + picture;
 	var html = "<html>\n";
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
-	html += "<div style='height:210px;width:300px;'>";
+	html += "<div style='height:210px;width:300px;text-align:center;'>";
 	if(picture.length > 0) {
 		var picture_path = path+"images/buildings/small/" + picture;
-		html += "<img src=\""+picture_path+"\" width=\"300\" height\"199\" border=\"0\"><br>\n";
+		html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	}
 	html += "</div>\n</html>";
 	return html;
@@ -239,6 +240,27 @@ function searchFor(searchField, URL) {
 		buildingsListDiv.options.selectedIndex = -1;
 		XMLHttpPost(URL + "?search_text=" + searchField);
 	}	
+}
+
+function fileExists(url) {
+	var oHttp = null;
+	if (window.XMLHttpRequest) // Mozilla/Safari
+        oHttp = new XMLHttpRequest();
+    else if (window.ActiveXObject) // Old IE
+        oHttp = new ActiveXObject("Microsoft.XMLHTTP");
+    if(oHttp != null) {
+    	oHttp.open("HEAD", url, false);
+		oHttp.onreadystatechange = function() {
+			if(oHttp.readyState == 4) {
+		 		return oHttp.status != 404; //404 = file not found
+		 	}
+		}
+		oHttp.send(null);
+	} 
+	else {
+		alert("AJAX error check if file exists");
+		return false;
+	}
 }
 
 function XMLHttpPost(strURL) {
