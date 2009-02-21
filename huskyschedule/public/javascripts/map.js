@@ -53,9 +53,7 @@ function prepareMap() {
 		
 function initializeFields(path) {
 	currentMapType = G_SATELLITE_MAP;
-	//center = new GLatLng(47.6544,-122.3080);
 	center = new GLatLng(47.6538037015491, -122.30777084827423);
-	//uw_center = new GLatLng(1.93359375,-5.2734375);
 	uw_center = new GLatLng(-5.5810546875, -10.37109375);
 	markers = new Array();
 	makeIcon(path);
@@ -159,17 +157,18 @@ function loadMarkers(abbrev, path) {
 
 function createMarker(data, path) {
 	var name = data.getAttribute("name");  
-	var lat = data.getAttribute("lat");
-	var lng = data.getAttribute("lng");
-	var uw_lat = data.getAttribute("uw_lat");
-	var uw_lng = data.getAttribute("uw_lng");
+	var lat = parseFloat(data.getAttribute("lat"));
+	var lng = parseFloat(data.getAttribute("lng"));
+	var uw_lat = parseFloat(data.getAttribute("uw_lat"));
+	var uw_lng = parseFloat(data.getAttribute("uw_lng"));
 	var regularPoint = new GLatLng(lat, lng);
 	var uwPoint = new GLatLng(uw_lat, uw_lng);
 	var abbrev = data.getAttribute("abbrev");
 	var gmarker = new GMarker(regularPoint, icon);
+	var id = parseInt(data.getAttribute("id"));
 	gmarker.abbrev = abbrev;
 	gmarker.title = name;
-	var html = makeMarkerHTML(name, abbrev, path);
+	var html = makeMarkerHTML(name, abbrev, path, id);
 	gmarker.bindInfoWindowHtml(html);
 	GEvent.addListener(gmarker, "click", 
 		function(e) {
@@ -205,7 +204,7 @@ function crumbs() {
 	return "<a href='index.html'>Home</a> > <a href='#' onclick='if(displayingSearchResults) { hideResultsClearSelected(); } else { clearSelected(); }'>Map</a>";
 }
 
-function makeMarkerHTML(name, abbrev, path) {
+function makeMarkerHTML(name, abbrev, path, id) {
     var picture = abbrev + ".JPG";
     var picture_path = path + "images/buildings/small/" + picture;
 	var html = "<html>\n";
@@ -215,7 +214,9 @@ function makeMarkerHTML(name, abbrev, path) {
 		var picture_path = path+"images/buildings/small/" + picture;
 		html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	}
-	html += "</div>\n</html>";
+	html += "</div>\n"
+	html += "<a href=\"" + path + "buildings/index?id=" + id + "\">View Building Details</a>\n";
+	html += "</html>";
 	return html;
 }       
 
@@ -242,51 +243,46 @@ function searchFor(searchField, URL) {
 	}	
 }
 
-function fileExists(url) {
-	var oHttp = null;
-	if (window.XMLHttpRequest) // Mozilla/Safari
-        oHttp = new XMLHttpRequest();
-    else if (window.ActiveXObject) // Old IE
-        oHttp = new ActiveXObject("Microsoft.XMLHTTP");
-    if(oHttp != null) {
-    	oHttp.open("HEAD", url, false);
-		oHttp.onreadystatechange = function() {
-			if(oHttp.readyState == 4) {
-		 		return oHttp.status != 404; //404 = file not found
-		 	}
-		}
-		oHttp.send(null);
-	} 
-	else {
-		alert("AJAX error check if file exists");
-		return false;
-	}
-}
-
 function XMLHttpPost(strURL) {
-	var xmlHttpReq = null;
-    var self = this;
-    if (window.XMLHttpRequest) // Mozilla/Safari
-        self.xmlHttpReq = new XMLHttpRequest();
-    else if (window.ActiveXObject) // Old IE
-        self.xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
-    if(self.xmlHttpReq != null) {
-	    self.xmlHttpReq.open('GET', strURL, true);
-	    self.xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-	    self.xmlHttpReq.onreadystatechange = function() {
-	        if (self.xmlHttpReq.readyState == 4) {
-	        	if(self.xmlHttpReq.status == 200)
-	            	showResults(self.xmlHttpReq.responseText);
+	var xmlHttpReq = getXmlHttp();
+    if(xmlHttpReq != null) {
+	    xmlHttpReq.open('GET', strURL, true);
+	    xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	    xmlHttpReq.onreadystatechange = function() {
+	        if (xmlHttpReq.readyState == 4) {
+	        	if(xmlHttpReq.status == 200)
+	            	showResults(xmlHttpReq.responseText);
 	            else
 	            	alert("Problem retrieving AJAX data");
 	        }
 	    }
 	    searchStartDate = new Date();
-	    self.xmlHttpReq.send(null);
+	    xmlHttpReq.send(null);
 	}
 	else {
 		alert("Sorry, this browser does not support AJAX.");
 	}
+}
+
+function getXmlHttp() {
+	var xmlHttp;
+	try {
+ 		xmlHttp = new XMLHttpRequest(); // Firefox, Opera 8.0+, Safari
+  	}
+	catch(e) { // Internet Explorer
+  		try {
+    		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+    	}
+  		catch(e) {
+    		try {
+      			xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+      		}
+    		catch(e) {
+      			alert("Sorry, your browser does not support AJAX. This feature is unavailable.");
+      		}
+    	}
+  	}
+  	return xmlHttp;
 }
 
 function showResults(results) {
