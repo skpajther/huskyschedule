@@ -4,12 +4,14 @@ height:600px;
 float: left;
 margin-top: 10px;
 }
+
 #searchResults {
 width:744px;
 min-height:632px;
 left:10px;
 top:10px;
 }
+
 #minimap {
 width:400px;
 height:300px;

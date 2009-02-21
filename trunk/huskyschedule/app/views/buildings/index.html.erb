@@ -1,4 +1,147 @@
+<%= @searched_on %><br>
+<%= @results %>
+<% if(!(@building.nil?)) %>
 <script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTq2hRdhlyrxqNJP-kbJ_LGz2xTAhQmIySyY5okdypVbzAsga6vQ_niZw" type="text/javascript"></script>
 <%= javascript_include_tag 'gmapuploader'%>
-<%= javascript_include_tag 'map'%>
-<%= javascript_include_tag 'Geometry' %>
+<%= javascript_include_tag 'minimap'%>
+<div id="wrapper"> 
+    <div id="side"> 
+        <p>QUARTER:</p>
+            <% if(!(@distinct_quarters.nil?)) %>
+                <% for distinct_quarter in @distinct_quarters %>
+                    <% if(distinct_quarter.active) %>
+                      <div class="selected"><%= distinct_quarter.to_s %></div>
+                    <% else %>
+                      <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>@day, :quarter_id=>distinct_quarter.quarter_id, :year=>distinct_quarter.year, :view=>@view) %>"><%= distinct_quarter.to_s %></a>
+                    <% end %>
+                <% end %>
+            <% end %> 
+        <p>DAY:</p> 
+        <% if(@day == Quarter::MONDAY.wday) %>
+            <div class="selected">Monday</div>
+        <% else  %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>Quarter::MONDAY.wday, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>@view) %>">Monday</a>
+        <% end %> 
+        <% if(@day == Quarter::TUESDAY.wday) %>
+            <div class="selected">Tuesday</div>
+        <% else  %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>Quarter::TUESDAY.wday, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>@view) %>">Tuesday</a>
+        <% end %>    
+        <% if(@day == Quarter::WEDNESDAY.wday) %>
+            <div class="selected">Wednesday</div>
+        <% else  %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>Quarter::WEDNESDAY.wday, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>@view) %>">Wednesday</a>
+        <% end %>
+        <% if(@day == Quarter::THURSDAY.wday) %>
+            <div class="selected">Thursday</div>
+        <% else  %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>Quarter::THURSDAY.wday, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>@view) %>">Thursday</a>
+        <% end %>
+        <% if(@day == Quarter::FRIDAY.wday) %>
+            <div class="selected">Friday</div>
+        <% else  %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>Quarter::FRIDAY.wday, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>@view) %>">Friday</a>
+        <% end %>  
+          
+        <p>VIEW:</p>
+        <% if(@view == BuildingsController::VIEW_ALL) %>
+            <div class="selected">All (<%= (@distinct_quarter_data.courses.length + @distinct_quarter_data.quiz_sections.length + @distinct_quarter_data.labs.length).to_s %>)</div>
+        <% else %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>@day, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>BuildingsController::VIEW_ALL) %>">All (<%= (@distinct_quarter_data.courses.length + @distinct_quarter_data.quiz_sections.length + @distinct_quarter_data.labs.length).to_s %>)</a>
+       <% end %>
+       <% if(@view == BuildingsController::VIEW_LECTURES) %>
+            <div class="selected">Lectures (<%= @distinct_quarter_data.courses.length.to_s %>)</div>
+        <% else %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>@day, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>BuildingsController::VIEW_LECTURES) %>">Lectures (<%= @distinct_quarter_data.courses.length.to_s %>)</a>
+       <% end %>
+       <% if(@view == BuildingsController::VIEW_QUIZSECTIONS) %>
+            <div class="selected">Quiz Sections (<%= @distinct_quarter_data.quiz_sections.length.to_s %>)</div>
+        <% else %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>@day, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>BuildingsController::VIEW_QUIZSECTIONS) %>">Quiz Sections (<%= @distinct_quarter_data.quiz_sections.length.to_s %>)</a>
+       <% end %>
+       <% if(@view == BuildingsController::VIEW_LABS) %>
+            <div class="selected">Labs (<%= @distinct_quarter_data.labs.length.to_s %>)</div>
+        <% else %>
+            <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'index', :id=>@building.id, :day=>@day, :quarter_id=>@distinct_quarter_data.quarter_id, :year=>@distinct_quarter_data.year, :view=>BuildingsController::VIEW_LABS) %>">Labs (<%= @distinct_quarter_data.labs.length.to_s %>)</a>
+       <% end %>
+       <br />
+    </div><!--side--> 
+    <div class="content" id="content"> 
+        <div class="breadcrumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'map', :id=>(@building.id)) %>">Map</a> > <%= "#{@building.name} (#{@building.abbrev})" %></div> 
+        <!--<div class="searchmap" style="float: right; width: 300px; text-align: right;">Search Map: <input type="text"/><input type="submit" style="width: 50px;" value="Find" /></div>--> 
+        <div class="map_pictures_wrapper" style="margin-top: 10px; float: left;"> 
+            <div id="minimap"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div> 
+            <div id="building_picture" style="width:360px; float:left;"><%= image_tag("buildings/small/#{@building.abbrev}.jpg", :style=>"width:400px") %></div> 
+        </div><!--map_pictures_wrapper-->
+        <div id="building_courses"> 
+            <table> 
+                <% for time in @overall_times %> 
+                    <% minutes = time.min %>
+                    <% hour = time.hour %>
+                    <% pm = false %>
+                    <% if(hour == 12) %>
+                      <% pm = true %>
+                    <% elsif(hour > 12) %>
+                      <% pm = true %>
+                      <% hour %= 12 %>
+                    <% end %>
+                    <% time_s = hour.to_s + ":" + ((minutes==0)? "00":minutes.to_s) + " " + ((pm)? "PM":"AM") %>
+                    <tr> 
+                        <th><%= time_s %></td> 
+                        <td>
+                        <% if(@view == BuildingsController::VIEW_LECTURES || @view == BuildingsController::VIEW_ALL) %>
+                            <% @distinct_quarter_data.courses.length.times {|i| %>
+                                <% course = @distinct_quarter_data.courses[i] %>
+                                <% course.rendezvous.length.times {|j| %>
+                                    <% rendezvous_s = course.rendezvous[j] %>
+                                    <% if(rendezvous_s.building_id != @building.id) %>
+                                        <% raise Exception.new("Course with rendezvous in wrong building! #{course.sln}, #{course.quarter_id.to_s}, #{course.year.to_s}") %>
+                                    <% else %>
+                                        <% if(rendezvous_s.times[0][0].hour == time.hour && rendezvous_s.times[0][0].min == time.min) %>
+                                            <a href="<%= url_for(:controller=>'courses', :only_path=>false, :action=>'index', :id=>course.id)%>"><%= "#{course.deptabbrev} #{course.number} #{course.section}: #{course.title} (Room #{rendezvous_s.room})" %></a><br />
+                                        <% end %>
+                                    <% end %>
+                                <% } %>
+                            <% } %>
+                        <% end %>
+                        <% if(@view == BuildingsController::VIEW_QUIZSECTIONS || @view == BuildingsController::VIEW_ALL) %>
+                            <% @distinct_quarter_data.quiz_sections.length.times {|i| %>
+                                <% quiz_section = @distinct_quarter_data.quiz_sections[i] %>
+                                <% quiz_section.rendezvous.length.times {|j| %>
+                                    <% rendezvous_s = quiz_section.rendezvous[j] %>
+                                    <% if(rendezvous_s.building_id != @building.id) %>
+                                        <% raise Exception.new("QuizSection with rendezvous in wrong building! #{quiz_section.sln}, #{quiz_section.course.deptabbrev}#{quiz_section.course.number}, #{quiz_section.course.quarter_id.to_s}, #{quiz_section.course.year.to_s}") %>
+                                    <% else %>
+                                        <% if(rendezvous_s.times[0][0].hour == time.hour && rendezvous_s.times[0][0].min == time.min) %>
+                                            <a href="<%= url_for(:controller=>'courses', :only_path=>false, :action=>'index', :id=>quiz_section.course.id)%>"><%= "#{quiz_section.course.deptabbrev} #{quiz_section.course.number} #{quiz_section.section} QZ (Room #{rendezvous_s.room})" %></a><br />
+                                        <% end %>
+                                    <% end %>
+                                <% } %>
+                            <% } %>
+                        <% end %>
+                        <% if(@view == BuildingsController::VIEW_LABS || @view == BuildingsController::VIEW_ALL) %>
+                            <% @distinct_quarter_data.labs.length.times {|i| %>
+                                <% lab = @distinct_quarter_data.labs[i] %>
+                                <% lab.rendezvous.length.times {|j| %>
+                                    <% rendezvous_s = lab.rendezvous[j] %>
+                                    <% if(rendezvous_s.building_id != @building.id) %>
+                                        <% raise Exception.new("Lab with rendezvous in wrong building! #{lab.sln}, #{lab.course.deptabbrev}#{lab.course.number}, #{lab.course.quarter_id.to_s}, #{lab.course.year.to_s}") %>
+                                    <% else %>
+                                        <% if(rendezvous_s.times[0][0].hour == time.hour && rendezvous_s.times[0][0].min == time.min) %>
+                                            <a href="<%= url_for(:controller=>'courses', :only_path=>false, :action=>'index', :id=>lab.course.id)%>"><%= "#{lab.course.deptabbrev} #{lab.course.number} #{lab.section} LB (Room #{rendezvous_s.room})" %></a><br />
+                                        <% end %>
+                                    <% end %>
+                                <% } %>
+                            <% } %>
+                        <% end %>
+                        </td>
+                    </tr>
+                <% end %> 
+            </table> 
+        </div><!--building_courses-->
+    </div><!--content-->
+</div><!--wrapper-->
+<script type="text/javascript">initialize("<%= url_for(:controller=>"/", :only_path=>false) %>", <%= @building.id %>);</script>
+<% else %>
+Please select a building from the <a href="<%= url_for(:controller=>"buildings", :only_path=>false, :action=>"map") %>">Map</a> to view building details.
+<% end %>
