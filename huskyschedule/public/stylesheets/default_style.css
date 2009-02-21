@@ -747,3 +747,37 @@ background: url('../images/tab.gif') #552277;
 .hidden {
 display: none;
 }
+/* IND MAP PAGE */
+
+#building_courses {
+float: left;
+font: 1em arial, sans-serif;
+}
+
+#building_courses a {
+color: #000000;
+text-decoration: none;
+}
+
+#building_courses a:hover {
+text-decoration: underline;
+}
+
+table {
+margin-left: 50px;
+width: 700px;
+border-spacing: 5px;
+}
+
+th {
+border: 1px solid #000000;
+width: 100px;
+}
+
+td {
+padding: 20px 20px 20px 20px;
+}
+
+#side {
+font-family: arial, sans-serif;
+}

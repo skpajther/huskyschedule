@@ -6,7 +6,19 @@ margin-top: 10px;
 }
 #searchResults {
 width:744px;
-height:632px;
+min-height:632px;
 left:10px;
 top:10px;
+}
+#minimap {
+width:400px;
+height:300px;
+}
+
+#side .selected {
+font: 0.75em arial, san-serif;
+text-decoration: none;
+font-weight:bold;
+color: #552277;
+display: block;
 }
