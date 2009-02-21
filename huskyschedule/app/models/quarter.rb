@@ -105,18 +105,10 @@ class DistinctQuarter
       elsif(other.quarter_id == Quarter::QUARTER_AUTUMN)
         return -1
       else #Winter, Spring, or Summer
-        if(@quarter_id < other.quarter_id)
-          return -1
-        else
-          return 1
-        end
+        return @quarter_id <=> other.quarter_id
       end
     else #years not equal
-      if(@year < other.year)
-        return -1
-      else
-        return 1
-      end
+      return @year <=> other.year
     end
   end
   
