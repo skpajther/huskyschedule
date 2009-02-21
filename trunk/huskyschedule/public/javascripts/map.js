@@ -209,12 +209,8 @@ function makeMarkerHTML(name, abbrev, path, id) {
     var picture_path = path + "images/buildings/small/" + picture;
 	var html = "<html>\n";
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
-	html += "<div style='height:210px;width:300px;text-align:center;'>";
-	if(picture.length > 0) {
-		var picture_path = path+"images/buildings/small/" + picture;
-		html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
-	}
-	html += "</div>\n"
+	var picture_path = path+"images/buildings/small/" + picture;
+	html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	html += "<a href=\"" + path + "buildings/index?id=" + id + "\">View Building Details</a>\n";
 	html += "</html>";
 	return html;
