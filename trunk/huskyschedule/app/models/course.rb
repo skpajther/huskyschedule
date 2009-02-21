@@ -115,6 +115,12 @@ class Course < ActiveRecord::Base
     end
   end
   
+  def self.find_by_building_quarter_year(building_id, quarter_id, year)
+    courses = Course.find_by_sql("SELECT * FROM courses WHERE buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
+    courses.delete_if {|course| !course.buildings.include?("- #{@building_id}") }
+    return courses
+  end
+  
   def self.find_or_count_by_limitors(options={})
     query = ""
     first = true
