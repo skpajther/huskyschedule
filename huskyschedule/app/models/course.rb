@@ -115,9 +115,9 @@ class Course < ActiveRecord::Base
     end
   end
   
-  def self.find_by_building_quarter_year(building_id, quarter_id, year)
+  def self.find_by_building_quarter_year_day(building_id, quarter_id, year, day, overall_times)
     courses = Course.find_by_sql("SELECT * FROM courses WHERE buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
-    courses.delete_if {|course| !course.buildings.include?("- #{@building_id}") }
+    courses.delete_if {|course| !Rendezvous.relevant_rendezvous(course.rendezvous, building_id, day, overall_times) }
     return courses
   end
   
@@ -224,6 +224,36 @@ class Rendezvous
         raise Exception.new("room must be a String")
       end
     end
+  end
+ 
+  #passed an array of Rendezvous objects
+  #at least one of the Rendezvous objects has the correct building, or this would not have been called
+  #pass by reference, so will manipulate original rendezvous array which was passed
+  #returns true if one rendezvous object in the given array meets in the given building at least once on the given day
+  #updates the array to contain only relevant data
+  def self.relevant_rendezvous(rendezvous, building_id, day, overall_times)
+    rendezvous.delete_if{|rendezvous_s| 
+      !(rendezvous_s.building_id == building_id && Rendezvous.relevant_times(rendezvous_s.times, day, overall_times))
+    }
+    #if rendezvous.length > 0, there is at least one rendezvous object remaining
+    #with the correct building with only meetings on the correct day
+    #further, rendezvous only contains entries with the correct building and correct day only
+    return rendezvous.length > 0
+  end
+  
+  #prunes the given array of start,stop times to those only on the given day
+  #true if the times had any on the given day
+  def self.relevant_times(times, day, overall_times)
+  times.delete_if{|start_stop| start_stop[0].wday != day } #strip times[] down to only the day we want
+    if(times.length > 1)
+      raise Exception.new("One rendezvous meets in the same building, in the same room on the same day at two different times")
+    end
+    times.each{|start_stop| 
+      if(!overall_times.include?(start_stop[0])) #adds the start times of the course to overall_times
+        overall_times.push(start_stop[0]) 
+      end
+    }
+    return times.length > 0
   end
   
 end
