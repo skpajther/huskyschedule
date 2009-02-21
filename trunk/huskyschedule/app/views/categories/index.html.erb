@@ -7,11 +7,7 @@
                 <% if(@limitors["custom"]!=nil && @limitors["custom"].include?(query)) %>
                     
                 <% else %>
-                    <% if(@limitors["custom"]==nil) %>
-                        <% @limitors["custom"] = [query] %>
-                    <% else %>
-                        <% @limitors["custom"].push(query) %>
-                    <% end %>
+                    <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true, :display=>"credit type: #{ct[0]}"}) %>
                     <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
                     <% if(numcourses>0) %>
                         <% if(first) %>
@@ -21,17 +17,22 @@
                         <% end %>
                         <li><%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :limitors => @limitors %></li>
                     <% end %>
-                    <% @limitors["custom"].delete(query) %>
+                    <% delete_from_limitors(@params, place_order) %>
                  <% end %>
             <% end %>
             </ul>
         </div>
         
         <div id="credit_amount">
-            <% if(@limitors["credits"]==nil) %>
+            <% query = "courses.credits >= 6" %>
+            <% if(@limitors["credits"]==nil && (@limitors["custom"]==nil || !@limitors["custom"].include?(query))) %>
                 <% first = true %>
-                <% 6.times{|i| %>
-                    <% @limitors["credits"] = i %>
+                <% 7.times{|i| %>
+                    <% if(i==6) %>
+                        <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true}) %>
+                    <% else %>
+                        <% place_order = add_to_limitors(@params, "credits", i, {:do_not_overide=>true}) %>
+                    <% end %>
                     <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
                     <% if(numcourses>0) %>
                         <% if(first) %>
@@ -39,9 +40,9 @@
                             <ul>
                             <% first = false %>
                         <% end %>
-                        <li><%= link_to "#{i} credits (#{numcourses})", :controller=>"categories", :action=>"index", :limitors=>@limitors %></li>
+                        <li><%= link_to "#{((i==6)? '6 or more' : i)} credits (#{numcourses})", :controller=>"categories", :action=>"index", :limitors=>@limitors %></li>
                     <% end %>
-                    <% @limitors.delete("credits") %>
+                    <% delete_from_limitors(@params, place_order) %>
                 <% } %>
                 </ul>
             <% end %>
@@ -54,12 +55,11 @@
             <% end %>
             <% if(@category!=nil) %>
               <% for child in @category.children %>
-                <% @limitors["parent_id"] = child.id %>
+                <% place_order = add_to_limitors(@params, "parent_id", child.all_children_query_string, {:do_not_add_to_order=>true}) %>
                 <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
                 <% if(numcourses>0) %>
-                    <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :id=>child.id, :limitors=>@limitors %></li>
+                    <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :id=>child.id, :limitors=>@limitors, :no_child_search_needed => true %></li>
                 <% end %>
-                <% @limitors.delete("parent_id") %>
               <% end %>
             <% end %>
             <% if(@category.children.size>0) %>
@@ -69,7 +69,7 @@
     </div>
     <div class="content" id="content">
         <div class="breadcrumbs">
-           <%= bread_crumbs(@category) %>
+           <%= bread_crumbs(@category, true, @limitors) %>
         </div>
         <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
         <% for course in @courses %>

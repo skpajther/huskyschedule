@@ -6,4 +6,21 @@ class Category < ActiveRecord::Base
   
   DESCRIPTION_URL = "http://www.washington.edu/students/crscat/"
   
+  def all_children
+    ret = []
+    for child in self.children
+      ret.push(child)
+      ret = ret + child.all_children
+    end
+    return ret
+  end
+  
+  def all_children_query_string
+    st = ""
+    if(self.children.size > 0)
+      st = ","
+    end
+    return "courses.parent_id IN (#{self.id}#{st}#{self.all_children.map{|child| child.id }.inspect.delete!('[]')})"
+  end
+  
 end

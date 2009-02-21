@@ -238,7 +238,7 @@ def mini_schedule(times, options={})
 		return result
   end
   
-  def bread_crumbs(category_or_course, include_self_link=false)
+def bread_crumbs(category_or_course, include_self_link=false, limitors={})
     @familypath = []
     @familypath.push(category_or_course)
     while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parent!=nil)
@@ -251,6 +251,7 @@ def mini_schedule(times, options={})
       end
     end
     result = link_to "Home"
+    parent2 = category_or_course
 	  while (parent = @familypath.pop)!=nil
 	    if(parent.is_a?(Course))
 	      if(!@familypath.empty? || include_self_link)
@@ -265,8 +266,111 @@ def mini_schedule(times, options={})
 	        result = result + " > " + parent.name
 	      end
 	    end
+	    parent2 = parent
+	  end
+	  if(limitors!=nil && limitors.size>0)
+	    to_result = ""
+	    tmp_limitors = limitors.clone
+	    tmp_limitors[:order] = tmp_limitors[:order].clone
+	    tmp_limitors["custom"] = tmp_limitors["custom"].clone
+	    tmp2_limitors = limitors.clone
+	    tmp2_limitors[:order] = tmp2_limitors[:order].clone
+      tmp2_limitors["custom"] = tmp2_limitors["custom"].clone
+	    order = limitors[:order].clone
+	    size = order.size-1
+      order.each_index{|index|
+	      i = size - index
+	      item = order[i]
+        if(item.include?("custom"))
+          arr = item.split("..")
+          spot = arr[1].to_i
+          display = arr[2]
+          tmp = tmp_limitors["custom"][spot]
+          tmp_str = " > "+ link_to(display, :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp2_limitors)
+          tmp_limitors["custom"].delete_at(spot)
+          tmp_limitors[:order].delete_at(i)
+          tmp2_limitors["custom"].delete_at(spot)
+          tmp2_limitors[:order].delete_at(i)
+          to_result = tmp_str + "(" + link_to("x", :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp_limitors) + ")" + to_result
+          tmp_limitors["custom"].insert(spot, tmp)
+          tmp_limitors[:order].insert(i, item)
+        else
+          value = tmp_limitors[item]
+          display = "#{item}: #{value}"
+          tmp_str = " > "+ link_to(display, :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp2_limitors)
+          tmp_limitors.delete(item)
+          tmp_limitors[:order].delete_at(i)
+          tmp2_limitors.delete(item)
+          tmp2_limitors[:order].delete_at(i)
+          to_result = tmp_str + "("+ link_to("x", :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp_limitors) + ")" + to_result
+          tmp_limitors[item] = value
+          tmp_limitors[:order].insert(i, item)
+        end
+      }
+      result = result + to_result
 	  end
 	  return result
+  end
+  
+def add_to_limitors(params, place, value, options={})
+    do_not_overide = false
+    display = ""
+    do_not_add_to_order = false
+    if(options[:do_not_overide]!=nil)
+      do_not_overide = options[:do_not_overide]
+    end
+    if(options[:display]!=nil)
+      display = options[:display]
+    end
+    if(options[:do_not_add_to_order]!=nil)
+      do_not_add_to_order = options[:do_not_add_to_order]
+    end
+  
+    if(params[:limitors]==nil)
+      params[:limitors] = {}
+    end
+    
+    if(place=="custom")
+      if(params[:limitors]["custom"]==nil || !params[:limitors]["custom"].include?(value) || !do_not_overide)
+        if(params[:limitors]["custom"]==nil)
+          params[:limitors]["custom"] = []
+        end
+        params[:limitors]["custom"].push(value)
+        place = "custom..#{params[:limitors]['custom'].size-1}..#{display}"
+      else
+        place = nil
+      end
+    else
+      if(!params[:limitors].key?(place) || !do_not_overide)
+        params[:limitors][place] = value
+      else
+        place = nil
+      end
+    end
+    
+    if(place!=nil && !do_not_add_to_order)
+      if(params[:limitors][:order]==nil)
+        params[:limitors][:order] = []
+      end
+      params[:limitors][:order].push(place)
+      place = params[:limitors][:order].size - 1
+    elsif(params[:limitors]=={})
+      params.delete(:limitors)
+    end
+    return place
+  end
+  
+  def delete_from_limitors(params, position)
+    if(position!=nil && params[:limitors]!=nil && params[:limitors][:order]!=nil)
+      place = params[:limitors][:order][position]
+      if(place.include?("custom"))
+        tmp = place.split("..")
+        params[:limitors]["custom"].delete_at(tmp[1].to_i)
+      else
+        params[:limitors].delete(place)
+      end
+      params[:limitors][:order].delete_at(position)
+    end
   end
   
 def review_percent_table(course, options={})
