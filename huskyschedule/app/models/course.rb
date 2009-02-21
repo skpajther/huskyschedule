@@ -137,20 +137,30 @@ class Course < ActiveRecord::Base
         end
       end
       limitors.each_key{ |k|
-        if(k!="custom")
-          k2 = k
-          if(k=="category_id")
-            k2 = "parent_id"
-          end
-          if(first)
-            query += "courses.#{k2}='#{limitors[k]}'"
-            first = false
+        if(k!="custom" && k!="order")
+#          k2 = k
+#          if(k=="category_id")
+#            k2 = "parent_id"
+#          end
+          if(k=="parent_id" && limitors[k].is_a?(String))
+            if(first)
+              query += "#{limitors[k]}"
+              first = false
+            else
+              query += " AND #{limitors[k]}"
+            end
           else
-            query += " AND courses.#{k2}='#{limitors[k]}'"
+            if(first)
+              query += "courses.#{k}='#{limitors[k]}'"
+              first = false
+            else
+              query += " AND courses.#{k}='#{limitors[k]}'"
+            end
           end
         end
       }
     end
+    puts("query!!! #{query} #{limitors.inspect}")
     return self.find_or_count_by_sql(query, options)
   end
   

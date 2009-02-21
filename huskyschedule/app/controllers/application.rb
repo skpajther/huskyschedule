@@ -31,4 +31,13 @@ class ApplicationController < ActionController::Base
     end
   end
   
+  def help
+    Helper.instance
+  end
+  
+  class Helper
+    include Singleton
+    include ApplicationHelper
+  end
+  
 end
