@@ -6,88 +6,15 @@
 <div id="wrapper"> 
     <div id="side">
         <select size="2" id="mapmenu" onchange="openMarker(this.options[this.selectedIndex].value);">
-            <% for building in @buildings %><option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("(#{building.abbrev}) #{building.name}", 28)}" %></option>
+            <% for building in @buildings %><option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("#{building.abbrev} - #{building.name}", 28)}" %></option>
         <% end %></select>
     </div><!-- side -->
 
     <div class="content" id="content">
         <div class="breadcrumbs" id="crumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="#" onclick="if(displayingSearchResults) { hideResultsClearSelected(); } else { clearSelected(); }">Map</a></div>
         <div class="searchmap" style="float: right; width: 300px; text-align: right;">Search Map: <input type="text" id="searchField" onKeyDown="if(event.keyCode==13) { searchFor(this.value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>'); }" /><input type="submit" style="width: 50px;" value="Find" onclick="searchFor(document.getElementById('searchField').value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>');"/></div>
-        <div id="map"></div>
+        <div id="map"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div>
         <div id="searchResults"></div>
     </div> <!-- content -->
     <script type="text/javascript">initialize(<%= ((@show_building!=nil)? "\"#{@show_building.abbrev}\"" : "\"\"") %>, "<%= url_for(:controller=>"/", :only_path=>false) %>");</script>
 </div><!--wrapper-->
-<!--
-	<div id="mainSection">
-    	<table id="mainTable" cellspacing="0" cellpadding="0">
-			 <% if(@searching) %>
-                <% if(@search_results.size == 0) %>
-                    no results found
-                <% else %>
-                    <tr>
-                        <td colspan='2'>&nbsp;&nbsp;<%= "#{@search_results.size} match#{((@search_results.size > 1)? 'es' : '')}"%> found:
-                            <ul>
-                            <% for building in search_results %>
-                                <li><a href='./map.php?show=<%= building.abbrev %>'><%= "#{building.name} (#{building.abbrev})"%></a></li>
-                            <% end %>
-                            </ul>
-                        </td>
-                    </tr>
-					<tr>
-					  <td><a href='./map.php'>Return to map</a></td>
-					</tr>
-                <% end %>
-            <% else %>
-                <tr>
-	               <td colspan='2'><div id='map'></div></td>
-    	        </tr>
-			<% end %>
-        </table>
-    </div>
-	<div id="side">
-    	<table id="sideTable" border="0" cellpadding="3" cellspacing="0" bgcolor="#DED1ED" vspace="0">
-         	<tr>
-            	<td valign="top" bgcolor="#412164"><b><font color="#ffffff">Campus Map</font></b></td>
-            </tr>
-            <% for building in @buildings %>
-                <tr>
-                <% if(@searching) %>
-                    <td valign='top' bgcolor='#DED1ED'><a href='./map.php?show=$abbrev' class='customLink'><%= "#{building.name} (#{building.abbrev})" %></a></td>
-                <% else %>
-                    
-                <% end %>
-                </tr>
-            <% end %>
-        </table>
-    </div>
-    <div id="crumbs">
-		<% if(@searching) %> 
-            <%= link_to "Map", :controller => "buildings", :action => "map" %>>Search Results
-		<% else %>
-			Map
-	    <% end %>
-	</div>
-	<div id="coordinates"></div>
-    <div id="searchWithin">
-        <%= form_tag :controller => "buildings", :action => "map" %>
-    	<input name="search_text" 
-        	   type="text" 
-               id="search_text" 
-               value="Search Map" 
-               onFocus="if(this.value == 'Search Map') { 
-                            this.value = ''; 
-                        }" 
-               onBlur="if(this.value == '') { 
-                            this.value='Search Map'; 
-                       }" 
-               onKeyDown="var val = this.value; 
-                          if(!(val=='' || val=='Search Map') && event.keyCode == 13) { 
-                              submit();   
-                          }"
-               >
-        <img src='images/gobutton.png' align="texttop" id='searchGoButton' onclick="var val = document.getElementById('textsearchwithin').value; if(!(val=='' || val=='Search Map')) { searchForBuilding(val); }" />
-    </div>
-    <div id="footer"><img src="images/poweredby290.jpg" onclick="window.location.href = 'http://www.infymedia.com/';"></div>
-
--->
