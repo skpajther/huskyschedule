@@ -6,8 +6,10 @@
 <div id="wrapper"> 
     <div id="side">
         <select size="2" id="mapmenu" onchange="openMarker(this.options[this.selectedIndex].value);">
-            <% for building in @buildings %><option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("#{building.abbrev} - #{building.name}", 28)}" %></option>
-        <% end %></select>
+            <% for building in @buildings %>
+                <option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("#{building.abbrev} - #{building.name}", 28)}" %></option>
+            <% end %>
+        </select>
     </div><!-- side -->
 
     <div class="content" id="content">
