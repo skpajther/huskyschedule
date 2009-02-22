@@ -763,18 +763,18 @@ text-decoration: none;
 text-decoration: underline;
 }
 
-table {
+#building_courses table {
 margin-left: 50px;
 width: 700px;
 border-spacing: 5px;
 }
 
-th {
+#building_courses th {
 border: 1px solid #000000;
 width: 100px;
 }
 
-td {
+#building_courses td {
 padding: 20px 20px 20px 20px;
 }
 
