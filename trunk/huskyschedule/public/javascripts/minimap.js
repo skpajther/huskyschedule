@@ -59,7 +59,6 @@ function mapListeners() {
 			var newMapType = map.getCurrentMapType();
 			if((newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)&&
 			  !(currentMapType==G_HYBRID_MAP || currentMapType==G_SATELLITE_MAP)) {
-			  	//alert("Setting piont to " + markerWrapper.regularPoint
 			  	markerWrapper.marker.setLatLng(markerWrapper.normal);
 			  	map.setCenter(markerWrapper.normal, 17);
 				if(markerOpen) {
@@ -118,7 +117,6 @@ function createMarker(data, path) {
 	);
 	map.addOverlay(gmarker);
 	markerWrapper = {marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html};
-	
 }
 
 function makeMarkerHTML(name, abbrev, path) {
