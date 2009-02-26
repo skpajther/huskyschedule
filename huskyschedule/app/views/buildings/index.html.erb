@@ -67,7 +67,7 @@
        <br />
     </div><!--side--> 
     <div class="content" id="content"> 
-        <div class="breadcrumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'map', :id=>(@building.id)) %>">Map</a> > <%= "#{@building.name} (#{@building.abbrev})" %></div> 
+        <div class="breadcrumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'map', :id=>(@building.id)) %>">Map</a> > <%= "#{@building.name} (#{@building.abbrev})" %> > <%= @distinct_quarter_data.to_s %> > <%= BuildingsController.get_view_string(@view) %> > <%= BuildingsController.get_day_string(@day) %></div><br /> 
         <!--<div class="searchmap" style="float: right; width: 300px; text-align: right;">Search Map: <input type="text"/><input type="submit" style="width: 50px;" value="Find" /></div>--> 
         <div class="map_pictures_wrapper" style="margin-top: 10px; float: left;"> 
             <div id="minimap"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div> 
