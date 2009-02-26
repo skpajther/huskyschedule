@@ -154,8 +154,8 @@ class DistinctQuarterData
   end #intialize
   
   def to_s
-    quarter_s = Quarter.quarter_disp_name(@quarter_id)
-    return "#{quarter_id.s} #{year.to_s}"
+    quarter_s = Quarter.quarter_disp_name(@distinct_quarter.quarter_id)
+    return "#{quarter_s} #{year.to_s}"
   end
   
   def quarter_id
