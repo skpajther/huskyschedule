@@ -24,3 +24,10 @@ font-weight:bold;
 color: #552277;
 display: block;
 }
+
+#streetview {
+width:744px;
+height:600px;
+float: left;
+margin-top: 10px;
+}
