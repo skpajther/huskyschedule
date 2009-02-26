@@ -244,7 +244,7 @@ class Rendezvous
   #prunes the given array of start,stop times to those only on the given day
   #true if the times had any on the given day
   def self.relevant_times(times, day, overall_times)
-  times.delete_if{|start_stop| start_stop[0].wday != day } #strip times[] down to only the day we want
+    times.delete_if{|start_stop| start_stop[0].wday != day } #strip times[] down to only the day we want
     if(times.length > 1)
       raise Exception.new("One rendezvous meets in the same building, in the same room on the same day at two different times")
     end
