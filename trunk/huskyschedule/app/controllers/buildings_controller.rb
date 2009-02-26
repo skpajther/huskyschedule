@@ -12,6 +12,34 @@ class BuildingsController < ApplicationController
   VIEW_QUIZSECTIONS = 2
   VIEW_LABS = 3
   VIEW_POSSIBILITIES = 4
+  
+  def self.get_view_string(view)
+    if(view == VIEW_ALL)
+     return "View All"  
+    elsif(view == VIEW_LECTURES)
+      return "Lectures"
+    elsif(view == VIEW_QUIZSECTIONS)
+      return "Quiz Sections"
+    else
+      return "Labs"
+    end
+  end
+  
+  def self.get_day_string(day)
+    if(day == Quarter::MONDAY.wday)
+      return "Monday"
+    elsif(day == Quarter::TUESDAY.wday)
+      return "Tuesday"
+    elsif(day == Quarter::WEDNESDAY.wday)
+      return "Wednesday"
+    elsif(day == Quarter::THURSDAY.wday)
+      return "Thursday"
+    elsif(day == Quarter::FRIDAY.wday)
+      return "Firday"
+    else
+      return "Monday"
+    end
+  end
 
   def index
     @building = nil
@@ -88,9 +116,21 @@ class BuildingsController < ApplicationController
     end
     @xml.buildings {
       for building in @buildings
-        @xml.building(:name=>building.name, :abbrev=>building.abbrev, :lat=>building.lat, :lng=>building.lng, :uw_lat=>building.uw_lat, :uw_lng=>building.uw_lng, :id=>building.id)
+        @xml.building(:name=>building.name, 
+                      :abbrev=>building.abbrev, 
+                      :lat=>building.lat, 
+                      :lng=>building.lng, 
+                      :uw_lat=>building.uw_lat, 
+                      :uw_lng=>building.uw_lng, 
+                      :id=>building.id,
+                      :sv_lat=>building.sv_lat, 
+                      :sv_lng=>building.sv_lng, 
+                      :sv_zoom=>building.sv_zoom, 
+                      :sv_yaw=>building.sv_yaw, 
+                      :sv_pitch=>building.sv_pitch)
       end
     }
+    
     respond_to do|format|
       format.xml{render :xml => @xml }
     end
