@@ -3,14 +3,14 @@ var map;
 var markers; //holds the markers
 var selectedMarker; //the open marker
 var currentMapType; //the maptype in use
-var icon;
+var icon; //icon for the markers
 var uw_center; //center of UW Map
 var center; //center of G_SATELLITE_MAP & G_HYBRID_MAP
 var displayCenter; //center of the map the user has moved to
 var width; 
 var height;
 var opening; //currently opening a marker, avoid certain behavior
-var displayingSearchResults;
+var displayingSearchResults; //true if search results are being displayed
 var markerOpen; //true if a marker is open
 var mapDiv; //div that holds the map
 var searchResultsDiv; //div that holds the search restuls
@@ -18,6 +18,10 @@ var contentDiv; //div that holds all the content
 var buildingsListDiv; //div with all the building options
 var searchStartDate; //when we started a search
 var breadcrumbsDiv; //div with the breadcrumbs
+var streetview;
+var streetviewCapable; //true if browser if capable of showing streetview
+var streetviewDiv; //div holding the streetview
+var showingStreetview; //true if we are showing streetview
 //END GLOBAL VARIABLES
 	
 //window.onresize = function(){ resizer(); };
@@ -37,7 +41,7 @@ function initialize(abbrev, path) {
 }
 		
 function prepareMap() {
-	map = new GMap2(document.getElementById("map"));
+	map = new GMap2(mapDiv);
 	map.setCenter(center, 17); //UW campus
 	map.addMapType(G_SATELLITE_MAP);
 	map.addMapType(G_HYBRID_MAP);
@@ -49,6 +53,8 @@ function prepareMap() {
 	map.addControl(new GMapTypeControl());
 	var customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
 	map.addMapType(customMapType);
+	svOverlay = new GStreetviewOverlay();
+	map.addOverlay(svOverlay);
 }
 		
 function initializeFields(path) {
@@ -64,6 +70,9 @@ function initializeFields(path) {
 	contentDiv.removeChild(searchResultsDiv);
 	buildingsListDiv = document.getElementById("mapmenu");
 	breadcrumbsDiv = document.getElementById("crumbs");
+	streetviewDiv = document.getElementById("streetview");
+	contentDiv.removeChild(streetviewDiv);
+	streetviewCapable = true;
 }
 
 function calculateDimensions() {
@@ -138,9 +147,21 @@ function mapListeners() {
 			displayCenter = map.getCenter();
 		}
 	);
-	
+	GEvent.addListener(map, "click",
+		function(a,e,c) {
+			var latlng = new GLatLng(e.lat(),e.lng());
+			var myPOV = { yaw:0, pitch:0 };
+			if(streetview==null)
+				getNewStreetview();
+			streetview.setLocationAndPOV(latlng, myPOV);
+			lat = "sv_lat="+e.lat();
+			lng = "sv_lng="+e.lng();
+			s = "UPDATE huskyschedule_development.buildings SET "+lat+", "+lng+"WHERE abbrev = ''";
+			sendtoclipboard(s);
+		}
+	);
 }
-		
+
 function loadMarkers(abbrev, path) {
 	GDownloadUrl(path+"buildings/map_loader.xml", 
 		function(data) {
@@ -166,9 +187,21 @@ function createMarker(data, path) {
 	var abbrev = data.getAttribute("abbrev");
 	var gmarker = new GMarker(regularPoint, icon);
 	var id = parseInt(data.getAttribute("id"));
+	var hasStreetview = data.getAttribute("sv_lat").length != 0;
+	var markerPOV = null;
+	var markerSvLatLng = null;
+	if(hasStreetview) {
+		var sv_lat = parseFloat(data.getAttribute("sv_lat"));
+		var sv_lng = parseFloat(data.getAttribute("sv_lng"));
+		var sv_yaw = parseFloat(data.getAttribute("sv_yaw"));
+		var sv_pitch = parseFloat(data.getAttribute("sv_pitch"));
+		var sv_zoom = parseInt(data.getAttribute("sv_zoom"));
+		markerPOV = { yaw:sv_yaw, pitch:sv_pitch, zoom:sv_zoom };
+		markerSvLatLng = new GLatLng(sv_lat, sv_lng);
+	}
 	gmarker.abbrev = abbrev;
 	gmarker.title = name;
-	var html = makeMarkerHTML(name, abbrev, path, id);
+	var html = makeMarkerHTML(name, abbrev, path, id, hasStreetview);
 	gmarker.bindInfoWindowHtml(html);
 	GEvent.addListener(gmarker, "click", 
 		function(e) {
@@ -179,7 +212,7 @@ function createMarker(data, path) {
 		function() {
 			if(!opening) {
 				buildingsListDiv.selectedIndex = -1;
-				breadcrumbsDiv.innerHTML = crumbs();
+				setBreadcrumbs(crumbs());
 			}
 			markerOpen = false;
 			selectedMarker = null;
@@ -189,39 +222,117 @@ function createMarker(data, path) {
 		function() {
 			selectedMarker = gmarker;
 			markerOpen = true;
-			breadcrumbsDiv.innerHTML = crumbsPlus(gmarker.title);
+			setBreadcrumbs(crumbsPlus(gmarker.title));
 		}
 	);
 	map.addOverlay(gmarker);
-	markers[abbrev] = {marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html};
+	markers[abbrev] = { marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html, svPOV:markerPOV, svLatLng:markerSvLatLng };
 }
 
-function crumbsPlus(append) {
-	return crumbs() + " > " + append;
+function getNewStreetview() {
+	streetview = new GStreetviewPanorama(streetviewDiv);
+	GEvent.addListener(streetview, "error", 
+		function(e) {
+			if(e == 603) { //no flash available for 
+				streetviewCapable = false;
+				alert("This browser is incapable of powering streetview.");
+				
+			}
+		}
+	);
 }
 
-function crumbs() {
-	return "<a href='index.html'>Home</a> > <a href='#' onclick='if(displayingSearchResults) { hideResultsClearSelected(); } else { clearSelected(); }'>Map</a>";
+//called from gmarker's innerhtml
+function viewStreetview(abbrev) {
+	if(streetview == null)
+		getNewStreetview();
+	contentDiv.removeChild(mapDiv);
+	element = markers[abbrev];
+	streetview.setLocationAndPOV(element.svLatLng, element.svPOV);
+	contentDiv.appendChild(streetviewDiv);
+	setBreadcrumbs(crumbsPlus(element.name + " > Streetview"));
+	showingStreetview = true;
 }
 
-function makeMarkerHTML(name, abbrev, path, id) {
+function makeMarkerHTML(name, abbrev, path, id, streetview) {
     var picture = abbrev + ".JPG";
     var picture_path = path + "images/buildings/small/" + picture;
 	var html = "<html>\n";
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
 	var picture_path = path+"images/buildings/small/" + picture;
 	html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
+	if(streetview && streetviewCapable)
+		html += "<a href='#' onclick=\"viewStreetview('"+abbrev+"');\">View Streetview</a><br />\n";
 	html += "<a href=\"" + path + "buildings/index?id=" + id + "\">View Building Details</a>\n";
 	html += "</html>";
 	return html;
-}       
+}  
 
-function openMarker(abbrev) {
+function streetviewData() {
+	POV = streetview.getPOV();
+	yaw = "sv_yaw="+POV.yaw;
+	pitch = "sv_pitch="+POV.pitch;
+	zoom = "sv_zoom="+POV.zoom;
+	s = "UPDATE huskyschedule_development.buildings SET "+yaw+", "+pitch+", "+zoom+" WHERE abbrev = ''";
+	sendtoclipboard(s);
+}
+
+function showStreetview() {
+	if(!showingStreetview) {
+		contentDiv.removeChild(mapDiv);
+		contentDiv.appendChild(streetviewDiv);
+	}
+	else {
+		contentDiv.removeChild(streetviewDiv);
+		contentDiv.appendChild(mapDiv);
+	}
+	showingStreetview = !showingStreetview;
+}    
+
+//called when the selected index of the side list changes
+function processSideIndexChanged(abbrev) {
 	if(displayingSearchResults) {
 		contentDiv.removeChild(searchResultsDiv);
 		contentDiv.appendChild(mapDiv);
 		displayingSearchResults = false;
+		openMarker(abbrev);
 	}
+	else if(showingStreetview) {
+		element = markers[abbrev];
+		if(element.svPOV != null) {
+			selectedMarker = element.marker;
+			streetview.setLocationAndPOV(element.svLatLng, element.svPOV);
+			setBreadcrumbs(crumbsPlus(element.name + " > Streetview"));
+		}
+		else {
+			closeStreetview();
+			openMarker(abbrev);
+			contentDiv.appendChild(mapDiv);
+		}
+	}
+	else {
+		openMarker(abbrev);
+	}
+}
+
+function closeStreetview() {
+	contentDiv.removeChild(streetviewDiv);
+	streetview.remove();
+	streetview = null;
+	showingStreetview = false;
+}
+
+//called when the user clicks the Map url in the breadcrumbs
+function processReturnToMap() {
+	if(displayingSearchResults)
+		hideResultsClearSelected();
+	else if(showingStreetview)
+		hideStreetviewViewMap();
+	else
+		clearSelected();
+}
+
+function openMarker(abbrev) {
 	element = markers[abbrev];
 	if(currentMapType == G_SATELLITE_MAP || currentMapType == G_HYBRID_MAP)
 		map.panTo(element.normal);
@@ -235,68 +346,42 @@ function openMarker(abbrev) {
 function searchFor(searchField, URL) {
 	if(searchField != "") {
 		buildingsListDiv.options.selectedIndex = -1;
-		XMLHttpPost(URL + "?search_text=" + searchField);
+		searchStartDate = new Date();
+		GDownloadUrl(URL+"?search_text="+searchField, 
+			function(data) {
+				showResults(data);
+			}
+		);
 	}	
-}
-
-function XMLHttpPost(strURL) {
-	var xmlHttpReq = getXmlHttp();
-    if(xmlHttpReq != null) {
-	    xmlHttpReq.open('GET', strURL, true);
-	    xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-	    xmlHttpReq.onreadystatechange = function() {
-	        if (xmlHttpReq.readyState == 4) {
-	        	if(xmlHttpReq.status == 200)
-	            	showResults(xmlHttpReq.responseText);
-	            else
-	            	alert("Problem retrieving AJAX data");
-	        }
-	    }
-	    searchStartDate = new Date();
-	    xmlHttpReq.send(null);
-	}
-	else {
-		alert("Sorry, this browser does not support AJAX.");
-	}
-}
-
-function getXmlHttp() {
-	var xmlHttp;
-	try {
- 		xmlHttp = new XMLHttpRequest(); // Firefox, Opera 8.0+, Safari
-  	}
-	catch(e) { // Internet Explorer
-  		try {
-    		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-    	}
-  		catch(e) {
-    		try {
-      			xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-      		}
-    		catch(e) {
-      			alert("Sorry, your browser does not support AJAX. This feature is unavailable.");
-      		}
-    	}
-  	}
-  	return xmlHttp;
 }
 
 function showResults(results) {
 	if(displayingSearchResults) {
 		contentDiv.removeChild(searchResultsDiv);
 	}
+	else if(showingStreetview) {
+		closeStreetview();
+	} 
 	else {
 		map.closeInfoWindow();
 		contentDiv.removeChild(mapDiv);
-		displayingSearchResults = true;
 	}
-	breadcrumbsDiv.innerHTML = crumbsPlus("Search Results");
+	displayingSearchResults = true;
+	setBreadcrumbs(crumbsPlus("Search Results"));
 	var deltaMillis = (new Date()).getTime() - searchStartDate.getTime();
 	var deltaSeconds = deltaMillis / 1000;
 	results += "<br><br>Completed in " + deltaSeconds + " seconds.";
 	searchResultsDiv.innerHTML = results;
 	contentDiv.appendChild(searchResultsDiv);
 }	
+
+//called when the user click on a different building in the side list which doesn't have streetview data
+function hideStreetviewViewMap() {
+	closeStreetview();
+	map.setCenter(selectedMarker.getLatLng());
+	selectedMarker.openInfoWindowHtml(markers[selectedMarker.abbrev].html);
+	contentDiv.appendChild(mapDiv);
+} 
 
 function hideResultsOpenMarker(abbrev) {
 	contentDiv.removeChild(searchResultsDiv);
@@ -309,7 +394,7 @@ function hideResultsOpenMarker(abbrev) {
 function hideResultsClearSelected() {
 	contentDiv.removeChild(searchResultsDiv);
 	contentDiv.appendChild(mapDiv);
-	breadcrumbsDiv.innerHTML = crumbs();
+	setBreadcrumbs(crumbs());
 	displayingSearchResults = false;
 	buildingsListDiv.selectedIndex = -1;
 	if(currentMapType == G_HYBRID_MAP || currentMapType == G_SATELLITE_MAP)
@@ -341,4 +426,22 @@ function getOptionIndex(abbrev) {
     		first = mid + 1;     
 	}
 	return -1;
+}
+
+function setBreadcrumbs(s) {
+	breadcrumbsDiv.innerHTML = s;
+}
+
+function crumbsPlus(append) {
+	return crumbs() + " > " + append;
+}
+
+function crumbs() {
+	return "<a href='index.html'>Home</a> > <a href='#' onclick='processReturnToMap();'>Map</a>";
+}
+
+//puts s to the clipboard, IE only
+function sendtoclipboard(s) { 
+	if(window.clipboardData && clipboardData.setData)
+		clipboardData.setData("text", s); 
 }
