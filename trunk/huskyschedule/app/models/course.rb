@@ -50,11 +50,20 @@ class Course < ActiveRecord::Base
     return "#{self.deptabbrev} #{self.number}"
   end
   
+  def buildings_parameters
+    result = ""
+    self.rendezvous.each{|rend|
+      building = Building.find(rend.building_id)
+      result = result + ", #{building.id}"
+    }
+    return result
+  end
+  
   def self.get_credit_types(string_representation)
     elements = string_representation.split(/[,\/]/)
     types = []
     for element in elements
-      element = element.strip
+      element.strip!
       if(element == "NW")
         types.push(CREDITTYPE_NW)
       elsif(element == "QSR")
@@ -108,15 +117,15 @@ class Course < ActiveRecord::Base
   end
   
   def self.quarter_disp_name(quarter_id)
-    if(quarter_id > 0 && quarter_id < 6)
-      return QUARTER_DISPLAY_NAMES[quarter_id-1]
+    if(quarter_id > 0 && quarter_id < 5)
+      return Quarter.QUARTER_DISPLAY_NAMES[quarter_id-1]
     else
       return "Unknown"
     end
   end
   
   def self.find_by_building_quarter_year_day(building_id, quarter_id, year, day, overall_times)
-    courses = Course.find_by_sql("SELECT * FROM courses WHERE buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
+    courses = Course.find(:all, :conditions=>"buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
     courses.delete_if {|course| !Rendezvous.relevant_rendezvous(course.rendezvous, building_id, day, overall_times) }
     return courses
   end
