@@ -17,6 +17,11 @@ width:400px;
 height:300px;
 }
 
+#mediumMap {
+width:596px;
+height:550px;
+}
+
 #side .selected {
 font: 0.75em arial, san-serif;
 text-decoration: none;
