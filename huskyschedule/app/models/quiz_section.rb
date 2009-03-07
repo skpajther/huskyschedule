@@ -8,7 +8,7 @@ class QuizSection < ActiveRecord::Base
   serialize :rendezvous
   
   def self.find_by_building_quarter_year_day(building_id, quarter_id, year, day, overall_times)
-    quiz_sections = QuizSection.find_by_sql("SELECT * FROM quiz_sections WHERE buildings LIKE '%#{building_id}%'")
+    quiz_sections = QuizSection.find(:all, :conditions => "buildings LIKE '%#{building_id}%'")
     quiz_sections.delete_if{|quiz_section| 
       !(quiz_section.course.quarter_id==quarter_id && 
         quiz_section.course.year==year && 
