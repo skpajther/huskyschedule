@@ -14,7 +14,7 @@ class Building < ActiveRecord::Base
   end
   
   def self.search(query)
-    return Building.find_by_sql("SELECT * FROM buildings WHERE abbrev LIKE '%#{query}%' OR name LIKE '%#{query}%' ORDER BY abbrev")
+    return Building.find(:all, :conditions => "abbrev LIKE '%#{query}%' OR name LIKE '%#{query}%'", :order => "abbrev")
   end
   
 end
