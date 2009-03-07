@@ -489,26 +489,163 @@ text-align: right;
 width: 35px;
 }
 
+/* Draggable Class Schedule */
+
+table.dragschedule {
+width: 100%;
+/*table-layout: fixed;*/
+/*empty-cells: show;*/
+border-collapse: collapse;
+font: 0.5em arial, sans-serif;
+color: #000000;
+border-spacing: 0px;
+border:0px;
+cellpadding:0px;
+cellspacing:0px;
+}
+
+.dragschedule td {
+text-align: right;
+border: 0px solid #bbbbbb;
+}
+
+.dragschedule td.normal {
+height: 14px;
+/*border: 0px solid #bbbbbb;*/
+}
+
+.dragschedule td.blank {
+border: 0;
+}
+
+.dragschedule td.tableheader {
+background-color: #552277;
+color: #ffffff;
+text-align: center;
+width:116px;
+}
+
+.dragschedule td.class {
+background-color: #552277;
+border: 0px solid #bbbbbb;
+}
+
+.dragschedule div.class {
+background-color: #ffffff;
+}
+
+.dragschedule span.class {
+background-color: #ffffff;
+}
+
+.dragschedule td.holderclass{
+background-color: #552277;
+border: 0px solid #bbbbbb;
+}
+
+.dragschedule td.halfsize {
+height: 7px;
+}
+
+.dragschedule td.place {
+height: 14px;
+width: 20px;
+}
+
+.dragschedule td.time {
+height: 14px;
+background-color: #552277;
+color: #ffffff;
+}
+
+/* Grid Class Schedule */
+
+table.gridschedule {
+width: 100%;
+/*empty-cells: show;*/
+border-collapse: collapse;
+font: 0.5em arial, sans-serif;
+color: #000000;
+border-spacing: 0px;
+border:0px;
+cellpadding:0px;
+cellspacing:0px;
+}
+
+.gridschedule td {
+text-align: right;
+border: 1px solid #bbbbbb;
+}
+
+.gridschedule td.normal {
+height: 14px;
+/*border: 0px solid #bbbbbb;*/
+}
+
+.gridschedule td.blank {
+border: 0;
+}
+
+.gridschedule td.tableheader {
+background-color: #552277;
+color: #ffffff;
+text-align: center;
+width: 116px;
+}
+
+.gridschedule td.class {
+background-color: #552277;
+border: 0px solid #bbbbbb;
+}
+
+.gridschedule div.class {
+background-color: #ffffff;
+}
+
+.gridschedule span.class {
+background-color: #ffffff;
+}
+
+.gridschedule td.holderclass{
+background-color: #552277;
+border: 0px solid #bbbbbb;
+}
+
+.gridschedule td.halfsize {
+height: 7px;
+}
+
+.gridschedule td.place {
+height: 14px;
+width: 0px;
+}
+
+.gridschedule td.time {
+height: 14px;
+width: 20px;
+background-color: #552277;
+color: #ffffff;
+}
 
 /* Mini Class Schedule */
 
 table.smallschedule {
 width: 100%;
 table-layout: fixed;
-empty-cells: show;
+/*empty-cells: show;*/
 border-collapse: collapse;
 font: 0.5em arial, sans-serif;
 color: #000000;
 border-spacing: 0px;
 }
 
-.smallschedule td.normal {
-height: 14px;
-}
-
 .smallschedule td {
 text-align: right;
 border: 1px solid #bbbbbb;
+}
+
+.smallschedule td.normal {
+height: 14px;
 }
 
 .smallschedule td.blank {
@@ -527,7 +664,12 @@ border: 0px solid #552277;
 }
 
 .smallschedule td.halfsize {
-height: 8px;
+height: 7px;
+}
+
+.smallschedule td.place {
+height: 14px;
+width: 0px;
 }
 
 .smallschedule td.time {
