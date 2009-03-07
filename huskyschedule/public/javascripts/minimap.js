@@ -92,18 +92,19 @@ function loadMarker(path, buildingID) {
 
 function createMarker(data, path) {
 	var name = data.getAttribute("name");  
-	var lat = data.getAttribute("lat");
-	var lng = data.getAttribute("lng");
-	var uw_lat = data.getAttribute("uw_lat");
-	var uw_lng = data.getAttribute("uw_lng");
+	var lat = parseFloat(data.getAttribute("lat"));
+	var lng = parseFloat(data.getAttribute("lng"));
+	var uw_lat = parseFloat(data.getAttribute("uw_lat"));
+	var uw_lng = parseFloat(data.getAttribute("uw_lng"));
 	var regularPoint = new GLatLng(lat, lng);
 	var uwPoint = new GLatLng(uw_lat, uw_lng);
 	var abbrev = data.getAttribute("abbrev");
+	var id = parseInt(data.getAttribute("id"));
 	map.setCenter(regularPoint, 17);
 	var gmarker = new GMarker(regularPoint, makeIcon(path));
 	gmarker.abbrev = abbrev;
 	gmarker.title = name;
-	var html = makeMarkerHTML(name, abbrev, path);
+	var html = makeMarkerHTML(name, abbrev, path, id);
 	gmarker.bindInfoWindowHtml(html);
 	GEvent.addListener(gmarker, "infowindowclose", 
 		function() {
@@ -116,12 +117,13 @@ function createMarker(data, path) {
 		}
 	);
 	map.addOverlay(gmarker);
-	markerWrapper = {marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html};
+	markerWrapper = { marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html };
 }
 
-function makeMarkerHTML(name, abbrev, path) {
+function makeMarkerHTML(name, abbrev, path, id) {
     var html = "<html>\n";
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
+	html += "<a href=\""+path+"buildings/map?id="+id+"\">Return to map</a><br>\n";
 	html += "</html>";
 	return html;
 }

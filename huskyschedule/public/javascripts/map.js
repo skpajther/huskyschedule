@@ -11,7 +11,6 @@ var width;
 var height;
 var opening; //currently opening a marker, avoid certain behavior
 var displayingSearchResults; //true if search results are being displayed
-var markerOpen; //true if a marker is open
 var mapDiv; //div that holds the map
 var searchResultsDiv; //div that holds the search restuls
 var contentDiv; //div that holds all the content
@@ -42,7 +41,7 @@ function initialize(abbrev, path) {
 		
 function prepareMap() {
 	map = new GMap2(mapDiv);
-	map.setCenter(center, 17); //UW campus
+	map.setCenter(center, 16); //UW campus
 	map.addMapType(G_SATELLITE_MAP);
 	map.addMapType(G_HYBRID_MAP);
 	map.removeMapType(G_NORMAL_MAP);
@@ -54,7 +53,7 @@ function prepareMap() {
 	var customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
 	map.addMapType(customMapType);
 	svOverlay = new GStreetviewOverlay();
-	map.addOverlay(svOverlay);
+	//map.addOverlay(svOverlay);
 }
 		
 function initializeFields(path) {
@@ -118,12 +117,12 @@ function mapListeners() {
 					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.normal);
 				}
-				if(markerOpen) {
-					map.setZoom(17);
+				if(selectedMarker != null) {
+					map.setZoom(16);
 					openMarker(selectedMarker.abbrev);
 				}
 				else {
-					map.setCenter(center, 17);
+					map.setCenter(center, 16);
 				}
 			}
 			else if(!(newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)) { //custom
@@ -131,7 +130,7 @@ function mapListeners() {
 					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.uw);
 				}
-				if(markerOpen) {
+				if(selectedMarker != null) {
 					openMarker(selectedMarker.abbrev);
 					map.setZoom(4);
 				}
@@ -214,14 +213,12 @@ function createMarker(data, path) {
 				buildingsListDiv.selectedIndex = -1;
 				setBreadcrumbs(crumbs());
 			}
-			markerOpen = false;
 			selectedMarker = null;
 		}
 	);
 	GEvent.addListener(gmarker, "infowindowopen",
 		function() {
 			selectedMarker = gmarker;
-			markerOpen = true;
 			setBreadcrumbs(crumbsPlus(gmarker.title));
 		}
 	);
@@ -259,7 +256,6 @@ function makeMarkerHTML(name, abbrev, path, id, streetview) {
     var picture_path = path + "images/buildings/small/" + picture;
 	var html = "<html>\n";
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
-	var picture_path = path+"images/buildings/small/" + picture;
 	html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	if(streetview && streetviewCapable)
 		html += "<a href='#' onclick=\"viewStreetview('"+abbrev+"');\">View Streetview</a><br />\n";
@@ -397,10 +393,6 @@ function hideResultsClearSelected() {
 	setBreadcrumbs(crumbs());
 	displayingSearchResults = false;
 	buildingsListDiv.selectedIndex = -1;
-	if(currentMapType == G_HYBRID_MAP || currentMapType == G_SATELLITE_MAP)
-		map.panTo(center);
-	else
-		map.panTo(uw_center);
 }
 
 function clearSelected() {
