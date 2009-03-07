@@ -130,7 +130,7 @@ border: 1px solid #bbbbbb;
 }
 
 #singlewrapper {
-font-family: arial, sans-serif;
+/*font-family: arial, sans-serif;*/
 }
 
 .content {
@@ -866,18 +866,20 @@ border: 1px solid #bbbbbb;
 float: left;
 padding: 5px;
 width: 596px;
-margin: 0 0 10px 0;
+margin: 0 0 0 0;
+height: 600px;
+font: 1em arial, sans-serif;
 /* height: 400px;
 overflow-y: auto; */
 }
-
+/*
 #tabbedwindow p {
 color: #000000;
 font: 1em arial, sans-serif;
 margin: 10px 0 10px 0;
 text-align: left;
 }
-
+*/
 .tabme {
 background: url('../images/tab.gif') #C5B358;
 }
@@ -887,7 +889,7 @@ background: url('../images/tab.gif') #552277;
 }
 
 .hidden {
-display: none;
+/*display: none;*/
 }
 /* IND MAP PAGE */
 
