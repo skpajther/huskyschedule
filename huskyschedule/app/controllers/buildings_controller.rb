@@ -3,7 +3,7 @@ class BuildingsController < ApplicationController
      if(params[:id]!=nil)
        @show_building = Building.find(params[:id])
      end
-     @buildings = Building.find_by_sql("SELECT * FROM buildings WHERE uw_lat != '' ORDER BY abbrev")
+     @buildings = Building.find(:all, :conditions => "uw_lat != ''", :order => "abbrev")
   end
   
   #view constants
@@ -11,17 +11,13 @@ class BuildingsController < ApplicationController
   VIEW_LECTURES = 1
   VIEW_QUIZSECTIONS = 2
   VIEW_LABS = 3
-  VIEW_POSSIBILITIES = 4
+  VIEW_STRINGS = ["View All", "Lectures", "Quiz Sections", "Labs"]
   
   def self.get_view_string(view)
-    if(view == VIEW_ALL)
-     return "View All"  
-    elsif(view == VIEW_LECTURES)
-      return "Lectures"
-    elsif(view == VIEW_QUIZSECTIONS)
-      return "Quiz Sections"
-    else
-      return "Labs"
+    if(view < 0 || view >= VIEW_STRINGS.length)
+      return VIEW_STRINGS[0]
+    else      
+      return VIEW_STRINGS[view]
     end
   end
   
@@ -35,7 +31,7 @@ class BuildingsController < ApplicationController
     elsif(day == Quarter::THURSDAY.wday)
       return "Thursday"
     elsif(day == Quarter::FRIDAY.wday)
-      return "Firday"
+      return "Friday"
     else
       return "Monday"
     end
@@ -83,7 +79,7 @@ class BuildingsController < ApplicationController
         @view = nil
         if(!params[:view].nil?)
           @view = params[:view].to_i
-          if(@view >= VIEW_POSSIBILITIES || @view < 0)
+          if(@view >= VIEW_STRINGS.length || @view < 0)
             @view = VIEW_ALL
           end
         else
@@ -111,8 +107,12 @@ class BuildingsController < ApplicationController
     @buildings = []
     if(!params[:id].nil?) #for loading info about one building only (used in minimap)
       @buildings = @buildings.push(Building.find(params[:id]))
+    elsif(!params[:find_multi].nil?)
+      ids = params[:find_multi].split(/,/)
+      ids.each{|id| @buildings.push(Building.find(id))}
     else
       @buildings = Building.find_by_sql("SELECT * FROM buildings WHERE lat != '' ORDER BY abbrev")
+      @buildings = Building.find(:all, :conditions => "lat != ''", :order => "abbrev")
     end
     @xml.buildings {
       for building in @buildings
