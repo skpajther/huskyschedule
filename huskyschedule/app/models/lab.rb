@@ -8,7 +8,7 @@ class Lab < ActiveRecord::Base
   serialize :rendezvous
   
   def self.find_by_building_quarter_year_day(building_id, quarter_id, year, day, overall_times)
-    labs = Lab.find_by_sql("SELECT * FROM labs WHERE buildings LIKE '%#{building_id}%'")
+    labs = Lab.find(:all, :conditions => "buildings LIKE '%#{building_id}%'")
     labs.delete_if{|lab| 
       !(lab.course.quarter_id==quarter_id && 
         lab.course.year==year && 
