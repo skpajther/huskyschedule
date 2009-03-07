@@ -8,6 +8,48 @@ def military_to_standard_hour(hour)
   return hour
 end
 
+def generate_credits_image(course)
+  html = "<div class='credits'>"
+  html += "<p class='creditsnum'>#{course.credits}"
+  if(!course.variable_credit.nil?)
+    html += "-#{course.variable_credit}"
+  end
+  html += "<\/p>Credits<\/div>"
+  return html
+end
+
+def generate_enrollment_image(course)
+  html = ""
+  if (!(course.students_enrolled.nil? || course.enrollment_space.nil?))
+      enroll_frac = course.students_enrolled/course.enrollment_space
+      html += "<div class="
+      if(enroll_frac < 0.5)
+        html += "'classfullness'>"
+      elsif(enroll_frac < 0.75)
+        html += "'classfullness semi'>"
+      else
+        html += "'classfullness full'>"
+      end
+  else
+      html += "<div class='classfullness'>"
+  end
+  html += "<div class='numerator'><p class='number'>"
+  if(!course.students_enrolled.nil?)
+    html += course.students_enrolled.to_s
+  else
+    html += "Unavailable"
+  end
+  html += "</p>Enrolled</div><div class='denominator'><p class='number'>"
+  if(!course.enrollment_space.nil?)
+    html += course.enrollment_space.to_s
+  else
+    html += "Unavailable"
+  end
+  html += "</p>Possible</div>"
+  html += "</div>"
+  return html
+end
+
 def generate_schedule(rendezvous, options={})
   by_hour = true
   show_times = true
@@ -16,7 +58,7 @@ def generate_schedule(rendezvous, options={})
   start_hour = 7
   end_hour = 20
   
-  if(options[:by_hour]!=nil)
+  if(options[:by_hour]!=nil && (options[:by_hour].kind_of?(TrueClass) || options[:by_hour].kind_of?(FalseClass)))
     by_hour = options[:by_hour]
   end
   if(options[:start_hour]!=nil && options[:start_hour].kind_of?(Fixnum))
@@ -154,9 +196,8 @@ def generate_schedule(rendezvous, options={})
                                   wdays = ["Su", "M", "Tu", "W", "Th", "F", "Sa"]
                                   buildings_hash[k][duration].each{|d| wdayst += " #{wdays[d]}"}
                                   text_sched += "#{wdayst} #{duration[0].strftime('%I:%M')}-#{duration[1].strftime('%I:%M')}<br/>"
-                                }
-      
-                           }
+      }
+    }
     st += "<div class='classtime'>#{text_sched}</div>"
   end
   return st
