@@ -1,90 +1,52 @@
+<script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTq2hRdhlyrxqNJP-kbJ_LGz2xTAhQmIySyY5okdypVbzAsga6vQ_niZw" type="text/javascript"></script>
+<%= javascript_include_tag 'courseDetails'%>
+<%= javascript_include_tag 'gmapuploader'%>
+<%= javascript_include_tag 'mediummap'%>
 <div id="singlewrapper">
-
-<div id="addtoschedule2"><a href=""><img src="addtoschedule.gif" /></a></div>
-
-
-<%= bread_crumbs @course, false %>
-
-<div id="classschedule">
-
-<%= generate_schedule(@course.rendezvous, :by_hour=>true) %>
-<div class="classtime2">
-<div class="lecture">
-Lecture: Tu 10:30 - 11:50
-</div>
-Quiz Section: M 1:30 - 2:20<input type="button" onclick="changeSection(0)" value="AA" />
-<br />
-Quiz Section: W 1:30 - 2:20<input type="button" onclick="changeSection(1)" value="AB" />
-<br />
-Quiz Section: F 1:30 - 2:20<input type="button" onclick="changeSection(2)" value="AC" />
-<br />
-</div>
-
-</div>
-
-<div id="titleabovetabbedwindow"><%= "#{@course.name}: #{@course.title}" %></div>
-
-
-
-<div id="tabs">
-<ul>
-<li class="tabme" id="overviewtab"><a href="javascript:overview();">Overview</a></li>
-<li class="normtab" id="classreviewstab"><a href="javascript:classreviews();">Class Reviews</a></li>
-<li class="normtab" id="teacherreviewstab"><a href="javascript:teacherreviews();">Teacher Reviews</a></li>
-<li class="normtab" id="maptab"><a href="javascript:map();">Map</a></li>
-</ul>
-</div>
-
-<div id="tabbedwindow"></div>
-
-<div class="hidden" id="overview">
-<p><%= @course.description %></p>
-
-<p>Teacher: <%= (@course.teacher!=nil)? @course.teacher.name : "Unknown" %></p>
-
-<p><%= @course.students_enrolled %>/<%= @course.enrollment_space %></p>
-
-</div>
-
-<div class="hidden" id="classreviews">
-
-<p>This class is an easy 4.0 for just about anybody.</p>
-
-
-</div>
-
-
-<div class="hidden" id="teacherreviews">
-
-<p>I've never had this professor before, but because it's an easy class, the professor must be awesome!</p>
-
-</div>
-
-<div class="hidden" id="mapwindow">
-
-<div id="mapname"></div>
-<img src="samplemap.jpg" style="width: 100%; margin-top: 10px;" />
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
+    <div id="addtoschedule2"><a href=""><img src="addtoschedule.gif" /></a></div>
+    <div class="breadcrumbs"><%= bread_crumbs @course, false %></div>
+    
+    <div id="classschedule">
+        <%= generate_schedule(@course.rendezvous, :by_hour=>true) %>
+        <div class="classtime2">
+            <div class="lecture">
+                Lecture: Tu 10:30 - 11:50
+            </div>
+            Quiz Section: M 1:30 - 2:20<input type="button" onclick="changeSection(0)" value="AA" />
+            <br />
+            Quiz Section: W 1:30 - 2:20<input type="button" onclick="changeSection(1)" value="AB" />
+            <br />
+            Quiz Section: F 1:30 - 2:20<input type="button" onclick="changeSection(2)" value="AC" />
+            <br />
+        </div>
+    </div>
+    
+    <div id="titleabovetabbedwindow"><%= "#{@course.name}: #{@course.title}" %></div>
+    
+    <div id="tabs">
+        <ul>
+            <li class="tabme" id="overviewtab"><a href="#" onclick="showTab(0);">Overview</a></li>
+            <li class="normtab" id="classreviewstab"><a href="#" onclick="showTab(1);">Class Reviews</a></li>
+            <li class="normtab" id="teacherreviewstab"><a href="#" onclick="showTab(2);">Teacher Reviews</a></li>
+            <li class="normtab" id="maptab"><a href="#" onclick="showTab(3);">Map</a></li>
+        </ul>
+    </div>
+    
+    <div id="tabbedwindow">
+        <noscript>Javascript must be enabled to utilize this page</noscript>
+        <div id="overview">
+            <p><%= @course.description %></p>
+            <p>Teacher: <%= (@course.teacher!=nil)? @course.teacher.name : "Unknown" %></p>
+            <%= generate_enrollment_image(@course) %>      
+            <%= generate_credits_image(@course) %> 
+        </div><!--overview-->
+        <div id="classReviews">
+            <p>This class is an easy 4.0 for just about anybody.</p>
+        </div><!--classReviews-->
+        <div id="teacherReviews">
+            <p>I've never had this professor before, but because it's an easy class, the professor must be awesome!</p>
+        </div><!--teacherReviews-->
+        <div id="mediumMap"></div>
+    </div><!--tabbedwindow-->
+</div><!--singlewrapper-->
+<script type="text/javascript">initMediumMap("<%= url_for(:controller=>"/", :only_path=>false) %>"<%= @course.buildings_parameters %>); initCD();</script>
