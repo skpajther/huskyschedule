@@ -57,6 +57,9 @@ def generate_schedule(rendezvous, options={})
   show_text_schedule = true
   start_hour = 7
   end_hour = 20
+  identify = nil
+  table_class = "smallschedule"
+  draggable_divs = false
   
   if(options[:by_hour]!=nil && (options[:by_hour].kind_of?(TrueClass) || options[:by_hour].kind_of?(FalseClass)))
     by_hour = options[:by_hour]
@@ -76,8 +79,21 @@ def generate_schedule(rendezvous, options={})
   if(options[:show_text_schedule]!=nil)
     show_text_schedule = options[:show_text_schedule]
   end
+  if(options[:identify]!=nil)
+    identify = options[:identify]
+  end
+  if(options[:table_class]!=nil)
+    table_class = options[:table_class]
+  end
+  if(options[:draggable_divs]!=nil)
+    draggable_divs = options[:draggable_divs]
+  end
+  if(rendezvous==nil)
+    rendezvous = {}
+  end
   
-  default_rowspan = (by_hour)? 2 : 1;
+  default_rowspan = (by_hour)? 2 : 1
+  num_class_blocks = 0
   
   rows = []
   6.times{|j|
@@ -93,8 +109,12 @@ def generate_schedule(rendezvous, options={})
               rows[i+1] = "<tr><td rowspan=#{default_rowspan} class='time'>#{military_to_standard_hour(start_hour+(i/2))}:30</td>"
             end
           else
-            rows[i] = "<tr>"
-            rows[i+1] = "<tr>"
+            rows[i] = "<tr><td rowspan=#{default_rowspan} class='place'></td>"
+            if(by_hour)
+              rows[i+1] = "<tr>"
+            else
+              rows[i+1] = "<tr><td rowspan=#{default_rowspan} class='place'></td>"
+            end
           end
         else
           if(span_count==0 && rendezvous!=nil)
@@ -118,12 +138,16 @@ def generate_schedule(rendezvous, options={})
             end
             if(span_count>0)
               if(place_half)
-                rows[i] += "<td rowspan=1 class='half'></td>"
+                rows[i] += "<td rowspan=1 class='halfsize'></td>"#used to say just half!
                 if(span_count>1)
-                  rows[i+1] += "<td rowspan=#{span_count-1} class='class'></td>"
+                  iden = ((identify!=nil)? "id='#{identify}_#{num_class_blocks}'" : "")
+                  rows[i+1] += "<td valign='top' rowspan=#{span_count-1} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<div #{iden} class='class' style='height:#{0*(span_count-1)+5}px'></div>" : "")}</td>"
+                  num_class_blocks += 1
                 end
               else
-                rows[i] += "<td rowspan=#{span_count} class='class'></td>"
+                iden = ((identify!=nil)? "id='#{identify}_#{num_class_blocks}'" : "")
+                rows[i] += "<td valign='top' rowspan=#{span_count} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<span #{iden} class='class' style='height:#{0*span_count+5}px'>test</span>" : "")}</td>"
+                num_class_blocks += 1
               end
             end
           end
@@ -144,14 +168,14 @@ def generate_schedule(rendezvous, options={})
       end
     }
   }
-  st = "<table #{(by_hour)? 'class="smallschedule"' : ''}> \n"
+  st = "<table class='#{table_class}'> \n"
   days = "<tr> \n
             #{(show_times)? '<td class=\'blank\'></td>' : ''}
-            <td class='important tableheader'>M</td> \n
-            <td class='important tableheader'>Tu</td> \n
-            <td class='important tableheader'>W</td> \n
-            <td class='important tableheader'>Th</td> \n
-            <td class='important tableheader'>F</td> \n
+            <td class='tableheader'>M</td> \n
+            <td class='tableheader'>Tu</td> \n
+            <td class='tableheader'>W</td> \n
+            <td class='tableheader'>Th</td> \n
+            <td class='tableheader'>F</td> \n
           </tr> \n"
   if(show_days)
     st += days
@@ -200,7 +224,11 @@ def generate_schedule(rendezvous, options={})
     }
     st += "<div class='classtime'>#{text_sched}</div>"
   end
-  return st
+  if(draggable_divs)
+    return [st, num_class_blocks]
+  else
+    return st
+  end
 end
 
 def mini_schedule(times, options={})
@@ -291,23 +319,25 @@ def bread_crumbs(category_or_course, include_self_link=false, limitors={})
         category_or_course = category_or_course.parent
       end
     end
-    result = link_to "Home"
+    result = ""
+    str_fill = ""
     parent2 = category_or_course
 	  while (parent = @familypath.pop)!=nil
 	    if(parent.is_a?(Course))
 	      if(!@familypath.empty? || include_self_link)
-	        result = result + " > " + link_to("SLN: #{parent.sln}", :controller=>"courses", :action=>"index", :id=>parent.id)
+	        result = result + str_fill + link_to("SLN: #{parent.sln}", :controller=>"courses", :action=>"index", :id=>parent.id)
 	      else
-	        result = result + " > " + "SLN: #{parent.sln}"
+	        result = result + str_fill + "SLN: #{parent.sln}"
 	      end
 	    else
 	      if(!@familypath.empty? || include_self_link)
-	        result = result + " > " + link_to(parent.name, :controller=>"categories", :action=>"index", :id=>parent.id)
+	        result = result + str_fill + link_to(parent.name, :controller=>"categories", :action=>"index", :id=>parent.id)
 	      else
-	        result = result + " > " + parent.name
+	        result = result + str_fill + parent.name
 	      end
 	    end
 	    parent2 = parent
+	    str_fill = " > "
 	  end
 	  if(limitors!=nil && limitors.size>0)
 	    to_result = ""

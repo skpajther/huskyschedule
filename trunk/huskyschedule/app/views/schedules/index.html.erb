@@ -1,37 +1,229 @@
-<table>
-    <tr>
-        <td>
+<div id="wrapper">
+    <div id="side">
+            <div><a href="#" onclick="switch_bag('grab_bag')">All</a><a href="#" onclick="switch_bag('unsched')">Unscheduled</a></div>
+            Possible Courses
             <div id="grab_bag">
-                Possible Courses<br/>
-                <% if (@grab_bag != nil && @grab_bag.get_courses != nil) %>
-                    <% for course in @grab_bag.get_courses %>
-                        <div id="<%= "course_#{course.id}" %>"><%= "#{course.sln}: #{course.deptabriev} #{course.number} #{course.section}" %></div>
-                        
-                    <% end %>
-                <% end %>
-                <a href="#">View Trash</a>
             </div>
-        </td>
-        <td>
-        </td>
-        <td>
-            <div id="tabs" style="width:100px;height:100px;background:#9fcfba;">
-            
-            </div>
-        </td>
-    </tr>
-</table>
-<div>
-    <%= generate_schedule([Rendezvous.new(:times=>[Time.parse("Monday February 9 2009 10:30 am"), Time.parse("Monday February 9 2009 10:00 pm"), Time.parse("Wednesday February 11 2009 10:30 am"), Time.parse("Wednesday February 11 2009 1:30 pm")])], {:show_times=>true}) %>
+            <a href="#">View Trash</a>
+    </div>
+    <div id="schedules" style="width:600px;float:left;background:#9fcfba;">
+        <div id="grid">
+            <%= generate_schedule(nil, {:table_class=>"gridschedule", :show_times=>true, :show_days=>true, :show_text_schedule=>false}) %>
+        </div>
+        <% num_blocks = {} %>
+        <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
+            <% i=0 %>
+            <% for course in @grab_bag.get_courses %>
+                <div style="margin-top:-182px;">
+                    <div style="visibility:hidden;" id="dragview_<%= course.id %>">
+                        <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                    </div>
+                </div>
+                <% i+=1 %>
+            <% end %>
+            <% i=0 %>
+            <% for course in @grab_bag.get_courses %>
+                <div id="<%= course.id %>" style="margin-top:-182px;">
+                    <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                    <%= tmp[0] %>
+                    <% num_blocks[course.id] = tmp[1] %>
+                </div>
+                <% i+=1 %>
+            <% end %>
+        <% end %>
+    </div>
+    
 </div>
-
+<div style="float:left;" id="handle"></div>
+<%= javascript_include_tag 'course' %>
 <script type="text/javascript">
+    revert_duration = 0.5;
+    showing_grab_bag = false;
+    current_schedule = <%= @schedules[0].id %>;
+    
+    all_unsched = new Hash();
+    all_courses = new Hash();
+    times_used = new Hash();
+    
+    all_schedules = new Hash();
+    
+    dependencies = new Hash();
+    
+    <% for key in @dependancies.keys %>
+        tmp<%= key %> = new Hash();
+        <% for key2 in @dependancies[key].keys %>
+            <% if @dependancies[key][key2]==false %>
+                tmp<%= key %>.set(<%= key2 %>, 'false');
+            <% end %>
+        <% end %>
+        dependencies.set(<%= key %>, tmp<%= key %>);
+    <% end %>
+  
     <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
         <% for course in @grab_bag.get_courses %>
-            new Draggable("<%= "course_#{course.id}" %>", {revert: 'failure'});
+            all_courses.set(<%= course.id %>, new Course({id: <%= course.id %>, sln: <%= course.sln %>, deptabbrev: "<%= course.deptabbrev %>", number: <%= course.number %>, section: "<%= course.section %>"}));
         <% end %>
     <% end %>
+    
+    <% for sched in @schedules %>
+        all_schedules.set(<%= sched.id %>, new Hash());
+        <% for course_id in sched.courses %>
+                all_schedules.get(<%= sched.id %>).set( <%= course_id %>, all_courses.get(<%= course_id %>));
+                all_unsched.set(<%= course_id %>, all_courses.get(<%= course.id %>));
+                var t_used = times_used.get(<%= course_id %>);
+                if(t_used == undefined)
+                    t_used = 0;
+                times_used.set(<%= course_id %>, t_used+1);
+        <% end %>    
+    <% end %>
+    
 
-  Droppables.add("grab_bag",{onDrop: function() {}});
-  Droppables.add("tabs",{onDrop: function() {}});
+  Droppables.add("grab_bag",{onDrop: function(element) {
+                                                if(element.id.substring(0,8) == "dragview")
+                                                    remove_from_schedule(current_schedule, parseInt(element.id.substr(9)));
+                                            }});
+  Droppables.add("schedules",{onDrop: function(element) {
+                                                revert_duration = 0;
+                                                add_to_schedule(current_schedule, parseInt(element.id.substr(8)));
+                                            }});
+                                            
+  <% keys = num_blocks.keys %>
+  <% for key in keys %>
+    <% arr = [] %>
+    <% 0.upto(num_blocks[key]-1){|i| arr[i] = "#{key}_#{i}" }%>
+    <% 0.upto(num_blocks[key]-1){|i| %>
+        <%= "new Draggable(\"#{key}_#{i}\", {handle: 'handle', revert: 'true', ghosting: 'true'});" %>
+    <% } %>
+    <%= "new Draggable(\"dragview_#{key}\", {handle: #{arr.inspect}, revert: 'true', ghosting: 'true'});" %>
+  <% end %>
+  
+  switch_bag("grab_bag");
+  switch_schedule(current_schedule);
+  
+  function add_to_schedule(schedule_id, course_id){
+    if(all_schedules.get(schedule_id) != undefined && all_courses.get(course_id) != undefined){
+        if(all_schedules.get(schedule_id).get(course_id) == undefined){
+            schedu = all_schedules.get(schedule_id);
+            keys = schedu.keys();
+            for(i=0;i<keys.length;i++){
+                //alert(keys[i]);
+                if(dependencies.get(course_id).get(keys[i])!=undefined){
+                    alert("There is a conflict!");
+                    return;
+                }
+            }
+            schedu.set(course_id , all_courses.get(course_id));
+            course = document.getElementById(course_id);
+            course.style.visibility = "visible";
+            dragview = document.getElementById("dragview_"+course_id);
+            dragview.style.visibility = "visible";
+            all_unsched.set(course_id, all_courses.get(course_id));
+            var t_used = times_used.get(course_id);
+            if(t_used == undefined)
+                t_used = 0;
+            times_used.set(course_id, t_used+1);
+            if(!showing_grab_bag){
+                var element = document.getElementById("unsched_"+course_id);
+                element.parentNode.removeChild(element);
+            }
+        }
+        else
+            alert("course already part of this schedule!");
+    }
+    else
+        alert("could not find schedule or course to make addition!("+schedule_id+" "+course_id+")");
+  }
+  
+  function remove_from_schedule(schedule_id, course_id){
+    all_schedules.get(schedule_id).unset(course_id);
+    course = document.getElementById(course_id);
+    course.style.visibility = "hidden";
+    dragview = document.getElementById("dragview_"+course_id);
+    dragview.style.visibility = "hidden";
+    var t_used = times_used.get(course_id);
+    if(t_used != undefined && t_used>0)
+        times_used.set(course_id, t_used-1);
+    if(t_used-1 == 0){
+        all_unsched.unset(course_id);
+        if(!showing_grab_bag){
+            generate_course_drag("unsched_"+course_id, all_courses.get(course_id).display_text(), showing_grab_bag);
+        }
+    }
+        
+  }
+  
+  function generate_course_drag(id, course_info, show_grab_bag){
+    tmp = document.createElement("div");
+    tmp.setAttribute("id", id);
+    tmp.innerHTML = course_info
+    document.getElementById("grab_bag").appendChild(tmp);
+    if(show_grab_bag){
+        new Draggable(id, {revert: 'true', ghosting: 'true', reverteffect: function(element, top_offset, left_offset){
+                                                                                                   new Effect.MoveBy(element, -top_offset, -left_offset, {duration:revert_duration});
+                                                                                                                revert_duration = 0.5;
+                                                                                                        	  }});
+    }
+    else{
+        new Draggable(id, {revert: 'failure'});
+    }
+  }
+  
+  function switch_schedule(schedule_id){
+    if(all_schedules.get(schedule_id) != undefined){
+        scan = all_courses.values();
+        for(i=0;i<scan.length;i++){
+            course = document.getElementById(scan[i].id);
+            course.style.visibility = "hidden";
+        }
+        scan = all_schedules.get(schedule_id).values();
+        for(i=0;i<scan.length;i++){
+            course = document.getElementById(scan[i].id);
+            course.style.visibility = "visible";
+        }
+    }
+  }
+  
+  function switch_bag(bag){
+    if(bag=="grab_bag" && !showing_grab_bag){
+        //make all ids with course_course.id visible
+        scan = all_courses.keys();
+        for(i=0;i<scan.length;i++){
+            var value = all_courses.get(scan[i]);
+            generate_course_drag("courses_"+value.id, value.display_text(), true);
+            if(all_unsched.get(scan[i])==undefined){
+                tmp = document.getElementById("unsched_"+value.id);
+                if(tmp!=undefined)
+                    tmp.parentNode.removeChild(tmp);
+            }
+            
+        }
+        //make all ids with unsched_course.id invisible
+        /*scan = all_unsched.values();
+        for(i=0;i<scan.length;i++){
+            tmp = document.getElementById("unsched_"+scan[i].id);
+            if(tmp!=undefined)
+                tmp.parentNode.removeChild(tmp);
+        }*/
+        showing_grab_bag = true;
+    }
+    else if(showing_grab_bag){
+        //make all ids with course_course.id invisible
+        scan = all_courses.keys();
+        for(i=0;i<scan.length;i++){
+            var value = all_courses.get(scan[i]);
+            tmp = document.getElementById("courses_"+value.id);
+            if(tmp!=undefined)
+                tmp.parentNode.removeChild(tmp);
+            if(all_unsched.get(scan[i])==undefined){
+                generate_course_drag("unsched_"+value.id, value.display_text(), false);
+            }
+        }
+        //make all ids with unsched_course.id visible
+        /*scan = all_unsched.values();
+        for(i=0;i<scan.length;i++){
+            generate_course_drag("unsched_"+scan[i].id, scan[i].display_text(), false);
+        }*/
+        showing_grab_bag = false;
+    }
+  }
 </script>

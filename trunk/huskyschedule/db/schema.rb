@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090202053144) do
+ActiveRecord::Schema.define(:version => 20090208000544) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -28,6 +28,8 @@ ActiveRecord::Schema.define(:version => 20090202053144) do
     t.integer  "parent_id",  :limit => 11
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "abbrev"
+    t.text     "url"
   end
 
   create_table "course_reviews", :force => true do |t|
@@ -64,7 +66,6 @@ ActiveRecord::Schema.define(:version => 20090202053144) do
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
     t.integer  "quarter_id",        :limit => 11
-    t.integer  "building_id",       :limit => 11
     t.string   "room"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -73,6 +74,8 @@ ActiveRecord::Schema.define(:version => 20090202053144) do
     t.integer  "year",              :limit => 11
     t.integer  "variable_credit",   :limit => 11
     t.text     "rendezvous"
+    t.text     "additional_info"
+    t.text     "buildings"
   end
 
   create_table "labs", :force => true do |t|
@@ -88,10 +91,12 @@ ActiveRecord::Schema.define(:version => 20090202053144) do
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
-    t.integer  "building_id",       :limit => 11
     t.string   "room"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "rendezvous"
+    t.text     "additional_info"
+    t.text     "buildings"
   end
 
   create_table "quarters", :force => true do |t|
@@ -114,10 +119,12 @@ ActiveRecord::Schema.define(:version => 20090202053144) do
     t.text     "description"
     t.boolean  "crnc"
     t.integer  "parent_id",         :limit => 11
-    t.integer  "building_id",       :limit => 11
     t.string   "room"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "rendezvous"
+    t.text     "additional_info"
+    t.text     "buildings"
   end
 
   create_table "schedules", :force => true do |t|

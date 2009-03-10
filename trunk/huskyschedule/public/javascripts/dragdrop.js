@@ -265,12 +265,21 @@ var Draggable = Class.create({
     var options = Object.extend(defaults, arguments[1] || { });
 
     this.element = $(element);
-    
-    if(options.handle && Object.isString(options.handle))
+    if(options.handle && Object.isString(options.handle)){
       this.handle = this.element.down('.'+options.handle, 0);
+    }
+    else if(options.handle && Object.isArray(options.handle)){
+      this.handle = new Array();
+      for(i=0;i<options.handle.length;i++){
+        this.handle[i] = this.element.down('.'+options.handle[i], 0);
+        if(!this.handle[i]) this.handle[i] = $(options.handle[i]);
+      }
+    }
     
-    if(!this.handle) this.handle = $(options.handle);
-    if(!this.handle) this.handle = this.element;
+    if(!Object.isArray(options.handle)){
+      if(!this.handle) this.handle = $(options.handle);
+      if(!this.handle) this.handle = this.element;
+    }
     
     if(options.scroll && !options.scroll.scrollTo && !options.scroll.outerHTML) {
       options.scroll = $(options.scroll);
@@ -282,14 +291,28 @@ var Draggable = Class.create({
     this.options  = options;
     this.dragging = false;   
 
-    this.eventMouseDown = this.initDrag.bindAsEventListener(this);
-    Event.observe(this.handle, "mousedown", this.eventMouseDown);
+	this.element.eventMD = this.eventMouseDown;
+	if(this.handle!=undefined && Object.isArray(this.handle)){
+	  this.eventMouseDown = this.initDrag.bindAsEventListener(this);
+	  for(i=0;i<this.handle.length;i++){
+		Event.observe(this.handle[i], "mousedown", this.eventMouseDown);
+	  }
+	  
+	}
+	else{
+      this.eventMouseDown = this.initDrag.bindAsEventListener(this);
+      Event.observe(this.handle, "mousedown", this.eventMouseDown);
+    }
     
     Draggables.register(this);
   },
   
   destroy: function() {
-    Event.stopObserving(this.handle, "mousedown", this.eventMouseDown);
+    if(options.handle && Object.isArray(options.handle)){
+      this.eventMouseDown = this.eventMD;
+    }
+    else
+      Event.stopObserving(this.handle, "mousedown", this.eventMouseDown);
     Draggables.unregister(this);
   },
   
@@ -305,6 +328,8 @@ var Draggable = Class.create({
     if(Event.isLeftClick(event)) {    
       // abort on form elements, fixes a Firefox issue
       var src = Event.element(event);
+      //src.style.visibility = 'visible';
+      //this.originalVis = src.style.visibility;
       if((tag_name = src.tagName.toUpperCase()) && (
         tag_name=='INPUT' ||
         tag_name=='SELECT' ||
@@ -322,7 +347,7 @@ var Draggable = Class.create({
   },
   
   startDrag: function(event) {
-    this.dragging = true;
+  	this.dragging = true;
     if(!this.delta)
       this.delta = this.currentDelta();
     
@@ -437,6 +462,8 @@ var Draggable = Class.create({
 
     if(this.options.endeffect) 
       this.options.endeffect(this.element);
+    
+    //this.element.style.visibility = this.originalVis;
       
     Draggables.deactivate(this);
     Droppables.reset();
@@ -453,6 +480,9 @@ var Draggable = Class.create({
     this.stopScrolling();
     this.finishDrag(event, true);
     Event.stop(event);
+    //var tmp = Event.element(event);
+    //tmp.innerHTML = this.originalVis;
+    //tmp.style.visibility = this.originalVis;
   },
   
   draw: function(point) {

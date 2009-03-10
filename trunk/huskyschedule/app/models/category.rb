@@ -5,6 +5,7 @@ class Category < ActiveRecord::Base
   belongs_to :parent, :class_name => "Category", :foreign_key => "parent_id"
   
   DESCRIPTION_URL = "http://www.washington.edu/students/crscat/"
+  HOME_ID = 1
   
   def all_children
     ret = []
@@ -21,6 +22,19 @@ class Category < ActiveRecord::Base
       st = ","
     end
     return "courses.parent_id IN (#{self.id}#{st}#{self.all_children.map{|child| child.id }.inspect.delete!('[]')})"
+  end
+  
+  def parent_path
+    curr = self
+    familypath = []
+    familypath.push(curr)
+    
+    while curr.parent!=nil
+      familypath.push(curr.parent)
+      curr = curr.parent
+    end
+    
+    return familypath
   end
   
   def self.create_all_categories
