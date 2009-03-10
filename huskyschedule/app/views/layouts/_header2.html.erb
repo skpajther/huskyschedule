@@ -9,28 +9,40 @@
    <title><%= title %></title>
    <%= stylesheet_link_tag 'default_style.css'%>
    <%= stylesheet_link_tag 'map.css'%>
+   <%= javascript_include_tag 'prototype' %>
+   <%= javascript_include_tag 'scriptaculous' %>
 </head>
 
 
-<body onload="stripe()" onunload="GUnload()">
+<% if((controller.controller_name=="buildings" && (controller.action_name=="map" || controller.action_name=="index")) || (controller.controller_name=="course" && controller.action_name=="name")) %>
+    <body onunload="GUnload()">
+<% else %>
+    <body>
+<% end %>
 
 <div id="container">
-<div id="supertop">Ryan Hankins :: <a href="">Account</a> :: <a href="">Logout</a></div>
-<div id="head">
+    <div id="supertop">
+        <% if current_user!=nil && !current_user.tmp_user %>
+            <%= current_user.login %> :: <a href="">Account</a> :: <%= link_to "Logout", :controller=>"login", :action=>"logout", :next_page=>request.parameters %>
+        <% else %>
+            <%= link_to "Login", :controller=>"login", :action=>"login", :next_page=>request.parameters %> :: <%= link_to "Signup", :controller=>"login", :action=>"signup" %>
+        <% end %>
+    </div>
+    <div id="head">
 
-<form name="search" action="" method="post">
-<ul class="topbar">
-<li id="space"></li>
-<li id="home"><a href="index.html"><span class="normal"> </span></a></li>
-<li id="space2"></li>
-<li id="classes"><a href="<%= url_for :controller=>"categories", :action=>"index" %>"><span class="normal" title="Current class schedule with reviews" <%= (controller.controller_name == "Courses" || controller.controller_name == "categories")? "id='me'" : "" %>>Classes</span></a></li>
-<li id="teachers"><a href="<%= url_for :controller=>"teachers", :action=>"index" %>" title="Search for and rate instructors and professors."><span class="normal" <%= (controller.controller_name == "teachers")? "id='me'" : "" %>>Teachers</span></a></li>
-<li><a href="<%= url_for :controller=>"buildings", :action=>"map" %>" title="Navigate the UW Seattle campus with ease."><span class="normal" <%= (controller.controller_name == "buildings")? "id='me'" : "" %>>Map</span></a></li>
-<li><a href="<%= url_for :controller=>"schedules", :action=>"index" %>" title="Organize a custom class schedule."><span class="normal" <%= (controller.controller_name == "schedule")? "id='me'" : "" %>>mySchedule</span></a></li>
-<li id="space3"></li>
-<li id="search"><input type="text" title="Search" value="Search" /></li>
-<li id="gofish"><input type="submit" class="submit" value="Go" onMouseOver="this.className='submit_hover';" onMouseOut="this.className='submit';" /></li>
-<li id="space"></li>
-</ul>
-</form>
-</div>
+        <form name="search" action="" method="post">
+            <ul class="topbar">
+            <li id="space"></li>
+            <li id="home"><a href="index.html"><span class="normal"> </span></a></li>
+            <li id="space2"></li>
+            <li id="classes"><a href="<%= url_for :controller=>"categories", :action=>"index" %>"><span class="normal" title="Current class schedule with reviews" <%= (controller.controller_name == "Courses" || controller.controller_name == "categories")? "id='me'" : "" %>>Classes</span></a></li>
+            <li id="teachers"><a href="<%= url_for :controller=>"teachers", :action=>"index" %>" title="Search for and rate instructors and professors."><span class="normal" <%= (controller.controller_name == "teachers")? "id='me'" : "" %>>Teachers</span></a></li>
+            <li><a href="<%= url_for :controller=>"buildings", :action=>"map" %>" title="Navigate the UW Seattle campus with ease."><span class="normal" <%= (controller.controller_name == "buildings")? "id='me'" : "" %>>Map</span></a></li>
+            <li><a href="<%= url_for :controller=>"schedules", :action=>"index" %>" title="Organize a custom class schedule."><span class="normal" <%= (controller.controller_name == "schedule")? "id='me'" : "" %>>mySchedule</span></a></li>
+            <li id="space3"></li>
+            <li id="search"><input type="text" title="Search" value="Search" /></li>
+            <li id="gofish"><input type="submit" class="submit" value="Go" onMouseOver="this.className='submit_hover';" onMouseOut="this.className='submit';" /></li>
+            <li id="space"></li>
+            </ul>
+        </form>
+    </div>

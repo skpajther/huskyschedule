@@ -1,3 +1,38 @@
+<script type="text/javascript">
+    var xmlhttp;
+    function add_to_grab_bag(url){
+        xmlhttp=null;
+        if (window.XMLHttpRequest)
+          {// code for all new browsers
+          xmlhttp=new XMLHttpRequest();
+          }
+        else if (window.ActiveXObject)
+          {// code for IE5 and IE6
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+          }
+        if (xmlhttp!=null)
+          {
+          xmlhttp.onreadystatechange=state_Change;
+          xmlhttp.open("GET",url,true);
+          xmlhttp.send(null);
+          }
+        else
+          {
+          alert("Your browser does not support XMLHTTP.");
+          }
+    }
+    
+    function state_Change(){
+        if (xmlhttp.readyState==4){// 4 = "loaded"
+            if (xmlhttp.status==200){// 200 = OK
+                document.getElementById('message').innerHTML=xmlhttp.responseText;
+            }
+            else{
+                document.getElementById('message').innerHTML="Failed to add Course to Schedule";
+            }
+        }
+    }
+</script>
 <div id="wrapper">
     <div id="side">
         <div id="credit_type">
@@ -29,7 +64,7 @@
                 <% first = true %>
                 <% 7.times{|i| %>
                     <% if(i==6) %>
-                        <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true}) %>
+                        <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true, :display=>"credits: 6 or more"}) %>
                     <% else %>
                         <% place_order = add_to_limitors(@params, "credits", i, {:do_not_overide=>true}) %>
                     <% end %>
@@ -68,6 +103,7 @@
         </div>
     </div>
     <div class="content" id="content">
+        <div id="message"></div>
         <div class="breadcrumbs">
            <%= bread_crumbs(@category, true, @limitors) %>
         </div>
@@ -104,7 +140,7 @@
                     </div>
                     <div class="credits"><p class="creditsnum"><%= course.credits %><%= (course.variable_credit!=nil)? "-#{course.variable_credit}" : "" %></p>Credits</div>
                     <div id="addtoschedule">
-                        <a href=""><img src="/images/addtoschedule.gif" /></a>
+                        <a href="#" onclick="add_to_grab_bag('<%= url_for(:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id) %>');"><img src="/images/addtoschedule.gif" /></a>
                     </div>
                     <div class="rating">
                         <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">

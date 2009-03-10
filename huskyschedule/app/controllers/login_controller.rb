@@ -20,7 +20,7 @@ class LoginController < ApplicationController
       if(params[:next_page]!=nil)
         redirect_to params[:next_page]
       else
-        redirect_back_or_default(:controller => '/login', :action => 'index')
+        redirect_back_or_default(:controller => 'categories', :action => 'index')
       end
       flash[:notice] = "Logged in successfully"
     end
@@ -31,7 +31,7 @@ class LoginController < ApplicationController
     return unless request.post?
     @user.save!
     self.current_user = @user
-    redirect_back_or_default(:controller => '/login', :action => 'index')
+    redirect_back_or_default(:controller => 'categories', :action => 'index')
     flash[:notice] = "Thanks for signing up!"
   rescue ActiveRecord::RecordInvalid
     render :action => 'signup'
@@ -42,6 +42,10 @@ class LoginController < ApplicationController
     cookies.delete :auth_token
     reset_session
     flash[:notice] = "You have been logged out."
-    redirect_back_or_default(:controller => '/login', :action => 'index')
+    if(params[:next_page]!=nil)
+      redirect_to params[:next_page]
+    else
+      redirect_back_or_default(:controller => 'categories', :action => 'index')
+    end
   end
 end

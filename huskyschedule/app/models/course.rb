@@ -50,6 +50,14 @@ class Course < ActiveRecord::Base
     return "#{self.deptabbrev} #{self.number}"
   end
   
+  def get_all_times
+    ret = []
+    for rende in self.rendezvous
+      ret += rende.times
+    end
+    return ret
+  end
+  
   def buildings_parameters
     result = ""
     self.rendezvous.each{|rend|
@@ -128,6 +136,40 @@ class Course < ActiveRecord::Base
     courses = Course.find(:all, :conditions=>"buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
     courses.delete_if {|course| !Rendezvous.relevant_rendezvous(course.rendezvous, building_id, day, overall_times) }
     return courses
+  end
+  
+  def self.date_to_weeknum(date)
+    return (date.wday-1*48)+(date.hour*2)+((date.min+20)%30)
+  end
+  
+  def self.compatible(courseA, courseB)
+    a = courseA.get_all_times()
+    b = courseB.get_all_times()
+    
+    a.sort!{|x,y| date_to_weeknum(x[0])<=>date_to_weeknum(y[0])}
+    b.sort!{|x,y| date_to_weeknum(x[0])<=>date_to_weeknum(y[0])}
+    i = 0
+    j = 0
+    while(i<a.length && j<b.length)
+      ai = a[i]
+      bj = b[j]
+      if(ai[0] < bj[0])
+        if(ai[1] >= bj[1])
+          return false
+        else
+          i += 1
+        end
+      elsif(bj[0] < ai[0])
+        if(bj[1] >= ai[1])
+          return false
+        else
+          j += 1
+        end
+      else
+        return false
+      end
+    end
+    return true
   end
   
   def self.find_or_count_by_limitors(options={})
