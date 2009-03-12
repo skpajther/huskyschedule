@@ -25,6 +25,7 @@ class Quarter < ActiveRecord::Base
   WEDNESDAY = Time.parse("Wednesday January 28, 2009")
   THURSDAY = Time.parse("Thursday January 29, 2009")
   FRIDAY = Time.parse("Friday January 30, 2009")
+  DAY_DISPLAY_NAMES = ["M", "T", "W", "Th", "F"]
   
   #get the display name for the given constant
   def self.quarter_disp_name(quarter_id)

@@ -16,54 +16,50 @@ function initializeCDfields() {
    	tabbedWindowDiv.removeChild(classReviewsDiv);
    	teacherReviewsDiv = document.getElementById("teacherReviews");
    	tabbedWindowDiv.removeChild(teacherReviewsDiv);
-   	mapDiv = document.getElementById("mediumMap");
+   	mapDiv = document.getElementById("mediumMapArea");
 	tabbedWindowDiv.removeChild(mapDiv);
 	currentState = 0;
 }
 
-function removeTab(state) {
-	switch(state) {
-		case 0: //overview
-			tabbedWindowDiv.removeChild(overviewDiv);
-			document.getElementById("overviewtab").className = "normtab";
-			break;
-		case 1: //class reviews
-			tabbedWindowDiv.removeChild(classReviewsDiv);
-			document.getElementById("classreviewstab").className = "normtab";
-			break;
-		case 2: //teacher reviews
-			tabbedWindowDiv.removeChild(teacherReviewsDiv);
-			document.getElementById("teacherreviewstab").className = "normtab";
-			break;
-		case 3: //map
-			tabbedWindowDiv.removeChild(mapDiv);
-			document.getElementById("maptab").className = "normtab";
-			break;
-		default:
-			removeCurrentState(0);
-			break;
-	}
-}	
-
 function showTab(tabNumber) {
 	if(currentState != tabNumber) {
-		removeTab(currentState);
+		switch(currentState) {
+			case 0: //overview
+				tabbedWindowDiv.removeChild(overviewDiv);
+				document.getElementById("overviewtab").className = "normtab";
+				break;
+			case 1: //class reviews
+				tabbedWindowDiv.removeChild(classReviewsDiv);
+				document.getElementById("classreviewstab").className = "normtab";
+				break;
+			case 2: //teacher reviews
+				tabbedWindowDiv.removeChild(teacherReviewsDiv);
+				document.getElementById("teacherreviewstab").className = "normtab";
+				break;
+			case 3: //map
+				tabbedWindowDiv.removeChild(mapDiv);
+				document.getElementById("maptab").className = "normtab";
+				break;
+			default:
+				removeCurrentState(0);
+				break;
+		}
 		switch(tabNumber) {
 			case 0: //overview
 				tabbedWindowDiv.appendChild(overviewDiv);
-				//document.getElementById("overviewtab").className = "tabme";
+				document.getElementById("overviewtab").className = "tabme";
 				break;
 			case 1: //class reviews
 				tabbedWindowDiv.appendChild(classReviewsDiv);
-				//document.getElementById("classreviewstab").className = "tabme";
+				document.getElementById("classreviewstab").className = "tabme";
 				break;
 			case 2: //teacher review
 				tabbedWindowDiv.appendChild(teacherReviewsDiv);
-				//document.getElementById("teacherreviewstab").className = "tabme";
+				document.getElementById("teacherreviewstab").className = "tabme";
 				break;
 			case 3: //map
 				tabbedWindowDiv.appendChild(mapDiv);
-				//document.getElementById("maptab").className = "tabme";
+				document.getElementById("maptab").className = "tabme";
 				break;
 			default: //overview
 				showTab(0);
