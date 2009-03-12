@@ -2,19 +2,16 @@
 module ApplicationHelper
   
 def military_to_standard_hour(hour)
-  if(hour>12)
-    hour -= 12
-  end
-  return hour
+  return Rendezvous.military_to_standard_hour(hour)
 end
 
 def generate_credits_image(course)
-  html = "<div class='credits'>"
-  html += "<p class='creditsnum'>#{course.credits}"
+  html = "<div class='credits' align='right'>"
+  html << "<p class='creditsnum'>#{course.credits}"
   if(!course.variable_credit.nil?)
-    html += "-#{course.variable_credit}"
+    html << "-#{course.variable_credit}"
   end
-  html += "<\/p>Credits<\/div>"
+  html << "<\/p>Credits<\/div>"
   return html
 end
 
@@ -22,31 +19,32 @@ def generate_enrollment_image(course)
   html = ""
   if (!(course.students_enrolled.nil? || course.enrollment_space.nil?))
       enroll_frac = course.students_enrolled/course.enrollment_space
-      html += "<div class="
+      html << "<div class="
       if(enroll_frac < 0.5)
-        html += "'classfullness'>"
+        html << "'classfullness'"
       elsif(enroll_frac < 0.75)
-        html += "'classfullness semi'>"
+        html << "'classfullness semi'"
       else
-        html += "'classfullness full'>"
+        html << "'classfullness full'"
       end
+      html << ">"
   else
-      html += "<div class='classfullness'>"
+      html << "<div class='classfullness'>"
   end
-  html += "<div class='numerator'><p class='number'>"
+  html << "<div class='numerator'><p class='number'>"
   if(!course.students_enrolled.nil?)
-    html += course.students_enrolled.to_s
+    html << course.students_enrolled.to_s
   else
-    html += "Unavailable"
+    html << "Unavailable"
   end
-  html += "</p>Enrolled</div><div class='denominator'><p class='number'>"
+  html << "</p>Enrolled</div><div class='denominator'><p class='number'>"
   if(!course.enrollment_space.nil?)
-    html += course.enrollment_space.to_s
+    html << course.enrollment_space.to_s
   else
-    html += "Unavailable"
+    html << "Unavailable"
   end
-  html += "</p>Possible</div>"
-  html += "</div>"
+  html << "</p>Possible</div>"
+  html << "</div>"
   return html
 end
 
@@ -217,7 +215,7 @@ def generate_schedule(rendezvous, options={})
       text_sched += "#{link_to(building_abbrev, :controller=>'buildings', :action=>'map', :id=>building_id)} #{k[1]}:\t"
       buildings_hash[k].each_key{|duration|
                                   wdayst = ""
-                                  wdays = ["Su", "M", "Tu", "W", "Th", "F", "Sa"]
+                                  wdays = ["Su", "M", "T", "W", "Th", "F", "Sa"]
                                   buildings_hash[k][duration].each{|d| wdayst += " #{wdays[d]}"}
                                   text_sched += "#{wdayst} #{duration[0].strftime('%I:%M')}-#{duration[1].strftime('%I:%M')}<br/>"
       }
@@ -447,11 +445,19 @@ def add_to_limitors(params, place, value, options={})
 def review_percent_table(course, options={})
     reviews = CourseReview.find(:all, :conditions=>{:course_name=>course.name})
 		total_reviews = course.total_ratings
-				
+		if(total_reviews.nil?)
+		  course.total_ratings = 0
+		  course.save()
+		  total_reviews = 0
+		end
   	all = [0,0,0,0,0]
+    average = 0.0
     for course_review in reviews
-      all[course_review.rating-1] = all[course_review.rating-1] + 1
+      rating = course_review.rating
+      average += rating
+      all[rating - 1] = all[rating - 1] + 1
     end
+    average /= total_reviews
     bartable = "<table width='100%'>"
     5.times{|i|
           i = i + 1
@@ -474,7 +480,8 @@ def review_percent_table(course, options={})
 					end
           bartable << "</tr>"
 		}
-		bartable << "</table>"
+		bartable << "<tr><td>Average rating: #{average.to_s}</td></tr>"
+		bartable << "</table><hr />"
 		return bartable
   end
 	
@@ -483,8 +490,10 @@ def review_percent_table(course, options={})
         					<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{course_review.review_name}</strong></a></td>
         			 </tr>
         			 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{(course_review.author!=nil)? course_review.author.login : 'Anonymous'} on #{course_review.created_at}</td><td align='right'>#{star_ratings(course_review.rating, "24x24")}</td></tr></table></tr>
-        			 <tr><td><strong>Pros:</strong>&nbsp;#{course_review.pros}<td></tr>
-        			 <tr><td><strong>Cons:</strong>&nbsp;#{course_review.cons}<td></tr>
+        			 <tr><td>Quarter taken: </td></tr><br>
+        			 <tr><td><strong>Taught by:</strong>&nbsp;#{Teacher.find(course_review.teacher_id).name}</td></tr><br>
+        			 <tr><td><strong>Pros:</strong>&nbsp;#{course_review.pros}</td></tr><br>
+        			 <tr><td><strong>Cons:</strong>&nbsp;#{course_review.cons}</td></tr><br>
         		   <tr><td><strong>Other Thoughts:</strong>&nbsp;#{course_review.other_thoughts}</td></tr>"
 			 
 	end

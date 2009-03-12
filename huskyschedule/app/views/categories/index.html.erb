@@ -117,7 +117,7 @@
                     <div class="titlecredits">
                         <div class="titleprofessor">
                             <div class="title">
-                                <%= link_to "#{course.name}: #{course.title}", :controller=>"courses", :action=>"index", :id=>course.id %>
+                                <%= link_to "#{course.name} #{course.section}: #{course.title}", :controller=>"courses", :action=>"index", :id=>course.id %>
                             </div>
                             <div class="professor">
                                 <% if course.teacher != nil %>
@@ -129,16 +129,8 @@
                     <div class="description">
                         <%= course.description %>
                     </div>
-                    <% if course.students_enrolled!=nil && course.enrollment_space!=nil %>
-                        <% enroll_frac = course.students_enrolled/course.enrollment_space %>
-                        <div class="<%= (enroll_frac < 0.5)? 'classfullness' : ((enroll_frac < 0.75)? 'classfullness semi' : 'classfullness full') %>">
-                    <% else %>
-                        <div class="classfullness">
-                    <% end %>
-                        <div class="numerator"><p class="number"><%= (course.students_enrolled!=nil)? course.students_enrolled : "Unavailable" %></p>Enrolled</div>
-                        <div class="denominator"><p class="number"><%= (course.enrollment_space!=nil)? course.enrollment_space : "Unavailable" %></p>Possible</div>
-                    </div>
-                    <div class="credits"><p class="creditsnum"><%= course.credits %><%= (course.variable_credit!=nil)? "-#{course.variable_credit}" : "" %></p>Credits</div>
+                    <%= generate_enrollment_image(course) %>
+                    <%= generate_credits_image(course) %>
                     <div id="addtoschedule">
                         <a href="#" onclick="add_to_grab_bag('<%= url_for(:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id) %>');"><img src="/images/addtoschedule.gif" /></a>
                     </div>

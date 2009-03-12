@@ -258,7 +258,7 @@ function makeMarkerHTML(name, abbrev, path, id, streetview) {
 	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
 	html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	if(streetview && streetviewCapable)
-		html += "<a href='#' onclick=\"viewStreetview('"+abbrev+"');\">View Streetview</a><br />\n";
+		html += "<a href=\"javascript:viewStreetview('"+abbrev+"');\">View Streetview</a><br />\n";
 	html += "<a href=\"" + path + "buildings/index?id=" + id + "\">View Building Details</a>\n";
 	html += "</html>";
 	return html;
@@ -429,7 +429,7 @@ function crumbsPlus(append) {
 }
 
 function crumbs() {
-	return "<a href='index.html'>Home</a> > <a href='#' onclick='processReturnToMap();'>Map</a>";
+	return "<a href='index.html'>Home</a> > <a href=\"javascript:processReturnToMap();\">Map</a>";
 }
 
 //puts s to the clipboard, IE only

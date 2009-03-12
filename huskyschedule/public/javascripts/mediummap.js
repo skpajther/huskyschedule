@@ -6,6 +6,7 @@ var selectedMarker;
 var uw_center; //center of UW Map
 var center; //center of G_SATELLITE_MAP & G_HYBRID_MAP
 var icon;
+var set;
 //END GLOBAL VARIABLES
 
 function initMediumMap(path) {
@@ -46,6 +47,7 @@ function initializeMMapFields(path) {
 	center = new GLatLng(47.6538037015491, -122.30777084827423);
 	uw_center = new GLatLng(-5.5810546875, -10.37109375);
 	markers = new Array();
+	set = false;
 }
 
 function makeIcon(path) {
@@ -153,6 +155,10 @@ function createMarker(data, path) {
 		}
 	);
 	map.addOverlay(gmarker);
+	if(!set) {
+		map.setCenter(regularPoint, 17);
+		set = true;
+	}
 	markers[abbrev] = { marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html };
 }
 
@@ -160,7 +166,7 @@ function makeMarkerHTML(name, abbrev, path, id) {
 	var picture = abbrev + ".JPG";
     var picture_path = path + "images/buildings/small/" + picture;
     var html = "<html>\n";
-	html += name+"&nbsp;("+abbrev+")<br>\n";
+	html += "<strong>"+name+"&nbsp;("+abbrev+")</strong><br>\n";
 	html += "<img src=\""+picture_path+"\" style='height:199px;width:300px;border:0;' onerror=\"this.src='"+path+"/images/poweredby300199.jpg';\"><br>\n";
 	html += "<a href=\""+path+"buildings/map?id="+id+"\">View in full map</a><br>\n";
 	html += "</html>";

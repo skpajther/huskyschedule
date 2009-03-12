@@ -12,7 +12,7 @@
         </select>
     </div><!-- side -->
     <div class="content" id="content">
-        <div class="breadcrumbs" id="crumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="#" onclick="processReturnToMap();">Map</a></div>
+        <div class="breadcrumbs" id="crumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="javascript:processReturnToMap();">Map</a></div>
         <div class="searchmap" style="float: right; width: 330px; text-align: right;">Search Map: <input type="text" id="searchField" onKeyDown="if(event.keyCode==13) { searchFor(this.value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>'); }" /><input type="submit" style="width: 50px;" value="Find" onclick="searchFor(document.getElementById('searchField').value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>');"/></div>
       
         <div id="map"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div>

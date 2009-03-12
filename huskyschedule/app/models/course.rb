@@ -11,11 +11,13 @@ class Course < ActiveRecord::Base
   serialize :times
   serialize :credit_type
   serialize :rendezvous
+  serialize :additional_info
 
   #status constants
   STATUS_CLOSED = 0
   STATUS_OPEN = 1
   STATUS_UNKNOWN = 2
+  STATUS_STRINGS = ["Closed", "Open", "Unknown"]
 
   #credit type contants
   CREDITTYPE_NW = 0
@@ -35,6 +37,13 @@ class Course < ActiveRecord::Base
     ["Unknown",     CREDITTYPE_UNKNOWN],
     ["Not Listed",  CREDITTYPE_NOTLISTED]
   ]
+  CREDITTYPES_TOOLTIP = " 
+  NW: The Natural World
+  <br>QSR: Quantitative and Symbolic Reasoning
+  <br>I&S: Individuals and Societies
+  <br>VLPA: Visual, Literary, and Performing Arts
+  <br>C: Composition
+  "
   
   #special char contstants
   ADDITIONALINFO_D = 0 #Distance learning (51% or more of the course instruction for this course is through some mode of distance learning) 
@@ -45,6 +54,26 @@ class Course < ActiveRecord::Base
   ADDITIONALINFO_W = 5 #Writing
   ADDITIONALINFO_PERCENT = 6 #New course, added to the General Catalog within one academic year
   ADDITIONALINFO_POUND = 7 #Course is not elligible for some or all types of financial aid
+  ADDITIONALINFO_TOOLTIP = "
+  D: Distance learning (51% or more of the course instruction for this course is through some mode of distance learning) 
+  <br>H: Honors section
+  <br>J: Jointly offered course (Select the SLN to see Joint Curriculum)
+  <br>R: Research
+  <br>S: Service learning
+  <br>W: Writing section
+  <br>%: New course 
+  <br>#: Not eligible for some or all types of Financial Aid"
+  ADDITIONALINFOS = [
+   #Displayed   stored in db
+      ["D", ADDITIONALINFO_D], 
+      ["H", ADDITIONALINFO_H],
+      ["J", ADDITIONALINFO_J],
+      ["R", ADDITIONALINFO_R],
+      ["S", ADDITIONALINFO_S],
+      ["W", ADDITIONALINFO_W],
+      ["%", ADDITIONALINFO_PERCENT],
+      ["#", ADDITIONALINFO_POUND]
+  ]
   
   def name
     return "#{self.deptabbrev} #{self.number}"
@@ -111,6 +140,7 @@ class Course < ActiveRecord::Base
         types.push(ADDITIONALINFO_POUND)
       end
     end
+    types.sort!
     return types
   end
   
@@ -305,6 +335,39 @@ class Rendezvous
       end
     }
     return times.length > 0
+  end
+  
+  #creates strings in the form 
+  def self.time_string(rende)
+    s = ""
+    #all times in this rendezvous will have the same start/stop, just different days
+    days = []
+    for time in rende.times
+      days.push(Quarter::DAY_DISPLAY_NAMES[time[0].wday-1])
+    end
+    start_h = rende.times[0][0].hour
+    start_am = start_h < 12
+    start_h = military_to_standard_hour(start_h)
+    start_m = rende.times[0][0].min
+    start_s = start_h.to_s + ":" + ((start_m == 0)? "00" : start_m.to_s) + ((start_am)? "a" : "p")
+    end_h = rende.times[0][1].hour
+    end_am = end_h < 12
+    end_h = military_to_standard_hour(end_h)
+    end_m = rende.times[0][1].min
+    end_s = end_h.to_s + ":" + ((end_m == 0)? "00" : end_m.to_s) + ((end_am)? "a" : "p")
+    time_s = start_s + " - " + end_s
+    for day in days
+      s << day
+    end
+    s << " " + time_s
+    return s
+  end
+  
+  def self.military_to_standard_hour(hour)
+    if(hour>12)
+      hour -= 12
+    end
+    return hour
   end
   
 end

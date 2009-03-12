@@ -6,47 +6,126 @@
     <div id="addtoschedule2"><a href=""><img src="addtoschedule.gif" /></a></div>
     <div class="breadcrumbs"><%= bread_crumbs @course, false %></div>
     
-    <div id="classschedule">
-        <%= generate_schedule(@course.rendezvous, :by_hour=>true) %>
+    <div class="classschedule">
+        <%= generate_schedule(@course.rendezvous, :by_hour=>true, :show_text_schedule=>false) %>
+        <% if(!(@quiz_sections.nil?)) %>
+            <% for q_section in @quiz_sections %>
+                <div style="visibility:hidden; margin-top:-455px;" class="classschedule" id="<%= q_section.id %>"><%= generate_schedule(q_section.rendezvous, :by_hour=>true, :show_text_schedule=>false) %></div>
+            <% end %>
+            <% if(@quiz_sections.length > 0) %>
+                <script type="text/javascript">var selectedQuizSection = "<%= @quiz_sections[0].id %>";</script>
+            <% end %>
+        <% end %>
+        <% if(!(@labs.nil?)) %>
+            <% for lab in @labs %>
+               <div style="visibility:hidden; margin-top:-467px;" class="classschedule" id="<%= lab.id %>"><%= generate_schedule(lab.rendezvous, :by_hour=>true, :show_text_schedule=>false) %></div> 
+            <% end %>
+            <% if(@labs.length > 0) %>
+                <script type="text/javascript">var selectedLab = "<%= @labs[0].id %>";</script>
+            <% end %>
+        <% end %>
         <div class="classtime2">
             <div class="lecture">
-                Lecture: Tu 10:30 - 11:50
+                <p><strong>Lecture:</strong><br>
+                    <% for rende in @course.rendezvous %>
+                        <% s = Rendezvous.time_string(rende) %>
+                        <% s << " <a href=\"" + url_for(:controller=>"buildings", :only_path=>false, :action=>"map", :id=>rende.building_id) + "\">#{Building.find(rende.building_id).abbrev}</a> #{rende.room}" %>
+                        <%= @course.section + ": " + s %><br>
+                    <% end %>
+                </p>
             </div>
-            Quiz Section: M 1:30 - 2:20<input type="button" onclick="changeSection(0)" value="AA" />
-            <br />
-            Quiz Section: W 1:30 - 2:20<input type="button" onclick="changeSection(1)" value="AB" />
-            <br />
-            Quiz Section: F 1:30 - 2:20<input type="button" onclick="changeSection(2)" value="AC" />
-            <br />
+            <% if(@quiz_sections.length > 0) %>
+                <p><strong>Quiz Sections:</strong><br>
+                <% for q_section in @quiz_sections %>
+                    <% rende = q_section.rendezvous[0] %>
+                    <% s = q_section.section + ": " + Rendezvous.time_string(rende) %>
+                    <% s << " <a href=\"" + url_for(:controller=>"buildings", :only_path=>false, :action=>"map", :id=>"#{rende.building_id}") + "\">#{Building.find(rende.building_id).abbrev}</a> #{rende.room}" %>
+                    <input type="radio" name="quiz_sections" value="<%= q_section.id %>" onchange="document.getElementById(selectedQuizSection).style.visibility = 'hidden'; document.getElementById(this.value).style.visibility = 'visible'; selectedQuizSection = this.value;"> <%= s %><br>
+                <% end %>
+                </p>
+            <% end %>
+            <% if(@labs.length > 0) %>
+                <p><strong>Labs:</strong><br>
+                <% for lab in @labs %>
+                    <% rende = lab.rendezvous[0] %>
+                    <% s = lab.section + ": " + Rendezvous.time_string(rende) %>
+                    <% s << " <a href=\"" + url_for(:controller=>"buildings", :only_path=>false, :action=>"map", :id=>rende.building_id) + "\">#{Building.find(rende.building_id).abbrev}</a> #{rende.room}" %>
+                    <input type="radio" name="labs" value="<%= lab.id %>" onchange="document.getElementById(selectedLab).style.visibility = 'hidden'; document.getElementById(this.value).style.visibility = 'visible'; selectedLab = this.value;"> <%= s %><br>
+                <% end %>
+                </p>
+            <% end %>
+            <p>
+                <% if(!(@other_lectures.nil?) && @other_lectures.length > 0 ) %>
+                    <strong>Other Lectures:</strong><br>
+                    <% for lecture in @other_lectures %>
+                        <% s = Rendezvous.time_string(lecture.rendezvous[0])  %> 
+                        <a href="<%= url_for(:controller=>'courses', :action=>false, :action=>'index', :id=>lecture.id) %>"><%= lecture.section %></a>: <%= s %><br>
+                    <% end %>
+                <% end %>
+            </p>
         </div>
     </div>
-    
-    <div id="titleabovetabbedwindow"><%= "#{@course.name}: #{@course.title}" %></div>
-    
+    <div id="titleabovetabbedwindow"><%= "#{@course.name} #{@course.section}: #{@course.title}" %></div>
+    <%= generate_enrollment_image(@course) %>      
+    <%= generate_credits_image(@course) %>
     <div id="tabs">
         <ul>
-            <li class="tabme" id="overviewtab"><a href="#" onclick="showTab(0);">Overview</a></li>
-            <li class="normtab" id="classreviewstab"><a href="#" onclick="showTab(1);">Class Reviews</a></li>
-            <li class="normtab" id="teacherreviewstab"><a href="#" onclick="showTab(2);">Teacher Reviews</a></li>
-            <li class="normtab" id="maptab"><a href="#" onclick="showTab(3);">Map</a></li>
+            <li class="tabme" id="overviewtab"><a href="javascript:showTab(0);">Overview</a></li>
+            <li class="normtab" id="classreviewstab"><a href="javascript:showTab(1);">Class Reviews</a></li>
+            <li class="normtab" id="teacherreviewstab"><a href="javascript:showTab(2);">Teacher Reviews</a></li>
+            <li class="normtab" id="maptab"><a href="javascript:showTab(3);">Map</a></li>
         </ul>
     </div>
     
     <div id="tabbedwindow">
         <noscript>Javascript must be enabled to utilize this page</noscript>
         <div id="overview">
-            <p><%= @course.description %></p>
-            <p>Teacher: <%= (@course.teacher!=nil)? @course.teacher.name : "Unknown" %></p>
-            <%= generate_enrollment_image(@course) %>      
-            <%= generate_credits_image(@course) %> 
+            <strong>SLN: </strong><%= @course.sln.to_s %><br>
+            <strong>Section: </strong><%= @course.section %><br>
+            <strong>Status: </strong><%= Course::STATUS_STRINGS[(@course.status)] %><br>
+            <% types = "" %>
+            <% for type in @course.credit_type %>
+                <% types << Course::CREDITTYPES[type][0] + ", " %>
+            <% end %>
+            <strong>Credit type: </strong><%= types[0,types.length-2] %> (<a class="info">key<span><%= Course::CREDITTYPES_TOOLTIP %></span></a>)<br>
+            <p><strong>Description: </strong><%= @course.description %></p>
+            <% if(@course.notes.length > 0) %>
+                <p><strong>Notes: </strong><%= @course.notes %></p>
+            <% end %>
+            <% if(!(@course.additional_info.nil?)) %>
+                <% ai = "" %>
+                <% for info in @course.additional_info %>
+                    <% ai << Course::ADDITIONALINFOS[info][0] + ", " %>
+                <% end %>
+                <p><strong>Additional info: </strong><%= ai[0,ai.length-2] %> (<a class="info">key<span><%= Course::ADDITIONALINFO_TOOLTIP %></span></a>)</p>
+            <% end %>
+            <p><strong>Instructor: </strong><%= (@course.teacher!=nil)? @course.teacher.name : "Unknown" %></p>
+            
         </div><!--overview-->
         <div id="classReviews">
-            <p>This class is an easy 4.0 for just about anybody.</p>
+            <strong>Review Summary: </strong><%= @course_reviews.length %> total reviews
+            <% if(@course_reviews.length > 0) %>
+                (<a href="#">read all</a>, <a href="#">write a review</a>)
+                <%= review_percent_table(@course) %>  
+                <% for review in @course_reviews %>
+                    <%= formatted_review(review) %><br /><hr />
+                <% end %>  
+            <% else %>
+                (<a href="#">Write a review</a>)
+            <% end %>
         </div><!--classReviews-->
         <div id="teacherReviews">
-            <p>I've never had this professor before, but because it's an easy class, the professor must be awesome!</p>
+            <strong>Name: </strong><%= @course.teacher.name %>
         </div><!--teacherReviews-->
-        <div id="mediumMap"></div>
+        <div id="mediumMapArea">
+            <% s = "" %>
+            <% for rende in @course.rendezvous %>
+                <% abbrev = Building.find(rende.building_id).abbrev %>
+                <% s << "<a href=\"javascript:openMarker('#{abbrev}');\" style=\"text-decoration:none;\">#{abbrev}</a>, " %>
+            <% end %>
+            <strong>Meets in: </strong><%= s[0,s.length-2] %><br><br>
+            <div id="mediumMap"></div>
+        </div>
     </div><!--tabbedwindow-->
 </div><!--singlewrapper-->
 <script type="text/javascript">initMediumMap("<%= url_for(:controller=>"/", :only_path=>false) %>"<%= @course.buildings_parameters %>); initCD();</script>
