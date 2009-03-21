@@ -341,10 +341,6 @@ class Rendezvous
   def self.time_string(rende)
     s = ""
     #all times in this rendezvous will have the same start/stop, just different days
-    days = []
-    for time in rende.times
-      days.push(Quarter::DAY_DISPLAY_NAMES[time[0].wday-1])
-    end
     start_h = rende.times[0][0].hour
     start_am = start_h < 12
     start_h = military_to_standard_hour(start_h)
@@ -356,8 +352,8 @@ class Rendezvous
     end_m = rende.times[0][1].min
     end_s = end_h.to_s + ":" + ((end_m == 0)? "00" : end_m.to_s) + ((end_am)? "a" : "p")
     time_s = start_s + " - " + end_s
-    for day in days
-      s << day
+    for time in rende.times
+      s << Quarter::DAY_DISPLAY_NAMES[time[0].wday-1]
     end
     s << " " + time_s
     return s
