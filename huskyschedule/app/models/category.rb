@@ -38,15 +38,16 @@ class Category < ActiveRecord::Base
   end
   
   def self.create_all_categories
-    Category.delete_all
+    Category.delete_all("name<>'Home'")
+    
     #Undergraduate Interdisciplinary Programs
-    college = Category.create(:name=>"Undergraduate Interdisciplinary Programs")
+    college = Category.create(:name=>"Undergraduate Interdisciplinary Programs", :parent_id=>HOME_ID)
     category = Category.create(:name=>"University Academy", :abbrev=>"ACADEM", :parent_id=>college.id, :url=>"academ.html")
     category = Category.create(:name=>"Program on the Environment", :abbrev=>"ENVIR", :parent_id=>college.id, :url=>"envst.html")
     category = Category.create(:name=>"Quantitative Science (Fisheries and Forest Resources)", :abbrev=>"Q SCI", :parent_id=>college.id, :url=>"quantsci.html")
     
     #Arts & Sciences
-    college = Category.create(:name=>"College of Arts and Science")
+    college = Category.create(:name=>"College of Arts and Science", :parent_id=>HOME_ID)
     top_category = Category.create(:name=>"American Ethnic Studies", :parent_id=>college.id)
     Category.create(:name=>"Afro-American Studies", :parent_id=>top_category.id, :abbrev=>"AFRAM", :url=>"afamst.html")
     Category.create(:name=>"American Ethnic Studies", :parent_id=>top_category.id, :abbrev=>"AES", :url=>"aes.html")
@@ -203,7 +204,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Zoology", :abbrev=>"BIOL", :url=>"biology.html", :parent_id=>college.id) #special
     
     #College of Built Environments
-    college = Category.create(:name=>"College of Built Environments")
+    college = Category.create(:name=>"College of Built Environments", :parent_id=>HOME_ID)
     Category.create(:name=>"Architecture", :abbrev=>"ARCH", :url=>"archit.html", :parent_id=>college.id)
     Category.create(:name=>"Built Environment", :abbrev=>"B E", :url=>"be.html", :parent_id=>college.id)
     Category.create(:name=>"Construction Management", :abbrev=>"CM", :url=>"constmgmt.html", :parent_id=>college.id)
@@ -214,7 +215,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Urban Planning", :abbrev=>"URBDP", :url=>"urbdes.html", :parent_id=>top_category.id)
     
     #Business School
-    college = Category.create(:name=>"Business School")
+    college = Category.create(:name=>"Business School", :parent_id=>HOME_ID)
     Category.create(:name=>"Accounting", :abbrev=>"ACCTG", :url=>"acctg.html", :parent_id=>college.id)
     top_category = Category.create(:name=>"Business Administration", :parent_id=>college.id)
     Category.create(:name=>"Administration", :abbrev=>"ADMIN", :url=>"admin.html", :parent_id=>top_category.id)
@@ -237,7 +238,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Strategic Management", :abbrev=>"ST MGT", :url=>"stratm.html", :parent_id=>top_category.id)
     
     #School of Dentistry
-    college = Category.create(:name=>"School of Dentistry")
+    college = Category.create(:name=>"School of Dentistry", :parent_id=>HOME_ID)
     Category.create(:name=>"Dental Hygiene", :abbrev=>"D HYG", :url=>"denthy.html", :parent_id=>college.id)
     Category.create(:name=>"Dental Public Health Sciences", :abbrev=>"DPHS", :url=>"dphs.html", :parent_id=>college.id)
     Category.create(:name=>"Dentistry", :abbrev=>"DENT", :url=>"dent.html", :parent_id=>college.id)
@@ -252,7 +253,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Restorative Dentistry", :abbrev=>"RES D", :url=>"restor.html", :parent_id=>college.id)
     
     #College of Education
-    college = Category.create(:name=>"College of Education")
+    college = Category.create(:name=>"College of Education", :parent_id=>HOME_ID)
     Category.create(:name=>"Curriculum and Instruction", :abbrev=>"EDC&I", :url=>"edci.html", :parent_id=>college.id)
     Category.create(:name=>"College of Education", :abbrev=>"EDUC", :url=>"indsrf.html", :parent_id=>college.id)
     Category.create(:name=>"Early Childhood and Family Studies", :abbrev=>"ECFS", :url=>"ecfs.html", :parent_id=>college.id)
@@ -262,7 +263,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Special Education", :abbrev=>"EDSPE", :url=>"sped.html", :parent_id=>college.id)
     
     #College of Engineering
-    college = Category.create(:name=>"College of Engineering")
+    college = Category.create(:name=>"College of Engineering", :parent_id=>HOME_ID)
     Category.create(:name=>"Aeronautics and Astronautics", :abbrev=>"A A", :url=>"aa.html", :parent_id=>college.id)
     Category.create(:name=>"Chemical Engineering", :abbrev=>"CHEM E", :url=>"cheng.html", :parent_id=>college.id)
     Category.create(:name=>"Civil and Environmental Engineering", :abbrev=>"CEE", :url=>"cee.html", :parent_id=>college.id)
@@ -277,13 +278,13 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Technical Communication", :abbrev=>"T C", :url=>"techc.html", :parent_id=>college.id)
     
     #College of Forest Resources
-    college = Category.create(:name=>"College of Forest Resources")
+    college = Category.create(:name=>"College of Forest Resources", :parent_id=>HOME_ID)
     Category.create(:name=>"College of Forest Resources", :abbrev=>"CFR", :url=>"forr.html", :parent_id=>college.id)
     Category.create(:name=>"Environmental Science and Resource Management", :abbrev=>"ESRM", :url=>"esrm.html", :parent_id=>college.id)
     Category.create(:name=>"Paper Science and Engineering", :abbrev=>"PSE", :url=>"paper.html", :parent_id=>college.id)
     
     #The Information School
-    college = Category.create(:name=>"The Information School")
+    college = Category.create(:name=>"The Information School", :parent_id=>HOME_ID)
     Category.create(:name=>"Informatics", :abbrev=>"INFO", :url=>"info.html", :parent_id=>college.id)
     Category.create(:name=>"Information School Interdisciplinary", :abbrev=>"INFX", :url=>"infx.html", :parent_id=>college.id)
     Category.create(:name=>"Information Science", :abbrev=>"INSC", :url=>"insc.html", :parent_id=>college.id)
@@ -291,7 +292,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Library and Information Science", :abbrev=>"LIS", :url=>"lis.html", :parent_id=>college.id)
     
     #Interdisciplinary Graduate Programs
-    college = Category.create(:name=>"Interdisciplinary Graduate Programs")
+    college = Category.create(:name=>"Interdisciplinary Graduate Programs", :parent_id=>HOME_ID)
     Category.create(:name=>"Biomolecular Structure and Design", :abbrev=>"BMSD", :url=>"bmsd.html", :parent_id=>college.id)
     Category.create(:name=>"Graduate School", :abbrev=>"GRDSCH", :url=>"grad.html", :parent_id=>college.id)
     Category.create(:name=>"Global Trade, Transportation & Logistics", :abbrev=>"GTTL", :url=>"gttl.html", :parent_id=>college.id)
@@ -306,13 +307,13 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Quaternary Science", :abbrev=>"QUAT", :url=>"qrc.html", :parent_id=>college.id)
     
     #Interschool or Intercollege Programs
-    college = Category.create(:name=>"Interschool or Intercollege Programs")
+    college = Category.create(:name=>"Interschool or Intercollege Programs", :parent_id=>HOME_ID)
     Category.create(:name=>"Bioengineering", :abbrev=>"BIOEN", :url=>"bioeng.html", :parent_id=>college.id)
     Category.create(:name=>"Global Health", :abbrev=>"G H", :url=>"gh.html", :parent_id=>college.id)
     Category.create(:name=>"University Conjoint Courses", :abbrev=>"UCONJ", :url=>"uconjoint.html", :parent_id=>college.id)
     
     #School of Law
-    college = Category.create(:name=>"School of Law")
+    college = Category.create(:name=>"School of Law", :parent_id=>HOME_ID)
     Category.create(:name=>"Health Law", :abbrev=>"LAW H", :url=>"lawh.html", :parent_id=>college.id)
     Category.create(:name=>"Intellectual Property Law", :abbrev=>"LAW P", :url=>"lawp.html", :parent_id=>college.id)
     Category.create(:name=>"Law", :abbrev=>"LAW", :url=>"law.html", :parent_id=>college.id)
@@ -322,7 +323,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Law E", :abbrev=>"LAW E", :url=>"lawe.html", :parent_id=>college.id)
     
     #School of Medicine
-    college = Category.create(:name=>"School of Medicine")
+    college = Category.create(:name=>"School of Medicine", :parent_id=>HOME_ID)
     Category.create(:name=>"Anesthesiology", :abbrev=>"ANEST", :url=>"anest.html", :parent_id=>college.id)
     Category.create(:name=>"Biochemistry", :abbrev=>"BIOC", :url=>"bioch.html", :parent_id=>college.id)
     Category.create(:name=>"Bioengineering", :abbrev=>"BIOEN", :url=>"bioeng.html", :parent_id=>college.id)
@@ -364,32 +365,32 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Urology", :abbrev=>"UROL", :url=>"uro.html", :parent_id=>college.id)
     
     #School of Nursing
-    college = Category.create(:name=>"School of Nursing")
+    college = Category.create(:name=>"School of Nursing", :parent_id=>HOME_ID)
     Category.create(:name=>"Nursing", :abbrev=>"NSG", :url=>"nsg.html", :parent_id=>college.id)
     Category.create(:name=>"Nursing", :abbrev=>"NURS", :url=>"nursing.html", :parent_id=>college.id)
     Category.create(:name=>"Nursing Clinical", :abbrev=>"NCLIN", :url=>"nursingcl.html", :parent_id=>college.id)
     Category.create(:name=>"Nursing Methods", :abbrev=>"NMETH", :url=>"nursingmeth.html", :parent_id=>college.id)
     
     #College of Ocean and Fishery Sciences
-    college = Category.create(:name=>"College of Ocean and Fishery Sciences")
+    college = Category.create(:name=>"College of Ocean and Fishery Sciences", :parent_id=>HOME_ID)
     Category.create(:name=>"Aquatic and Fishery Sciences", :abbrev=>"FISH", :url=>"fish.html", :parent_id=>college.id)
     Category.create(:name=>"School of Marine Affairs", :abbrev=>"SMA", :url=>"marine.html", :parent_id=>college.id)
     Category.create(:name=>"Oceanography", :abbrev=>"OCEAN", :url=>"ocean.html", :parent_id=>college.id)
     
     #School of Pharmacy
-    college = Category.create(:name=>"School of Pharmacy")
+    college = Category.create(:name=>"School of Pharmacy", :parent_id=>HOME_ID)
     Category.create(:name=>"Medicinal Chemistry", :abbrev=>"MEDCH", :url=>"medchem.html", :parent_id=>college.id)
     Category.create(:name=>"Pharmaceutics", :abbrev=>"PCEUT", :url=>"pharmceu.html", :parent_id=>college.id)
     Category.create(:name=>"Pharmacy", :abbrev=>"PHARM", :url=>"pharmacy.html", :parent_id=>college.id)
     Category.create(:name=>"Pharmacy Regulatory Affairs", :abbrev=>"PHRMRA", :url=>"phrmra.html", :parent_id=>college.id)
     
     #Evans School of Public Affairs
-    college = Category.create(:name=>"Evans School of Public Affairs")
+    college = Category.create(:name=>"Evans School of Public Affairs", :parent_id=>HOME_ID)
     Category.create(:name=>"Public Affairs", :abbrev=>"PB AF", :url=>"pubaff.html", :parent_id=>college.id)
     Category.create(:name=>"Public Policy and Management", :abbrev=>"PPM", :url=>"ppm.html", :parent_id=>college.id)
     
     #School of Public Health
-    college = Category.create(:name=>"School of Public Health")
+    college = Category.create(:name=>"School of Public Health", :parent_id=>HOME_ID)
     Category.create(:name=>"Biostatistics", :abbrev=>"BIOST", :url=>"biostat.html", :parent_id=>college.id)
     top_category = Category.create(:name=>"Environmental and Occupational Health Sciences", :parent_id=>college.id)
     Category.create(:name=>"Environmental Health", :abbrev=>"ENV H", :url=>"envh.html", :parent_id=>top_category.id)
@@ -403,19 +404,19 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Pathobiology", :abbrev=>"PABIO", :url=>"pathobio.html", :parent_id=>college.id)
     
     #Reserve Officers Training Corps Programs
-    college = Category.create(:name=>"Reserve Officers Training Corps Programs")
+    college = Category.create(:name=>"Reserve Officers Training Corps Programs", :parent_id=>HOME_ID)
     Category.create(:name=>"Aerospace Studies", :abbrev=>"A S", :url=>"88aerosci.html", :parent_id=>college.id)
     Category.create(:name=>"Military Science", :abbrev=>"M SCI", :url=>"88milsci.html", :parent_id=>college.id)
     Category.create(:name=>"Naval Science", :abbrev=>"N SCI", :url=>"88navsci.html", :parent_id=>college.id)
     
     #School of Social Work
-    college = Category.create(:name=>"School of Social Work")
+    college = Category.create(:name=>"School of Social Work", :parent_id=>HOME_ID)
     Category.create(:name=>"Social Welfare BASW", :abbrev=>"SOC WF", :url=>"socwlbasw.html", :parent_id=>college.id)
     Category.create(:name=>"Social Welfare", :abbrev=>"SOC WL", :url=>"socwl.html", :parent_id=>college.id)
     Category.create(:name=>"Social Work (MSW)", :abbrev=>"SOC W", :url=>"socwk.html", :parent_id=>college.id)
     
     #Extended MPH Degree Program
-    college = Category.create(:name=>"Extended MPH Degree Program")
+    college = Category.create(:name=>"Extended MPH Degree Program", :parent_id=>HOME_ID)
     top_category = Category.create(:name=>"School of Public Health", :parent_id=>college.id)
     Category.create(:name=>"Biostatistics", :abbrev=>"BIOST", :url=>"94biostat.html", :parent_id=>top_category.id)
     Category.create(:name=>"Environmental Health", :abbrev=>"ENV H", :url=>"94envh.html", :parent_id=>top_category.id)
@@ -426,7 +427,7 @@ class Category < ActiveRecord::Base
     Category.create(:name=>"Nutritional Science", :abbrev=>"NUTR", :url=>"94nutrit.html", :parent_id=>top_category.id)
     
     #Friday Harbor Laboratories
-    college = Category.create(:name=>"Friday Harbor Laboratories")
+    college = Category.create(:name=>"Friday Harbor Laboratories", :parent_id=>HOME_ID)
     top_category = Category.create(:name=>"College of Arts and Sciences", :parent_id=>college.id)
     Category.create(:name=>"Biology", :abbrev=>"BIOL", :url=>"91biology.html", :parent_id=>top_category.id)
     top_category = Category.create(:name=>"College of Ocean and Fishery Sciences", :parent_id=>college.id)
