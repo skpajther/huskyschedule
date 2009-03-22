@@ -2,11 +2,34 @@ class CourseReviewsController < ApplicationController
   
   def index
     @course = Course.find(params[:id])
-    if(params[:rating_val]==nil || params[:rating_val].to_i > 5 || params[:rating_val].to_i < 1)
-      @course_reviews = CourseReview.find_all_by_course_name(@course.name)
-    else
-      @course_reviews = CourseReview.find(:all, :conditions=>{:course_name=>@course.name, :rating=>params[:rating_val]})
+    @by_rating = false;
+    if(!params[:rating_val].nil?)
+      @rating_val = params[:rating_val]
+      if(@rating_val > CourseReview::RATING_EXCELLENT || @rating_val < CourseReview::VERYPOOR)
+        @rating_val = "All"
+      else
+        @by_rating = true
+      end
     end
+    @by_teacher = false
+    if(!params[:teacher_id].nil?)
+      teacher = Teacher.find(params[:teacher_id])
+      if(!teacher.nil?)
+        @by_teacher = true
+      end
+    end
+    @count_ratings = [0,0,0,0,0]
+    if(@by_teacher)
+      @course_reviews = CourseReview.find(:all, :conditions => {:course_name=>@course.name, :teacher_id=>params[:teacher_id]})
+    else
+      @course_reviews = CourseReview.find(:all, :conditions=>{:course_name=>@course.name})
+    end
+    for review in @course_reviews
+      @count_ratings[review.rating-1] += 1
+    end
+    @teachers = []
+    #need counts for all the teachers, i reccommend building a hash od <teacher id, count>
+    #TODO Dan finish this
   end
   
   def new
