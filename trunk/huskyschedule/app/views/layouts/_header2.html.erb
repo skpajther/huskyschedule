@@ -15,7 +15,7 @@
 
 
 <% if((controller.controller_name=="buildings" && (controller.action_name=="map" || controller.action_name=="index")) || (controller.controller_name=="course" && controller.action_name=="name")) %>
-    <body onunload="GUnload()">
+    <body onload="stripe()" onunload="GUnload()">
 <% else %>
     <body>
 <% end %>
@@ -30,7 +30,7 @@
     </div>
     <div id="head">
 
-        <form name="search" action="" method="post">
+<form name="search" action="" method="post">
             <ul class="topbar">
             <li id="space"></li>
             <li id="home"><a href="index.html"><span class="normal"> </span></a></li>
