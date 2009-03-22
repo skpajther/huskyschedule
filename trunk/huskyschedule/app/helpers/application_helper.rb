@@ -2,7 +2,10 @@
 module ApplicationHelper
   
 def military_to_standard_hour(hour)
-  return Rendezvous.military_to_standard_hour(hour)
+  if(hour>12)
+    hour -= 12
+  end
+  return hour
 end
 
 def generate_credits_image(course)
@@ -382,52 +385,52 @@ def bread_crumbs(category_or_course, include_self_link=false, limitors={})
   end
   
 def add_to_limitors(params, place, value, options={})
-    do_not_overide = false
-    display = ""
-    do_not_add_to_order = false
-    if(options[:do_not_overide]!=nil)
-      do_not_overide = options[:do_not_overide]
-    end
-    if(options[:display]!=nil)
-      display = options[:display]
-    end
-    if(options[:do_not_add_to_order]!=nil)
-      do_not_add_to_order = options[:do_not_add_to_order]
-    end
-  
-    if(params[:limitors]==nil)
-      params[:limitors] = {}
-    end
-    
-    if(place=="custom")
-      if(params[:limitors]["custom"]==nil || !params[:limitors]["custom"].include?(value) || !do_not_overide)
-        if(params[:limitors]["custom"]==nil)
-          params[:limitors]["custom"] = []
-        end
-        params[:limitors]["custom"].push(value)
-        place = "custom..#{params[:limitors]['custom'].size-1}..#{display}"
-      else
-        place = nil
-      end
-    else
-      if(!params[:limitors].key?(place) || !do_not_overide)
-        params[:limitors][place] = value
-      else
-        place = nil
-      end
-    end
-    
-    if(place!=nil && !do_not_add_to_order)
-      if(params[:limitors][:order]==nil)
-        params[:limitors][:order] = []
-      end
-      params[:limitors][:order].push(place)
-      place = params[:limitors][:order].size - 1
-    elsif(params[:limitors]=={})
-      params.delete(:limitors)
-    end
-    return place
+  do_not_overide = false
+  display = ""
+  do_not_add_to_order = false
+  if(options[:do_not_overide]!=nil)
+    do_not_overide = options[:do_not_overide]
   end
+  if(options[:display]!=nil)
+    display = options[:display]
+  end
+  if(options[:do_not_add_to_order]!=nil)
+    do_not_add_to_order = options[:do_not_add_to_order]
+  end
+
+  if(params[:limitors]==nil)
+    params[:limitors] = {}
+  end
+  
+  if(place=="custom")
+    if(params[:limitors]["custom"]==nil || !params[:limitors]["custom"].include?(value) || !do_not_overide)
+      if(params[:limitors]["custom"]==nil)
+        params[:limitors]["custom"] = []
+      end
+      params[:limitors]["custom"].push(value)
+      place = "custom..#{params[:limitors]['custom'].size-1}..#{display}"
+    else
+      place = nil
+    end
+  else
+    if(!params[:limitors].key?(place) || !do_not_overide)
+      params[:limitors][place] = value
+    else
+      place = nil
+    end
+  end
+  
+  if(place!=nil && !do_not_add_to_order)
+    if(params[:limitors][:order]==nil)
+      params[:limitors][:order] = []
+    end
+    params[:limitors][:order].push(place)
+    place = params[:limitors][:order].size - 1
+  elsif(params[:limitors]=={})
+    params.delete(:limitors)
+  end
+  return place
+end
   
   def delete_from_limitors(params, position)
     if(position!=nil && params[:limitors]!=nil && params[:limitors][:order]!=nil)
@@ -442,20 +445,16 @@ def add_to_limitors(params, place, value, options={})
     end
   end
   
-def review_percent_table(course, options={})
-    reviews = CourseReview.find(:all, :conditions=>{:course_name=>course.name})
-		total_reviews = course.total_ratings
-		if(total_reviews.nil?)
-		  course.total_ratings = 0
-		  course.save()
-		  total_reviews = 0
-		end
-  	all = [0,0,0,0,0]
+  def review_percent_table(reviews, total_reviews, options={})
+		all = [0,0,0,0,0]
     average = 0.0
-    for course_review in reviews
-      rating = course_review.rating
+    for review in reviews
+      rating = review.rating
       average += rating
-      all[rating - 1] = all[rating - 1] + 1
+      all[rating - 1] += 1
+    end
+    if(total_reviews.nil?)
+      total_reviews = 0
     end
     average /= total_reviews
     bartable = "<table width='100%'>"
@@ -475,27 +474,47 @@ def review_percent_table(course, options={})
 						bartable << "<td class='barrow'></td>"
 				  end
 					bartable << "<td>#{percent}%</td></tr></table></td>"
-				  if(options[:links]==true)
-						bartable << "<td>"+link_to( all[i-1].to_s+" reviews", :controller=>"course_reviews", :action=>"index", :id=>course.id, :rating_val=>i) +"</td>"
+				  if(options[:links]!=nil)
+						bartable << "<td>"+link_to( all[i-1].to_s+" reviews", :controller=>"course_reviews", :action=>"index", :id=>options[:links], :rating_val=>i) +"</td>"
 					end
           bartable << "</tr>"
 		}
 		bartable << "<tr><td>Average rating: #{average.to_s}</td></tr>"
-		bartable << "</table><hr />"
+		bartable << "</table>"
 		return bartable
   end
 	
-	def formatted_review(course_review)
-      return " <tr>
-        					<td height='1' style='border-bottom:solid 1px #999'><a class='smalltitle'><strong>#{course_review.review_name}</strong></a></td>
-        			 </tr>
-        			 <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{(course_review.author!=nil)? course_review.author.login : 'Anonymous'} on #{course_review.created_at}</td><td align='right'>#{star_ratings(course_review.rating, "24x24")}</td></tr></table></tr>
-        			 <tr><td>Quarter taken: </td></tr><br>
-        			 <tr><td><strong>Taught by:</strong>&nbsp;#{Teacher.find(course_review.teacher_id).name}</td></tr><br>
-        			 <tr><td><strong>Pros:</strong>&nbsp;#{course_review.pros}</td></tr><br>
-        			 <tr><td><strong>Cons:</strong>&nbsp;#{course_review.cons}</td></tr><br>
-        		   <tr><td><strong>Other Thoughts:</strong>&nbsp;#{course_review.other_thoughts}</td></tr>"
-			 
+	def formatted_course_review(course_review, course)
+	  teacher = Teacher.find(course_review.teacher_id)
+	  taken_s = Quarter.quarter_disp_name(course_review.quarter_taken) + " " + course_review.year_taken.to_s
+	  valid_course = Course.find(:first, :conditions => "quarter_id=#{course_review.quarter_taken} AND year=#{course_review.year_taken} AND title='#{course.title}'")
+	  return "<table width='100%'>
+	              <tr><td>
+                  <table width='100%'>
+	                  <tr>
+                      <td valign='top'><a class='smalltitle' style='font-size:1.1em;'><strong>#{course_review.review_name}</strong></a></td>
+                      <td align='right'>#{star_ratings(course_review.rating, "24x24")}</td>
+                    </tr>
+                  </table>
+                </td></tr>
+                <tr><td><strong>Reviewed By:</strong> #{(course_review.author!=nil)? course_review.author.login : 'Anonymous'} <strong>on</strong> #{course_review.created_at}</td></tr>
+                <tr><td><strong>Quarter taken:</strong>&nbsp;#{ ((!valid_course.nil?)? link_to(taken_s, :controller=>'courses', :action=>'index', :id=>valid_course.id) : taken_s)}</td></tr>
+            		<tr><td><strong>Taught by:</strong>&nbsp;#{link_to(teacher.name, :controller=>'teachers', :action=>'index', :id=>teacher.id)}</td></tr>
+	              <tr><td><strong>Pros:</strong>&nbsp;#{course_review.pros}</td></tr>
+	              <tr><td><strong>Cons:</strong>&nbsp;#{course_review.cons}</td></tr>
+	              <tr><td><strong>Other Thoughts:</strong>&nbsp;#{course_review.other_thoughts}</td></tr>
+             </table>"
+  end
+	
+	def formatted_teacher_review(teacher_review)
+	  return "<tr>
+	            <td height='1' style='border-bottom:solid 1px; #999'><a class='smalltitle'><strong>#{teacher_review.name}</strong></a></td>
+	            <tr><td><table width='100%'><tr><td valign='top'>Reviewed By: #{(teacher_review.author!=nil)? teacher_review.author.login : 'Anonymous'} on #{teacher_review.created_at}</td><td align='right'>#{star_ratings(teacher_review.rating, "24x24")}</td></tr></table></td></tr>
+	            <tr><td>Class taught: </tr></td><br>
+	            <tr><td><strong>Pros:</strong>&nbsp;#{teacher_review.pros}</td></tr><br>
+              <tr><td><strong>Cons:</strong>&nbsp;#{teacher_review.cons}</td></tr><br>
+              <tr><td><strong>Other Thoughts:</strong>&nbsp;#{teacher_review.other_thoughts}</td></tr>
+	         "
 	end
         		   
   def votable_image(location, vote_count, total_votes, vote_url, options={})
