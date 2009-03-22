@@ -22,6 +22,7 @@ class CourseReview < ActiveRecord::Base
   def self.create(course_review, course, params, curr_user)
     if(course_review!=nil && params[:course_review]!=nil && course!=nil)
       course_review.course_name = course.name
+      course_review.teacher_id = course.teacher_id
       course_review.save!
       message = "Course Rating Created Successfully"
       CourseReview.recalculate_review_info(course, course_review)
@@ -31,19 +32,26 @@ class CourseReview < ActiveRecord::Base
     return message
   end
   
+  #TODO fix so that all courses with the same name are updated
   def self.recalculate_review_info(course, new_review=nil)
+    if(course.rating == nil)
+      course.rating = 0
+    end
+    if(course.total_ratings == nil)
+      course.total_ratings = 0
+    end
     if(new_review!=nil)
       rating_tot = course.rating * course.total_ratings
-      rating_tot = rating_tot + new_review.rating
-      course.total_ratings = course.total_ratings + 1
+      rating_tot += new_review.rating
+      course.total_ratings += 1
       course.rating = (rating_tot*1.0)/course.total_ratings
     else
       reviews = CourseReview.find_all_by_course_name(course.name)
       rating_tot = 0
       tot_ratings = 0
       for review in reviews
-        rating_tot = rating_tot + review.rating
-        tot_ratings = tot_ratings + 1
+        rating_tot += review.rating
+        tot_ratings += 1
       end
       course.rating = (rating_tot*1.0)/tot_ratings
       course.total_ratings = tot_ratings
