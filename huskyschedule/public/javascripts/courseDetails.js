@@ -41,7 +41,6 @@ function showTab(tabNumber) {
 				document.getElementById("maptab").className = "normtab";
 				break;
 			default:
-				removeCurrentState(0);
 				break;
 		}
 		switch(tabNumber) {
