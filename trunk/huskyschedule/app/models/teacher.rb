@@ -9,6 +9,7 @@ class Teacher < ActiveRecord::Base
   #Constants
   TEACHER_NOTLISTED = -2 #no teacher assigned yet
   TEACHER_NOTFOUND = -1 #Regex failed
+  DEFAULT_IMAGE_LOCATION = "teachers/default.png"
   
   def self.get_teacher_id(name)
     name = prepare_name(name)
@@ -126,9 +127,9 @@ class Teacher < ActiveRecord::Base
       votes = sorted_photos[0][1]
     else
       if(options[:long_location]) 
-        location = "public/images/teachers/default.png"
+        location = "public/images/"+DEFAULT_IMAGE_LOCATION
       else
-        location = "teachers/default.png"
+        location = DEFAULT_IMAGE_LOCATION
       end
       votes = 0
     end
@@ -143,7 +144,9 @@ class Teacher < ActiveRecord::Base
   
   def runners_up_photo_locations
     all_sorted = self.sorted_photolocation_vote_map
-    all_sorted.shift
+    if(all_sorted != nil)
+      all_sorted.shift
+    end
     return all_sorted
   end
   
@@ -160,7 +163,11 @@ class Teacher < ActiveRecord::Base
   end
   
   def sorted_photolocation_vote_map
-    self.photolocation_vote_map.sort{|a,b| 0-(a[1] <=> b[1])}
+    if(self.photolocation_vote_map!=nil)
+      return self.photolocation_vote_map.sort{|a,b| 0-(a[1] <=> b[1])}
+    else
+      return nil
+    end
   end
   
 end
