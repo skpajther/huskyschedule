@@ -53,14 +53,14 @@ class Parser < ActiveRecord::Base
       Lab.delete_all(:parent_id=>c.id)
     end
     
-    #Category.create_all_categories
+    Category.create_all_categories
     i=50
     
     #DO VERK
-#    categories = Category.find(:all, :conditions=>"url != ''")
-#    for category in categories
-#      category_parser(url+category.url, category.url, category.abbrev, quarter, year, category.id)
-#    end
+    categories = Category.find(:all, :conditions=>"url != ''")
+    for category in categories
+      category_parser(url+category.url, category.url, category.abbrev, quarter, year, category.id)
+    end
     
     
     abbrev = "CSE"

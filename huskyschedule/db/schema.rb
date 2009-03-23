@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090208000544) do
+ActiveRecord::Schema.define(:version => 20090222185334) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -21,6 +21,11 @@ ActiveRecord::Schema.define(:version => 20090208000544) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "picture"
+    t.float    "sv_yaw"
+    t.float    "sv_pitch"
+    t.integer  "sv_zoom",    :limit => 11
+    t.float    "sv_lat"
+    t.float    "sv_lng"
   end
 
   create_table "categories", :force => true do |t|
@@ -70,7 +75,7 @@ ActiveRecord::Schema.define(:version => 20090208000544) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.float    "rating"
-    t.integer  "total_ratings",     :limit => 11
+    t.integer  "total_reviews",     :limit => 11
     t.integer  "year",              :limit => 11
     t.integer  "variable_credit",   :limit => 11
     t.text     "rendezvous"

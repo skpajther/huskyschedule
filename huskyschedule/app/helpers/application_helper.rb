@@ -521,6 +521,9 @@ end
       pic_size = ImageSpec::Dimensions.new(location)
       pic_width = pic_size.width
       pic_height = pic_size.height
+      if(total_votes==nil)
+        total_votes = 0
+      end
       if(options[:max_width]!=nil && ((pic_width - options[:max_width]) > (pic_height - ((options[:max_height]!=nil)? options[:max_height] : pic_height))) &&  pic_width > options[:max_width])
         pic_height = (options[:max_width]*pic_height)/pic_width
         pic_width = options[:max_width]
@@ -540,8 +543,8 @@ end
       return "<div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;'>
                 <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
                 <div style='z-index:1;position:absolute;width:#{pic_width}px;height:#{pic_height}px;'>
-                  #{vote_button}
-                  <div style='float:right;padding-right:5px;padding-top:#{top_lettering_pos}px;'><span class='vote_percent'>#{percent.to_i}%</span></div>
+                  #{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? vote_button : ""}
+                  <div style='float:right;padding-right:5px;padding-top:#{top_lettering_pos}px;'><span class='vote_percent'>#{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? percent.to_i.to_s+'%' : ''}</span></div>
                 </div>
               </div>"
   end
