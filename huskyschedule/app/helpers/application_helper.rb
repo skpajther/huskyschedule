@@ -308,46 +308,82 @@ def mini_schedule(times, options={})
 		return result
   end
   
-def bread_crumbs(category_or_course, include_self_link=false, limitors={})
-    @familypath = []
-    @familypath.push(category_or_course)
-    while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parent!=nil)
-      if(category_or_course.is_a?(Course))
-        @familypath.push(category_or_course.category)
-        category_or_course = category_or_course.category
-      else
-        @familypath.push(category_or_course.parent)
-        category_or_course = category_or_course.parent
-      end
+  def bread_crumbs(category_or_course, options={})
+    include_self_link = false
+    include_x_links = true
+    limitors = nil
+    base_url_hash = {:controller=>"categories", :action=>"index"}
+    limitors_name = :limitors
+    
+    if(options[:include_self_link]!=nil)
+      include_self_link = options[:include_self_link]
     end
+    if(options[:include_x_links]!=nil)
+      include_x_links = options[:include_x_links]
+    end
+    if(options[:base_url_hash])
+      base_url_hash = options[:base_url_hash]
+    end
+    if(options[:limitors_name]!=nil)
+      limitors_name = options[:limitors_name]
+    end
+    if(options[limitors_name]!=nil)
+      limitors = options[limitors_name]
+    end
+    
     result = ""
-    str_fill = ""
-    parent2 = category_or_course
-	  while (parent = @familypath.pop)!=nil
-	    if(parent.is_a?(Course))
-	      if(!@familypath.empty? || include_self_link)
-	        result = result + str_fill + link_to("SLN: #{parent.sln}", :controller=>"courses", :action=>"index", :id=>parent.id)
-	      else
-	        result = result + str_fill + "SLN: #{parent.sln}"
-	      end
-	    else
-	      if(!@familypath.empty? || include_self_link)
-	        result = result + str_fill + link_to(parent.name, :controller=>"categories", :action=>"index", :id=>parent.id)
-	      else
-	        result = result + str_fill + parent.name
-	      end
-	    end
-	    parent2 = parent
-	    str_fill = " > "
-	  end
-	  if(limitors!=nil && limitors.size>0)
+    if(category_or_course!=nil)
+      familypath = []
+      familypath.push(category_or_course)
+      while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parent!=nil)
+        if(category_or_course.is_a?(Course))
+          familypath.push(category_or_course.category)
+          category_or_course = category_or_course.category
+        else
+          familypath.push(category_or_course.parent)
+          category_or_course = category_or_course.parent
+        end
+      end
+      
+      str_fill = ""
+      parent2 = category_or_course
+  	  while (parent = familypath.pop)!=nil
+  	    if(parent.is_a?(Course))
+  	      if(!familypath.empty? || include_self_link)
+  	        result = result + str_fill + link_to("SLN: #{parent.sln}", :controller=>"courses", :action=>"index", :id=>parent.id)
+  	      else
+  	        result = result + str_fill + "SLN: #{parent.sln}"
+  	      end
+  	    else
+  	      if(!familypath.empty? || include_self_link)
+  	        base_url_hash[:id] = parent.id
+  	        result = result + str_fill + link_to(parent.name, base_url_hash)
+  	      else
+  	        result = result + str_fill + parent.name
+  	      end
+  	    end
+  	    parent2 = parent
+  	    base_url_hash[:id] = parent2.id
+  	    str_fill = " > "
+  	  end
+    end
+	  if(limitors!=nil && limitors.size>0 && limitors[:order]!=nil)
 	    to_result = ""
 	    tmp_limitors = limitors.clone
 	    tmp_limitors[:order] = tmp_limitors[:order].clone
-	    tmp_limitors["custom"] = tmp_limitors["custom"].clone
+	    if(tmp_limitors["custom"]!=nil)
+	      tmp_limitors["custom"] = tmp_limitors["custom"].clone
+	    end
 	    tmp2_limitors = limitors.clone
 	    tmp2_limitors[:order] = tmp2_limitors[:order].clone
-      tmp2_limitors["custom"] = tmp2_limitors["custom"].clone
+      if(tmp2_limitors["custom"]!=nil)
+        tmp2_limitors["custom"] = tmp2_limitors["custom"].clone
+      end
+      tmp3_limitors = limitors.clone
+	    tmp3_limitors[:order] = tmp3_limitors[:order].clone
+      if(tmp3_limitors["custom"]!=nil)
+        tmp3_limitors["custom"] = tmp3_limitors["custom"].clone
+      end
 	    order = limitors[:order].clone
 	    size = order.size-1
       order.each_index{|index|
@@ -358,25 +394,58 @@ def bread_crumbs(category_or_course, include_self_link=false, limitors={})
           spot = arr[1].to_i
           display = arr[2]
           tmp = tmp_limitors["custom"][spot]
-          tmp_str = " > "+ link_to(display, :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp2_limitors)
+          base_url_hash[limitors_name] = tmp2_limitors
+          tmp_str = " > "+ link_to(display, base_url_hash)
           tmp_limitors["custom"].delete_at(spot)
           tmp_limitors[:order].delete_at(i)
+          if(i<tmp_limitors[:order].size && tmp_limitors[:order][i].include?("custom"))
+            tmp_array = tmp_limitors[:order][i].split("..")
+            tmp_array[1] = (tmp_array[1].to_i)-1
+            tmp_limitors[:order][i] = "#{tmp_array[0]}..#{tmp_array[1]}..#{tmp_array[2]}"
+          end  
           tmp2_limitors["custom"].delete_at(spot)
           tmp2_limitors[:order].delete_at(i)
-          to_result = tmp_str + "(" + link_to("x", :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp_limitors) + ")" + to_result
+          if(include_x_links)
+            base_url_hash[limitors_name] = tmp_limitors
+            to_result = tmp_str + "(" + link_to("x", base_url_hash) + ")" + to_result
+          else
+            to_result = tmp_str + to_result
+          end
           tmp_limitors["custom"].insert(spot, tmp)
           tmp_limitors[:order].insert(i, item)
         else
+          class_hash = {"teacher" => Teacher}
           value = tmp_limitors[item]
-          display = "#{item}: #{value}"
-          tmp_str = " > "+ link_to(display, :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp2_limitors)
-          tmp_limitors.delete(item)
-          tmp_limitors[:order].delete_at(i)
+          disp_item = item
+          disp_val = value
+          if(item == "course_name")
+            disp_item = "course name"
+          elsif(item.include?("_id"))
+            disp_item = item.split("_")[0]
+            if(class_hash[disp_item]!=nil)
+              disp_val = class_hash[disp_item].find(value).name
+            end
+          elsif(item == "specific_quarter")
+            tmpar = value.split("..")
+            disp_item = "quarter"
+            disp_val = "#{Quarter.quarter_disp_name(tmpar[0].to_i)} #{tmpar[1]}"
+          end
+            
+          display = "#{disp_item}: #{disp_val}"
+          base_url_hash[limitors_name] = tmp2_limitors
+          tmp_str = " > "+ link_to(display, base_url_hash)
           tmp2_limitors.delete(item)
           tmp2_limitors[:order].delete_at(i)
-          to_result = tmp_str + "("+ link_to("x", :controller=>"categories", :action=>"index", :id=>parent2.id, :limitors=>tmp_limitors) + ")" + to_result
-          tmp_limitors[item] = value
-          tmp_limitors[:order].insert(i, item)
+          tmp3_limitors.delete(item)
+          tmp3_limitors[:order].delete_at(i)
+          if(include_x_links)
+            base_url_hash[limitors_name] = tmp3_limitors
+            to_result = tmp_str + "("+ link_to("x", base_url_hash) + ")" + to_result
+          else
+            to_result = tmp_str + to_result
+          end
+          tmp3_limitors[item] = value
+          tmp3_limitors[:order].insert(i, item)
         end
       }
       result = result + to_result
@@ -384,64 +453,74 @@ def bread_crumbs(category_or_course, include_self_link=false, limitors={})
 	  return result
   end
   
-def add_to_limitors(params, place, value, options={})
-  do_not_overide = false
-  display = ""
-  do_not_add_to_order = false
-  if(options[:do_not_overide]!=nil)
-    do_not_overide = options[:do_not_overide]
-  end
-  if(options[:display]!=nil)
-    display = options[:display]
-  end
-  if(options[:do_not_add_to_order]!=nil)
-    do_not_add_to_order = options[:do_not_add_to_order]
-  end
-
-  if(params[:limitors]==nil)
-    params[:limitors] = {}
-  end
-  
-  if(place=="custom")
-    if(params[:limitors]["custom"]==nil || !params[:limitors]["custom"].include?(value) || !do_not_overide)
-      if(params[:limitors]["custom"]==nil)
-        params[:limitors]["custom"] = []
+  def add_to_limitors(params, place, value, options={})
+    do_not_overide = false
+    display = ""
+    do_not_add_to_order = false
+    limitors_name = :limitors
+    
+    if(options[:do_not_overide]!=nil)
+      do_not_overide = options[:do_not_overide]
+    end
+    if(options[:display]!=nil)
+      display = options[:display]
+    end
+    if(options[:do_not_add_to_order]!=nil)
+      do_not_add_to_order = options[:do_not_add_to_order]
+    end
+    if(options[:limitors_name]!=nil)
+      limitors_name = options[:limitors_name]
+    end
+    if(params[limitors_name]==nil)
+      params[limitors_name] = {}
+    end
+    
+    if(place=="custom")
+      if(params[limitors_name]["custom"]==nil || !params[limitors_name]["custom"].include?(value) || !do_not_overide)
+        if(params[limitors_name]["custom"]==nil)
+          params[limitors_name]["custom"] = []
+        end
+        params[limitors_name]["custom"].push(value)
+        place = "custom..#{params[limitors_name]['custom'].size-1}..#{display}"
+      else
+        place = nil
       end
-      params[:limitors]["custom"].push(value)
-      place = "custom..#{params[:limitors]['custom'].size-1}..#{display}"
     else
-      place = nil
+      if(!params[limitors_name].key?(place) || !do_not_overide)
+        params[limitors_name][place] = value
+      else
+        place = nil
+      end
     end
-  else
-    if(!params[:limitors].key?(place) || !do_not_overide)
-      params[:limitors][place] = value
-    else
-      place = nil
+    
+    if(place!=nil && !do_not_add_to_order)
+      if(params[limitors_name][:order]==nil)
+        params[limitors_name][:order] = []
+      end
+      params[limitors_name][:order].push(place)
+      place = params[limitors_name][:order].size - 1
+    elsif(params[limitors_name]=={})
+      params.delete(limitors_name)
     end
+    return place
   end
   
-  if(place!=nil && !do_not_add_to_order)
-    if(params[:limitors][:order]==nil)
-      params[:limitors][:order] = []
+  def delete_from_limitors(params, position, options={})
+    limitors_name = :limitors
+    
+    if(options[:limitors_name]!=nil)
+      limitors_name = options[:limitors_name]
     end
-    params[:limitors][:order].push(place)
-    place = params[:limitors][:order].size - 1
-  elsif(params[:limitors]=={})
-    params.delete(:limitors)
-  end
-  return place
-end
-  
-  def delete_from_limitors(params, position)
-    if(position!=nil && params[:limitors]!=nil && params[:limitors][:order]!=nil)
-      place = params[:limitors][:order][position]
+    
+    if(position!=nil && params[limitors_name]!=nil && params[limitors_name][:order]!=nil)
+      place = params[limitors_name][:order][position]
       if(place.include?("custom"))
         tmp = place.split("..")
-        params[:limitors]["custom"].delete_at(tmp[1].to_i)
+        params[limitors_name]["custom"].delete_at(tmp[1].to_i)
       else
-        params[:limitors].delete(place)
+        params[limitors_name].delete(place)
       end
-      params[:limitors][:order].delete_at(position)
+      params[limitors_name][:order].delete_at(position)
     end
   end
   
