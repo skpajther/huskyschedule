@@ -105,7 +105,7 @@
     <div class="content" id="content">
         <div id="message"></div>
         <div class="breadcrumbs">
-           <%= bread_crumbs(@category, true, @limitors) %>
+           <%= bread_crumbs(@category, {:include_self_link=>true, :limitors=>@limitors}) %>
         </div>
         <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
         <% for course in @courses %>

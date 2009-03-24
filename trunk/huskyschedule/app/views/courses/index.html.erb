@@ -4,7 +4,7 @@
 <%= javascript_include_tag 'mediummap'%>
 <div id="singlewrapper">
     <div id="addtoschedule2"><a href=""><img src="addtoschedule.gif" /></a></div>
-    <div class="breadcrumbs"><%= bread_crumbs @course, false %></div>
+    <div class="breadcrumbs"><%= bread_crumbs @course, {:include_self_link=>false} %></div>
     
     <div class="classschedule">
         <%= generate_schedule(@course.rendezvous, :by_hour=>true, :show_text_schedule=>false) %>

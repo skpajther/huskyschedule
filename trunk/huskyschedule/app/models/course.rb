@@ -1,5 +1,7 @@
 class Course < ActiveRecord::Base
   
+  #include Advanced_Query_System
+  
   belongs_to :teacher
   belongs_to :category, :class_name => "Category", :foreign_key => "parent_id"
   belongs_to :building
@@ -74,6 +76,9 @@ class Course < ActiveRecord::Base
       ["%", ADDITIONALINFO_PERCENT],
       ["#", ADDITIONALINFO_POUND]
   ]
+  
+  # Number of records per page
+  RECORDS_PER_PAGE = 10;
   
   def name
     return "#{self.deptabbrev} #{self.number}"
@@ -203,79 +208,121 @@ class Course < ActiveRecord::Base
   end
   
   def self.find_or_count_by_limitors(options={})
-    query = ""
-    first = true
-    if(options[:limitors]!=nil)
-      limitors = options[:limitors]
-      if(limitors["custom"]!=nil)
-        for q in limitors["custom"]
-          if(first)
-            query += "#{q}"
-            first = false
-          else
-            query += " AND #{q}"
-          end
-        end
+    options[:model] = "courses"
+    return self.general_find_or_count_by_limitors(options)
+  end
+  
+  def self.general_find_or_count_by_limitors(options={})
+    if(options[:model]!=nil)
+      model = options[:model]
+      limitors_name = :limitors
+      
+      if(options[:limitors_name]!=nil)
+        limitors_name = options[:limitors_name]
       end
-      limitors.each_key{ |k|
-        if(k!="custom" && k!="order")
-#          k2 = k
-#          if(k=="category_id")
-#            k2 = "parent_id"
-#          end
-          if(k=="parent_id" && limitors[k].is_a?(String))
+      
+      query = ""
+      first = true
+      if(options[limitors_name]!=nil)
+        limitors = options[limitors_name]
+        if(limitors["custom"]!=nil)
+          for q in limitors["custom"]
             if(first)
-              query += "#{limitors[k]}"
+              query += "#{q}"
               first = false
             else
-              query += " AND #{limitors[k]}"
-            end
-          else
-            if(first)
-              query += "courses.#{k}='#{limitors[k]}'"
-              first = false
-            else
-              query += " AND courses.#{k}='#{limitors[k]}'"
+              query += " AND #{q}"
             end
           end
         end
-      }
+        limitors.each_key{ |k|
+          if(k!="custom" && k!="order")
+  #          k2 = k
+  #          if(k=="category_id")
+  #            k2 = "parent_id"
+  #          end
+            st = ""
+            if(k=="parent_id" && limitors[k].is_a?(String))
+              st = "#{limitors[k]}"
+            elsif(k=="course_name" && model=="courses")
+              tmp_arr = limitors[k].split(' ')
+              if(tmp_arr!=nil && tmp_arr.length == 2)
+                st = "courses.deptabbrev='#{tmp_arr[0]}' AND courses.number=#{tmp_arr[1]}"
+              end
+            elsif(k=="specific_quarter")
+              tmp_arr = limitors[k].split("..")
+              if(model=="course_reviews")
+                st = "course_reviews.quarter_taken=#{tmp_arr[0]} AND course_reviews.year_taken=#{tmp_arr[1]}"
+              elsif(model=="courses")
+                st = "courses.quarter_id=#{tmp_arr[0]} AND courses.year=#{tmp_arr[1]}"
+              end
+            else
+              st = "#{model}.#{k}='#{limitors[k]}'"
+            end
+            if(!first)
+              st = " AND #{st}"
+            end
+            query += st
+            first = false
+          end
+        }
+      end
+      puts("query!!! #{query} #{limitors.inspect}")
+      return self.general_find_or_count_by_sql(query, options)
     end
-    puts("query!!! #{query} #{limitors.inspect}")
-    return self.find_or_count_by_sql(query, options)
+    return nil
   end
   
   def self.find_or_count_by_sql(query, options={})
-    if(options.key?(:count_only) && options[:count_only])
-      if(query==nil || query.length == 0)
-        query = "FROM courses"
-      else
-        query = "FROM courses WHERE "+query
+    options[:model] = "courses"
+    return self.general_find_or_count_by_sql(query, options)
+  end
+  
+  def self.general_find_or_count_by_sql(query, options={})
+    if(options[:model]!=nil)
+      model_instance = self
+      model = options[:model]
+      select_substitute = "SELECT * FROM"
+      
+      if(options[:model_instance]!=nil)
+        model_instance = options[:model_instance]
       end
-      courses = Course.count_by_sql("SELECT COUNT(*) "+query)
-    else
-      order_by_str = ""
-      if(options.key?(:order_by))
-        tmp = options[:order_by].sub(/[{,(].*[},)]/, "")
-        order_by_str = " ORDER BY "+tmp
-        if(options.key?(:descending))
-          order_by_str += ((options[:descending]==false.to_s)? " ASC" : " DESC")
+      if(options[:select_substitute]!=nil)
+        select_substitute = options[:select_substitute]
+      end
+      
+      if(options.key?(:count_only) && options[:count_only])
+        if(query==nil || query.length == 0)
+          query = "FROM #{model}"
+        else
+          query = "FROM #{model} WHERE "+query
+        end
+        courses = model_instance.count_by_sql("SELECT COUNT(*) "+query)
+      else
+        order_by_str = ""
+        if(options.key?(:order_by))
+          tmp = options[:order_by].sub(/[{,(].*[},)]/, "")
+          order_by_str = " ORDER BY "+tmp
+          if(options.key?(:descending))
+            order_by_str += ((options[:descending]==false.to_s)? " ASC" : " DESC")
+          end
+        end
+        if(options.key?(:table_name) && options.key?(:foreign_key))
+          query = "SELECT #{model}.* FROM #{model} LEFT JOIN "+options[:table_name]+" ON #{model}."+options[:foreign_key]+"="+options[:table_name]+".id WHERE ("+query+")"
+        elsif(query==nil || query.length == 0)
+          query = "#{select_substitute} #{model}"
+        else
+          query = "#{select_substitute} #{model} WHERE "+query
+        end
+        if(options.key?(:page) && options[:page]!=false)
+          courses = model_instance.paginate_by_sql(query+order_by_str, :page => options[:page], :per_page => options[:per_page])
+        else
+          courses = model_instance.find_by_sql(query+order_by_str)
         end
       end
-      if(options.key?(:table_name) && options.key?(:foreign_key))
-        query = "SELECT courses.* FROM coursess LEFT JOIN "+options[:table_name]+" ON tasks."+options[:foreign_key]+"="+options[:table_name]+".id WHERE ("+query+")"
-      elsif(query==nil || query.length == 0)
-        query = "SELECT * FROM courses"
-      else
-        query = "SELECT * FROM courses WHERE "+query
-      end
-      if(options.key?(:page) && options[:page]!=false)
-        courses = Course.paginate_by_sql(query+order_by_str, :page => options[:page], :per_page => options[:per_page])
-      else
-        courses = Course.find_by_sql(query+order_by_str)
-      end
+      return courses
     end
-    return courses
+    return nil
   end
 
 end

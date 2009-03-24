@@ -1,44 +1,72 @@
+<% if(@course!=nil || @category!=nil) %>
 <div id="wrapper">
     <div id="side">
-        <p>RATING:</p>
-        <% if(!@rating_val.kind_of?(Fixnum)) %>
-            <div class="selected">All <%=  %></div>
-        <% else %>
-            <%= link_to("View All #{}", :controller=>"course_reviews", :action=>"index", :id=>@course.id) %>
-        <% end %>
-        <% if(@rating_val == CourseReview::RATING_VERYPOOR) %>
-            <div class="selected">Very Poor <%=  %></div>
-        <% else %>
-            <%= link_to("Very Poor #{}", :controller=>"course_reviews", :action=>"index", :id=>@course.id, :rating_val=>CourseReview::RATING_VERYPOOR) %>
-        <% end %>
-        <% if(@rating_val == CourseReview::RATING_POOR) %>
-            <div class="selected">Poor <%=  %></div>
-        <% else %>
-            <%= link_to("Poor #{}", :controller=>"course_reviews", :action=>"index", id=>@course.id, :rating_val=>CourseReview::RATING_POOR) %>
-        <% end %>
-        <% if(@rating_val == CourseReview::RATING_AVERAGE) %>
-            <div class="selected">Average <%=  %></div>
-        <% else %>
-            <%= link_to("Average #{}", :controller=>"course_reviews", :action=>"index", :id=>@course.id, :rating_val=>CourseReview::RATING_AVERAGE) %>
-        <% end %>
-        <% if(@rating_val == CourseReview::RATING_GOOD) %>
-            <div class="selected">Good <%=  %></div>
-        <% else %>
-            <%= link_to("Good #{}", :controller=>"course_reviews", :action=>"index", :id=>@course.id, :rating_val=>CourseReview::RATING_GOOD) %>
-        <% end %>
-        <% if(@rating_val == CourseReview::RATING_EXCELLENT) %>
-            <div class="selected">Excellent <%=  %></div>
-        <% else %>
-            <%= link_to("Excellent #{}", :controller=>"course_reviews", :action=>"index", :id=>@course.id, :rating_val=>CourseReview::RATING_EXCELLENT) %>
-        <% end %>
-        <p>QUARTER:</p>
-        <p>TEACHER:</p>
-        <%= generate_schedule(@course.rendezvous, :by_hour=>true) %>
+        <div id="rating">
+            <% if(@review_limitors["rating"]==nil) %>
+                <% first = true %>
+                <% for rat in CourseReview::RATING_TYPES %>
+                    <% place_order = add_to_limitors(@params, "rating", rat[1], {:limitors_name=>:review_limitors, :do_not_overide=>true}) %>
+                    <% numcourse_revs = CourseReview.find_or_count_by_limitors({:review_limitors => @review_limitors, :limitors_name=>:review_limitors, :count_only => true}) %>
+                    <% if(numcourse_revs>0) %>
+                        <% if(first) %>
+                            Rating
+                            <ul>
+                            <% first = false %>
+                        <% end %>
+                        <li><%= link_to "#{rat[0]} (#{numcourse_revs})", :controller=>"course_reviews", :action=>"index", :review_limitors=>@review_limitors, :limitors_name=>:review_limitors %></li>
+                    <% end %>
+                    <% delete_from_limitors(@params, place_order, {:limitors_name=>:review_limitors}) %>
+                <% end %>
+                </ul>
+            <% end %>
+        </div>
+        
+        <div id="teacher">
+            <% if(@review_limitors["teacher_id"]==nil) %>
+                <% first = true %>
+                <% for cr in @unique_teachers %>
+                    <% place_order = add_to_limitors(@params, "teacher_id", cr.teacher_id, {:limitors_name=>:review_limitors, :do_not_overide=>true}) %>
+                    <% numcourse_revs = CourseReview.find_or_count_by_limitors({:review_limitors => @review_limitors, :limitors_name=>:review_limitors, :count_only => true}) %>
+                    <% if(numcourse_revs>0) %>
+                        <% if(first) %>
+                            Teacher
+                            <ul>
+                            <% first = false %>
+                        <% end %>
+                        <li><%= link_to "#{cr.teacher.name} (#{numcourse_revs})", :controller=>"course_reviews", :action=>"index", :review_limitors=>@review_limitors, :limitors_name=>:review_limitors %></li>
+                    <% end %>
+                    <% delete_from_limitors(@params, place_order, {:limitors_name=>:review_limitors}) %>
+                <% end %>
+                </ul>
+            <% end %>
+        </div>
+        
+        <div id="specific_quarter">
+            <% if(@review_limitors["specific_quarter"]==nil) %>
+                <% first = true %>
+                <% for cr in @unique_quarters %>
+                    <% place_order = add_to_limitors(@params, "specific_quarter", "#{cr.quarter_taken}..#{cr.year_taken}", {:limitors_name=>:review_limitors, :do_not_overide=>true}) %>
+                    <% numcourse_revs = CourseReview.find_or_count_by_limitors({:review_limitors => @review_limitors, :limitors_name=>:review_limitors, :count_only => true}) %>
+                    <% if(numcourse_revs>0) %>
+                        <% if(first) %>
+                            Quarter
+                            <ul>
+                            <% first = false %>
+                        <% end %>
+                        <li><%= link_to "#{Quarter.quarter_disp_name(cr.quarter_taken)} #{cr.year_taken} (#{numcourse_revs})", :controller=>"course_reviews", :action=>"index", :review_limitors=>@review_limitors, :limitors_name=>:review_limitors %></li>
+                    <% end %>
+                    <% delete_from_limitors(@params, place_order, {:limitors_name=>:review_limitors}) %>
+                <% end %>
+                </ul>
+            <% end %>
+        </div>
+        
     </div><!--side-->
     <div class="content" id="content">
-        <div class="breadcrumbs"><%= bread_crumbs(@course, true) %> > Student Reviews</div>
-        <p><strong><%= @course.name %></strong></p>
+        <div class="breadcrumbs"><% if(@course!=nil) %><%= bread_crumbs(@course, {:include_self_link=>true}) %><% else %><%= bread_crumbs(@category, {:include_self_link=>true, :include_x_links=>false, :limitors=>{"course_name"=>@course_name, :order=>["course_name"]}}) %><% end %> > <%= @course_name %> Reviews <%= bread_crumbs(nil, {:review_limitors=>@review_limitors, :limitors_name=>:review_limitors, :base_url_hash=>{:controller=>"course_reviews", :action=>"index"}}) %></div>
+        <p><strong><%= @course_name %></strong></p>
         Reviews are not necessarily based on the specific course above, but rather the same course offered possibly a different year and or quarter.
+         <% if(@course_reviews!=nil) %><%= will_paginate @course_reviews %><% end %>
         <% for course_review in @course_reviews %>
             <tr>
                 <td><b><% if(course_review.author!=nil) %><%= course_review.author.login %><% else %>Anonymous<% end %></b><br/>Taken: <%= "#{Quarter.quarter_disp_name(course_review.quarter_taken)}, #{course_review.year_taken}" %><br/>Taught By: <% if(course_review.teacher!=nil) %><%= link_to course_review.teacher.name, :controller=>"teachers", :action=>"index", :id=>course_review.teacher.id %><% else %><%= "Unknown" %><% end %></td>
@@ -58,3 +86,4 @@
             <% end %>
     </div><!--content-->
 </div><!--wrapper-->
+<% end %>
