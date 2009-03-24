@@ -9,7 +9,7 @@ class CourseReview < ActiveRecord::Base
   RATING_TYPES = [
     # Displayed        stored in db
     [ "Very Poor",      RATING_VERYPOOR ],
-    [ "Poor",          RATING_POOR ],
+    [ "Poor",           RATING_POOR ],
     [ "Average",        RATING_AVERAGE ],
     [ "Good",           RATING_GOOD ],
     [ "Excellent",      RATING_EXCELLENT]
