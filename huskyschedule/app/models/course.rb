@@ -1,6 +1,5 @@
 class Course < ActiveRecord::Base
   
-  #include Advanced_Query_System
   
   belongs_to :teacher
   belongs_to :category, :class_name => "Category", :foreign_key => "parent_id"
