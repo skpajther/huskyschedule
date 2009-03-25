@@ -21,6 +21,7 @@ class CoursesController < ApplicationController
         @course_reviews.push(review)
       end
     end
+    @all_course_reviews = CourseReview.find_or_count_by_sql("course_name='#{@course.name}'")
     if(@course.total_ratings.nil? || @course.rating.nil?)
       all_reviews = CourseReview.find_all_by_course_name(@course.name)
       @course.total_ratings = all_reviews.length

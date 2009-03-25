@@ -65,6 +65,12 @@ class CourseReview < ActiveRecord::Base
     return Course.general_find_or_count_by_limitors(options)
   end
   
+  def self.find_or_count_by_sql(query, options={})
+    options[:model] = "course_reviews"
+    options[:model_instance] = self
+    return Course.general_find_or_count_by_sql(query, options)
+  end
+  
   class CourseReviewError <StandardError; end
   
 end

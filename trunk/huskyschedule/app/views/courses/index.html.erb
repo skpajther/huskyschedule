@@ -111,10 +111,10 @@
             <%= generate_credits_image(@course) %>
         </div><!--overview-->
         <div id="classReviews">
-            <strong>Review Summary: </strong><%= @course_reviews.length %> total reviews
+            <strong>Review Summary: </strong><%= @all_course_reviews.length %> total reviews
             <% if(@course_reviews.length > 0) %>
                 (<%= link_to("read all", :controller=>'course_reviews', :action=>'index', :id=>@course.id) %>, <%= link_to("write a review", :controller=>'course_reviews', :action=>'new', :id=>@course.id) %>)
-                <%= review_percent_table(@course_reviews, @course.total_ratings) %> 
+                <%= review_percent_table(@all_course_reviews, @all_course_reviews.length) %> 
                 <% for review in @course_reviews %>
                     <hr /><%= formatted_course_review(review, @course) %>
                 <% end %>  
