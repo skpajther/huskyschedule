@@ -9,6 +9,11 @@
 <p><label for="remember_me">Remember me:</label>
 <%= check_box_tag 'remember_me' %></p>
 -->
+<% if(@next_page!=nil) %>
+    <% for item in @next_page.keys%>
+        <%= hidden_field :next_page, item, {:value=>@next_page[item]} %>
+    <% end %>
+<% end %>
 
 <p><%= submit_tag 'Log in' %></p>
 <% end -%>

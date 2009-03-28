@@ -12,5 +12,11 @@
 <p><label for="password_confirmation">Confirm Password</label><br/>
 <%= f.password_field :password_confirmation %></p>
 
+<% if(@next_page!=nil) %>
+    <% for item in @next_page.keys%>
+        <%= hidden_field :next_page, item, {:value=>@next_page[item]} %>
+    <% end %>
+<% end %>
+
 <p><%= submit_tag 'Sign up' %></p>
 <% end -%>

@@ -10,6 +10,7 @@ class LoginController < ApplicationController
   end
 
   def login
+    @next_page = params[:next_page]
     return unless request.post?
     self.current_user = User.authenticate(params[:login], params[:password])
     if logged_in?
@@ -28,11 +29,16 @@ class LoginController < ApplicationController
 
   def signup
     @user = User.new(params[:user])
+    @next_page = params[:next_page]
     return unless request.post?
     @user.save!
     self.current_user = @user
-    redirect_back_or_default(:controller => 'categories', :action => 'index')
     flash[:notice] = "Thanks for signing up!"
+    if(params[:next_page]!=nil)
+      redirect_to params[:next_page]
+    else
+      redirect_back_or_default(:controller => 'categories', :action => 'index')
+    end
   rescue ActiveRecord::RecordInvalid
     render :action => 'signup'
   end

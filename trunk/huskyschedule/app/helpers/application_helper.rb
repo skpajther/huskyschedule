@@ -596,7 +596,7 @@ def mini_schedule(times, options={})
 	         "
 	end
         		   
-  def votable_image(location, vote_count, total_votes, vote_url, options={})
+  def votable_image(location, vote_count, total_votes, vote_url, curr_user, options={})
       pic_size = ImageSpec::Dimensions.new(location)
       pic_width = pic_size.width
       pic_height = pic_size.height
@@ -622,7 +622,7 @@ def mini_schedule(times, options={})
       return "<div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;'>
                 <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
                 <div style='z-index:1;position:absolute;width:#{pic_width}px;height:#{pic_height}px;'>
-                  #{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? vote_button : ""}
+                  #{((location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION)) && !curr_user.tmp_user)? vote_button : ""}
                   <div style='float:right;padding-right:5px;padding-top:#{top_lettering_pos}px;'><span class='vote_percent'>#{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? percent.to_i.to_s+'%' : ''}</span></div>
                 </div>
               </div>"
