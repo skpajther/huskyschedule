@@ -46,26 +46,36 @@
                 Confirmed Information<br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;Name:<%= @teacher.name %>
             </div>
+            <br/>
             <div id="user_supp_info">
                 <%= render :partial => "teachers/user_supplied_info", :locals => {:info=>@teacher_info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :curr_user=>current_user}%>
             </div>
+            <br/>
             <div>
                 Courses Taught<br/>
-                Future<br/>
+                &nbsp Future<br/>
                     <% future_courses = @teacher.courses_future(Time.now.year, Quarter::CURRENT) %>
                     <% for course in future_courses %>
-                        <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                        &nbsp&nbsp <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
                     <% end %>
                     <% if future_courses.size == 0 %>
-                        None Known Yet<br/>
+                        &nbsp&nbsp None Known Yet<br/>
                     <% end %>
-                Present<br />
-                    <% for course in @teacher.courses_present(Time.now.year, Quarter::CURRENT) %>
-                        <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                &nbsp Present<br />
+                    <% present_courses = @teacher.courses_present(Time.now.year, Quarter::CURRENT) %>
+                    <% for course in present_courses %>
+                        &nbsp&nbsp <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
                     <% end %>
-                Past<br/>
-                    <% for course in @teacher.courses_past(Time.now.year, Quarter::CURRENT) %>
-                        <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                    <% if(present_courses.size == 0) %>
+                        &nbsp&nbsp None Known<br/>
+                    <% end %>
+                &nbsp Past<br/>
+                    <% past_courses = @teacher.courses_past(Time.now.year, Quarter::CURRENT) %>
+                    <% for course in past_courses %>
+                        &nbsp&nbsp <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                    <% end %>
+                    <% if past_courses.size == 0 %>
+                        &nbsp&nbsp None Known<br/>
                     <% end %>
             </div>
         </div><!-- overview -->
@@ -75,6 +85,46 @@
     </div><!-- tabbedWindow -->
 </div><!-- singlewrapper -->
 <script type="text/javascript">
+    attribute_count = 0;
+
     initializeCDfields("overview");
     hideTab("teacherReviews");
+    
+    
+    
+    function fix_attribute_additions() {
+        alert("here "+attribute_count);
+        for(var i = 0; i<attribute_count; i++){
+            attribute = document.getElementById("teacher_info_"+i);
+            attribute_name = document.getElementById("attribute_name_"+i);
+            alert("hello"+attribute_name.value);
+            //adjusted_attri_name = attribute_name.value.replace(" ", "_");;
+            attribute.name = "teacher_info[other]["+attribute_name.value+"]";
+        }
+    }
+    
+    function set_attribute_count(count) {
+        if(count > attribute_count)
+            attribute_count = count;
+    }
+    
+    function add_attribute(add_to) {
+        attribute_name = document.getElementById("teacher_info_website").cloneNode(true);
+        attribute = attribute_name.cloneNode(true);
+        
+        attribute_name.id = "attribute_name_"+attribute_count;
+        attribute_name.name = "dont_use";
+        attribute_name.value = "Attribute Name";
+        //"<input id="teacher_info_website" name="teacher_info[website]" size="30" type="text" />"
+        
+        attribute.id = "teacher_info_"+attribute_count;
+        attribute.name = "teacher_info[]"
+        
+        add_to_element = document.getElementById(add_to);
+        add_to_element.appendChild(attribute_name);
+        add_to_element.appendChild(attribute);
+        attribute_count++;
+    }
+    
+    
 </script>

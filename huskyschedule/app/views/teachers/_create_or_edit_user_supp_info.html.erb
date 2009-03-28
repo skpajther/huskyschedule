@@ -1,10 +1,22 @@
 User Supplied Information<br/>
-<% remote_form_for :teacher_info, info, :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((render=="new_user_info")?-1 : ((teacher_info_index!=nil)?teacher_info_index : -1))}), :url => {:controller=>"teachers", :action=>render, :id=>((render=="new_user_info")? teacher.id : info.id)}, :html => { :method => :post, :class => "edit_teacher_info", :id => "edit_teacher_info" } do |f| %>
-    
-    Gender: <%= f.select(:sex, [["Female", 0], ["Male", 1]], {:include_blank=>true}) %><br/>
-    Department: <%= f.text_field(:department) %><br/>
-    Office: <%= f.text_field(:office) %><br/>
-    Email: <%= f.text_field(:email) %><br/>
-    Website: <%= f.text_field(:website) %><br/>
-    <%= f.submit("Submit Your Information") %><%= link_to_remote("Cancel", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}) %>
+<% remote_form_for :teacher_info, info, :before=>"set_attribute_count(#{((info.other!=nil)?info.other.size : 0)});fix_attribute_additions()", :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((render=="new_user_info")?-1 : ((teacher_info_index!=nil)?teacher_info_index : -1))}), :url => {:controller=>"teachers", :action=>render, :id=>((render=="new_user_info")? teacher.id : info.id)}, :html => { :method => :post, :class => "edit_teacher_info", :id => "edit_teacher_info" } do |f| %>
+    <div id="attributes">
+        Gender: <%= f.select(:sex, [["Female", 0], ["Male", 1]], {:include_blank=>true}) %><br/>
+        Department: <%= f.text_field(:department) %><br/>
+        Office: <%= f.text_field(:office) %><br/>
+        Email: <%= f.text_field(:email) %><br/>
+        Website: <%= f.text_field(:website) %><br/>
+        <% other_size = 0 %>
+        <% if(info.other!=nil) %>
+            <% for attribute in info.other.keys %>
+              <%= text_field_tag("attribute_name_#{other_size}", attribute, {}) %>
+              <%= text_field_tag("teacher_info_#{other_size}", info.other[attribute], {}) %><br/>
+              <% other_size+=1 %>  
+            <% end %>
+        <% end %>
+    </div>
+    <a href="javascript:set_attribute_count(<%= other_size %>);add_attribute('attributes');">Add attribute</a><br/>
+    <%= f.submit("Submit Your Information") %> &nbsp <%= link_to_remote("Cancel", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}) %>
 <% end %>
+
+
