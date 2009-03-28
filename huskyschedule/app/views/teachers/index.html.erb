@@ -1,67 +1,80 @@
-<div>breadcrumbs</div>
-<div>
-    <table>
-        <tr>    <% runners_up = @teacher.runners_up_photo_locations %>
-            <td><% tmp = @teacher.current_photo_location({:long_location=>true, :all_info=>true}) %>
-                <% if(logged_in?) 
-                    curr_user_vote_is_best = (@teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil && @teacher.user_vote_map[current_user.id] == tmp[0])
-                   end %>
-                <div><%= votable_image( tmp[0], tmp[1], @teacher.total_photo_votes, ((logged_in? && !curr_user_vote_is_best)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>tmp[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), {:max_width=>300, :max_height=>300}) %></div>
-                <div><% if(logged_in? && !current_user.tmp_user && @teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil) %>
-                            <% if(curr_user_vote_is_best) %>
-                                You voted for the current best photo
-                            <% else %>
-                                <% tmp = @teacher.user_vote_photo_location(current_user, {:long_location=>true, :all_info=>true})%>
-                                <% runners_up.delete(tmp) %>
-                                You voted for:<%= votable_image(tmp[0],tmp[1], @teacher.total_photo_votes, nil, {:max_height=>80}) %>
-                            <% end %>
-                     <% else %>
-                        <% if(tmp[0]!=Teacher::DEFAULT_IMAGE_LOCATION && tmp[0] != 'public/images/'+Teacher::DEFAULT_IMAGE_LOCATION) %>You have not voted for one of these yet.<% else %>No photo has been uploaded for this teacher yet.<% end %><% if(!logged_in? || current_user.tmp_user) %><br/> To vote or upload a new photo, first <%= link_to "Login Here", :controller=>"login", :action=>"login" %> or <%= link_to "Signup for a new account.", :controller=>"login", :action=>"signup" %><% end %>
-                     <% end %>
-                </div>
-                <% if runners_up!=nil && runners_up.length>0 %>
-                    <div>Runners Up<br/>
-                            <% for photolocation in runners_up %>
-                                <div style="float:left;"><%= votable_image(photolocation[0] ,photolocation[1], @teacher.total_photo_votes, ((logged_in?)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>photolocation[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), {:max_height=>80}) %></div>
-                            <% end %>
-                    </div>
-                <% end %>
-                <% if(logged_in? && !current_user.tmp_user) %>
-                    <div style="clear:left;"></div>
-                    <div><%= link_to "upload new photo", :controller=>"teachers", :action=>"all_photos", :id=>@teacher.id %></div>
-                <% end %>
-            </td>
-            
-            <td valign="top">
-                <div>
-                    Confirmed Information<br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;Name:<%= @teacher.name %>
-                </div>
-                <div>
-                    User Supplied Information<br/>
-                    <div><a href="#"><</a> Provided by: nguard65 <a href="#">></a></div>
-                </div>
-                <div>
-                    Courses Taught<br/>
-                    Future<br/>
-                        <% future_courses = @teacher.courses_future(Time.now.year, Quarter::CURRENT) %>
-                        <% for course in future_courses %>
-                            <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+<%= javascript_include_tag 'courseDetails'%>
+<div id="singlewrapper">
+    <div class="breadcrumbs">breadcrumbs</div>
+    <div class="classschedule">    
+        <% runners_up = @teacher.runners_up_photo_locations %>
+        <% tmp = @teacher.current_photo_location({:long_location=>true, :all_info=>true}) %>
+            <% if(logged_in?) 
+                curr_user_vote_is_best = (@teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil && @teacher.user_vote_map[current_user.id] == tmp[0])
+               end %>
+            <div><%= votable_image( tmp[0], tmp[1], @teacher.total_photo_votes, ((logged_in? && !curr_user_vote_is_best)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>tmp[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_width=>300, :max_height=>300}) %></div>
+            <div><% if(logged_in? && !current_user.tmp_user && @teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil) %>
+                        <% if(curr_user_vote_is_best) %>
+                            You voted for the current best photo
+                        <% else %>
+                            <% tmp = @teacher.user_vote_photo_location(current_user, {:long_location=>true, :all_info=>true})%>
+                            <% runners_up.delete(tmp) %>
+                            You voted for:<%= votable_image(tmp[0],tmp[1], @teacher.total_photo_votes, nil, current_user, {:max_height=>80}) %>
                         <% end %>
-                        <% if future_courses.size == 0 %>
-                            None Known Yet<br/>
-                        <% end %>
-                    Present<br />
-                        <% for course in @teacher.courses_present(Time.now.year, Quarter::CURRENT) %>
-                            <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
-                        <% end %>
-                    Past<br/>
-                        <% for course in @teacher.courses_past(Time.now.year, Quarter::CURRENT) %>
-                            <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                 <% else %>
+                    <% if(tmp[0]!=Teacher::DEFAULT_IMAGE_LOCATION && tmp[0] != 'public/images/'+Teacher::DEFAULT_IMAGE_LOCATION) %>You have not voted for one of these yet.<% else %>No photo has been uploaded for this teacher yet.<% end %><% if(!logged_in? || current_user.tmp_user) %><br/> To vote or upload a new photo, first <%= link_to "Login Here", :controller=>"login", :action=>"login" %> or <%= link_to "Signup for a new account.", :controller=>"login", :action=>"signup" %><% end %>
+                 <% end %>
+            </div>
+            <% if runners_up!=nil && runners_up.length>0 %>
+                <div>Runners Up<br/>
+                        <% for photolocation in runners_up %>
+                            <div style="float:left;"><%= votable_image(photolocation[0] ,photolocation[1], @teacher.total_photo_votes, ((logged_in?)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>photolocation[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_height=>80}) %></div>
                         <% end %>
                 </div>
-            </td>
-        </tr>
-    </table>
-
-</div>
+            <% end %>
+            <% if(logged_in? && !current_user.tmp_user) %>
+                <div style="clear:left;"></div>
+                <div><%= link_to "upload new photo", :controller=>"teachers", :action=>"all_photos", :id=>@teacher.id %></div>
+            <% end %>
+    </div><!-- classschedule -->
+                
+    <div id="tabs">
+        <ul>
+            <li class="tabme" id="overview_tab"><a href="javascript:showTab('overview');">Overview</a></li>
+            <li class="normtab" id="teacherReviews_tab"><a href="javascript:showTab('teacherReviews');">Teacher Reviews</a></li>
+        </ul>
+    </div><!-- tabs -->
+    
+    <div id="tabbedwindow">
+        <div id = "overview">
+            <div>
+                Confirmed Information<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;Name:<%= @teacher.name %>
+            </div>
+            <div id="user_supp_info">
+                <%= render :partial => "teachers/user_supplied_info", :locals => {:info=>@teacher_info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :curr_user=>current_user}%>
+            </div>
+            <div>
+                Courses Taught<br/>
+                Future<br/>
+                    <% future_courses = @teacher.courses_future(Time.now.year, Quarter::CURRENT) %>
+                    <% for course in future_courses %>
+                        <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                    <% end %>
+                    <% if future_courses.size == 0 %>
+                        None Known Yet<br/>
+                    <% end %>
+                Present<br />
+                    <% for course in @teacher.courses_present(Time.now.year, Quarter::CURRENT) %>
+                        <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                    <% end %>
+                Past<br/>
+                    <% for course in @teacher.courses_past(Time.now.year, Quarter::CURRENT) %>
+                        <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
+                    <% end %>
+            </div>
+        </div><!-- overview -->
+        <div id="teacherReviews">
+            teacher Reviews should be here.
+        </div><!-- teacherReviews -->
+    </div><!-- tabbedWindow -->
+</div><!-- singlewrapper -->
+<script type="text/javascript">
+    initializeCDfields("overview");
+    hideTab("teacherReviews");
+</script>

@@ -1,0 +1,45 @@
+User Supplied Information<br/>
+<% if(curr_user.tmp_user) %>
+    To add or confirm information about this teacher, first <%= link_to("Login Here", :controller=>"login", :action=>"login", :next_page=>request.path_parameters) %> or <%= link_to("Signup for a new account", :controller=>"login", :action=>"signup", :next_page=>request.path_parameters) %>
+<% end %>
+<% if(info!=nil && info.author!=curr_user) %>
+    <% curr_user_info = TeacherInfo.is_author?(teacher, curr_user) %>
+    <% if(curr_user_info==nil) %>
+        <% if(info==nil) %>
+            No one has provided information about this teacher yet.
+        <% elsif(!curr_user.tmp_user) %>
+            Don't like the informtion other people provided?
+        <% end %>
+        <% if(!curr_user.tmp_user) %>
+            &nbsp<%= link_to_remote("Supply your information about this teacher.", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"new_user_info", :id=>teacher.id, :teacher_info_index=>teacher_info_index}) %>
+        <% end %>
+    <% else %>
+        <%= link_to_remote("View your added Information", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :render=>"user_supplied_info", :id=>teacher.id, :teacher_info_id=>curr_user_info.id} ) %>
+    <% end %>
+<% end %>
+<% if(info!=nil) %>
+    <div><%= link_to_remote("<", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>info.teacher_id, :render=>"user_supplied_info", :teacher_info_index=>teacher_info_index-1}) %> Provided by: <% if(info.author==curr_user) %>You <%= link_to_remote("Edit", :before=>"alert('Editing your information will cause it to loose all confirmations.');", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"edit_user_info", :id=>info.id, :teacher_info_index=>teacher_info_index}) %>&nbsp<%= link_to_remote("Delete", :success=>(remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>teacher_info_index+1})), :url=>{:controller=>"teachers", :action=>"destroy_user_info", :id=>info.id}) %><% else %><%= info.author.login %><% if(!curr_user.tmp_user) %>&nbsp<% if(!TeacherInfo.already_confirmed(info, curr_user)) %><%= link_to_remote("Confirm this Information", :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :teacher_info_index=>teacher_info_index, :id=>info.teacher.id, :render=>"user_supplied_info"}) ,:url=>{:controller=>"teachers", :action=>"confirm_user_info", :id=>info.id}) %><% end %><% end %><% end %>&nbsp<%= link_to_remote(">", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>info.teacher_id, :render=>"user_supplied_info", :teacher_info_index=>teacher_info_index+1}) %></div>
+    <div id="info">
+        <% if(info.sex!=nil) %>
+            Gender: <% if(info.sex==1) %>Male<% else %>Female<% end %><br/>
+        <% end %>
+        <% if(info.department!=nil) %>
+            Department: <%= info.department %><br/>
+        <% end %>
+        <% if(info.office!=nil) %>
+            Office: <%= info.office %><br/>
+        <% end %>
+        <% if(info.email!=nil) %>
+            Email: <%= info.email %><br/>
+        <% end %>
+        <% if(info.website!=nil) %>
+            Website: <%= info.website %><br/>
+        <% end %>
+        
+        <% if(info.other!=nil) %>
+            <% for attribute in info.other.keys %>
+                <%= "#{attribute}: #{info.other[attribute]}" %><br/>
+            <% end %>
+        <% end %>
+    </div>
+<% end %>
