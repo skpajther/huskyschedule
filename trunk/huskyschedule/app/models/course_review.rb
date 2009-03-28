@@ -20,10 +20,14 @@ class CourseReview < ActiveRecord::Base
   belongs_to :author, :class_name => "User", :foreign_key => "user_id"
   
   def self.create(course_review, course, params, curr_user)
-    if(course_review!=nil && params[:course_review]!=nil && course!=nil)
+    puts("before check in create")
+    if(course_review!=nil && params[:course_review]!=nil && course!=nil && curr_user!=nil && !curr_user.tmp_user)
+      course_review.user_id = curr_user.id
       course_review.course_name = course.name
       course_review.teacher_id = course.teacher_id
+      puts("before save"+course_review.inspect)
       course_review.save!
+      puts("after save"+course_review.inspect)
       message = "Course Rating Created Successfully"
       CourseReview.recalculate_review_info(course, course_review)
     else
