@@ -68,10 +68,10 @@
     <div id="titleabovetabbedwindow"><%= "#{@course.name} #{@course.section}: #{@course.title}" %></div>
     <div id="tabs">
         <ul>
-            <li class="tabme" id="overviewtab"><a href="javascript:showTab(0);">Overview</a></li>
-            <li class="normtab" id="classreviewstab"><a href="javascript:showTab(1);">Class Reviews</a></li>
-            <li class="normtab" id="teacherreviewstab"><a href="javascript:showTab(2);">Teacher Reviews</a></li>
-            <li class="normtab" id="maptab"><a href="javascript:showTab(3);">Map</a></li>
+            <li class="tabme" id="overview_tab"><a href="javascript:showTab('overview');">Overview</a></li>
+            <li class="normtab" id="classReviews_tab"><a href="javascript:showTab('classReviews');">Class Reviews</a></li>
+            <li class="normtab" id="teacherReviews_tab"><a href="javascript:showTab('teacherReviews');">Teacher Reviews</a></li>
+            <li class="normtab" id="mediumMapArea_tab"><a href="javascript:showTab('mediumMapArea');">Map</a></li>
         </ul>
     </div>
     <div id="tabbedwindow">
@@ -145,4 +145,10 @@
         </div>
     </div><!--tabbedwindow-->
 </div><!--singlewrapper-->
-<script type="text/javascript">initMediumMap("<%= url_for(:controller=>"/", :only_path=>false) %>"<%= @course.buildings_parameters %>); initCD();</script>
+<script type="text/javascript">
+    initMediumMap("<%= url_for(:controller=>"/", :only_path=>false) %>"<%= @course.buildings_parameters %>);
+    initializeCDfields("overview");
+    hideTab("classReviews");
+    hideTab("teacherReviews");
+    hideTab("mediumMapArea");
+</script>
