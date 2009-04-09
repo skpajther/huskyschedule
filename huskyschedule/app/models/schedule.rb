@@ -5,6 +5,20 @@ class Schedule < ActiveRecord::Base
   Schedule.partial_updates = false
   serialize :courses
   
+  def self.authorized_to_view(schedule, curr_user)
+    if(schedule.user_id==nil)
+      return true
+    end
+    return schedule.user_id = curr_user.id
+  end
+  
+  def self.authorized_to_edit(schedule, curr_user)
+    if(schedule.user_id==nil)
+      return true
+    end
+    return schedule.user_id = curr_user.id
+  end
+  
   def self.get_or_create_grab_bag(curr_user)
     attributes = {:user_id=>curr_user.id, :grab_bag=>true, :quarter=>Quarter::CURRENT, :year=>Time.now.year}
     schedule = Schedule.find(:first, :conditions => attributes)
@@ -24,7 +38,7 @@ class Schedule < ActiveRecord::Base
     return []
   end
   
-  def self.add_to_schedule(schedule, course)
+  def self.add_to_schedule(schedule, course, curr_user)
     if(schedule==nil)
       raise ScheduleError.new("No Schedule Given To Add To")
     end
@@ -34,14 +48,18 @@ class Schedule < ActiveRecord::Base
     if(schedule.quarter!=course.quarter_id || schedule.year!=course.year)
       raise ScheduleError.new("Course And Schedule Differ in Quarter")
     end
-    if(schedule.courses==nil)
-      schedule.courses = []
-    end
-    schedule.courses.push(course.id)
-    if(schedule.save)
-      return "Course Added Successfully"
+    if(authorized_to_edit(schedule, curr_user))
+      if(schedule.courses==nil)
+        schedule.courses = []
+      end
+      schedule.courses.push(course.id)
+      if(schedule.save)
+        return "Course Added Successfully"
+      else
+        return "Course Failed to be Added"
+      end
     else
-      return "Course Failed to be Added"
+      return "User not Authorized to Edit This Schedule"
     end
   end
   
@@ -51,6 +69,46 @@ class Schedule < ActiveRecord::Base
       results = [Schedule.create(:user_id=>curr_user.id, :grab_bag => false, :courses=>[], :quarter => Quarter::CURRENT, :year => Time.now.year)]
     end
     return results
+  end
+  
+  def self.update_schedules(schedules, curr_user, options={})
+    if(schedules==nil)
+      raise ScheduleError.new("No schedules given to update")
+    end
+    if(curr_user==nil)
+      raise ScheduleError.new("No user specified to use while updating schedules")
+    end
+    errors = [0,0,0]
+    for key in schedules.keys
+    begin sched = Schedule.find(key) rescue errors[1] += 1 end # Add to the schedule not found error count
+      if(authorized_to_edit(sched, curr_user))
+        begin
+          if(schedules[key]['courses']!=nil)
+            #for each id make it an int instead of a string
+            schedules[key]['courses'].collect!{|elem| elem.to_i }
+          end
+          sched.update_attributes!(schedules[key])
+        rescue
+          errors[2] += 1 # Add to the general error count
+        end
+      else
+        errors[0] += 1 # Add to the unauthorized error count
+      end
+    end
+    ret = ""
+    total_errors = errors[0] + errors[1] + errors[2]
+    if(total_errors>0)
+      ret += "#{total_errors} Schedules were not updated"
+      if(errors[0]>0)
+        ret += ", #{(errors[1]>0 || errors[2]>0)? errors[0] : ''} because you are not authorized to edit them"
+      end
+      if(errors[1]>0)
+        ret += ", #{(errors[0]>0 || errors[2]>0)? errors[1] : ''} because the schedules specified were not found"
+      end
+      if(errors[2]>0)
+        ret += ", #{(errors[0]>0 || errors[1]>0)? errors[2] : ''} because of an internal error"
+      end
+    end
   end
   
   protected

@@ -30,7 +30,7 @@ class SchedulesController < ApplicationController
         grab_bag = Schedule.get_or_create_grab_bag(current_user)
         course = Course.find(params[:course_id])
         #begin
-          @result = Schedule.add_to_schedule(grab_bag, course)
+          @result = Schedule.add_to_schedule(grab_bag, course, current_user)
         #rescue ScheduleError
           #@result = "Failed to Add Course to Schedule"
         #end
@@ -41,4 +41,21 @@ class SchedulesController < ApplicationController
       redirect_to :back
     end
   end
+  
+  def save_schedules
+    if(params[:ajax]!=nil && params[:ajax]=="true")
+      if(params[:schedules]!=nil)
+        begin
+          @result = Schedule.update_schedules(params[:schedules], current_user)
+        rescue Schedule::ScheduleError
+          @result = "Failed to update Schedules"
+        end  
+      else
+        @result = "Failed to update Schedules"  
+      end
+    else
+      redirect_to :back
+    end
+  end
+  
 end
