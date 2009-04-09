@@ -6,37 +6,49 @@
             </div>
             <a href="#">View Trash</a>
     </div>
-    <div id="schedules" style="width:600px;float:left;background:#9fcfba;">
-        <div id="grid">
-            <%= generate_schedule(nil, {:table_class=>"gridschedule", :show_times=>true, :show_days=>true, :show_text_schedule=>false}) %>
-        </div>
-        <% num_blocks = {} %>
-        <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
-            <% i=0 %>
-            <% for course in @grab_bag.get_courses %>
-                <div style="margin-top:-182px;">
-                    <div style="visibility:hidden;" id="dragview_<%= course.id %>">
-                        <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+    <div id="tabs" class="scheduletabs">
+        <ul>
+            <% first = true %>
+            <% for schedule in @schedules %>
+                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b_<%= schedule.id %>"><a href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a></li>
+                <% first = false %>
+            <% end %>
+        </ul>
+    </div>
+    <div id="tabbedwindow">
+        <div id="schedules" style="width:600px;float:left;background:#9fcfba;">
+            <div id="grid">
+                <%= generate_schedule(nil, {:table_class=>"gridschedule", :show_times=>true, :show_days=>true, :show_text_schedule=>false}) %>
+            </div>
+            <% num_blocks = {} %>
+            <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
+                <% i=0 %>
+                <% for course in @grab_bag.get_courses %>
+                    <div style="margin-top:-182px;">
+                        <div style="visibility:hidden;" id="dragview_<%= course.id %>">
+                            <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                        </div>
                     </div>
-                </div>
-                <% i+=1 %>
+                    <% i+=1 %>
+                <% end %>
+                <% i=0 %>
+                <% for course in @grab_bag.get_courses %>
+                    <div id="<%= course.id %>" style="margin-top:-182px;">
+                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                        <%= tmp[0] %>
+                        <% num_blocks[course.id] = tmp[1] %>
+                    </div>
+                    <% i+=1 %>
+                <% end %>
             <% end %>
-            <% i=0 %>
-            <% for course in @grab_bag.get_courses %>
-                <div id="<%= course.id %>" style="margin-top:-182px;">
-                    <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
-                    <%= tmp[0] %>
-                    <% num_blocks[course.id] = tmp[1] %>
-                </div>
-                <% i+=1 %>
-            <% end %>
-        <% end %>
+        </div>
     </div>
     
 </div>
 <div style="float:left;" id="handle"></div>
 <%= javascript_include_tag 'course' %>
 <script type="text/javascript">
+    
     revert_duration = 0.5;
     showing_grab_bag = false;
     current_schedule = <%= @schedules[0].id %>;
@@ -130,8 +142,9 @@
         else
             alert("course already part of this schedule!");
     }
-    else
-        alert("could not find schedule or course to make addition!("+schedule_id+" "+course_id+")");
+    else {
+        //alert("could not find schedule or course to make addition!("+schedule_id+" "+course_id+")");
+    }
   }
   
   function remove_from_schedule(schedule_id, course_id){
@@ -168,18 +181,41 @@
     }
   }
   
+  function save_schedules() {
+    ret = "ajax=true";
+    keys = all_schedules.keys();
+    for(i=0;i<keys.length;i++){
+        var courses = all_schedules.get(keys[i]);
+        if(courses!=undefined){
+            course_keys = courses.keys();
+            for(j=0;j<course_keys.length;j++){
+                ret += "&schedules["+keys[i]+"][courses][]="+course_keys[j];
+            }
+        }
+    }
+    <%= remote_function(:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"ret") %>
+  }
+  
   function switch_schedule(schedule_id){
     if(all_schedules.get(schedule_id) != undefined){
         scan = all_courses.values();
         for(i=0;i<scan.length;i++){
             course = document.getElementById(scan[i].id);
             course.style.visibility = "hidden";
+            dragview = document.getElementById("dragview_"+scan[i].id);
+            dragview.style.visibility = "hidden";
         }
         scan = all_schedules.get(schedule_id).values();
         for(i=0;i<scan.length;i++){
             course = document.getElementById(scan[i].id);
             course.style.visibility = "visible";
+            dragview = document.getElementById("dragview_"+scan[i].id);
+            dragview.style.visibility = "visible";
         }
+        document.getElementById("sched_b_"+current_schedule).className = "normtab";
+        document.getElementById("sched_b_"+schedule_id).className = "tabme";
+        current_schedule = schedule_id;
+        
     }
   }
   
