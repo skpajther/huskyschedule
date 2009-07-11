@@ -66,8 +66,13 @@ padding: 0 5px 0 5px;
 #side a {
 font: 0.7em arial, san-serif;
 text-decoration: underline;
-color: #552277;
+color: #663366;
 display: block;
+}
+
+#side span {
+font: 0.7em arial, san-serif;
+color: #663366;
 }
 
 #side a:hover {
@@ -495,8 +500,8 @@ table.dragschedule {
 width: 100%;
 /*table-layout: fixed;*/
 /*empty-cells: show;*/
-border-collapse: collapse;
-font: 0.5em arial, sans-serif;
+/*border-collapse: collapse;*/
+font: 1em arial, sans-serif;
 color: #000000;
 border-spacing: 0px;
 border:0px;
@@ -505,12 +510,13 @@ cellspacing:0px;
 }
 
 .dragschedule td {
-text-align: right;
+text-align: left;
 border: 0px solid #bbbbbb;
+width:116px;
 }
 
 .dragschedule td.normal {
-height: 14px;
+height: 56px;
 /*border: 0px solid #bbbbbb;*/
 }
 
@@ -527,11 +533,15 @@ width:116px;
 
 .dragschedule td.class {
 background-color: #552277;
-border: 0px solid #bbbbbb;
+}
+
+.dragscheduleHighlighted td.class {
+border: 5px dashed #ffffff;	
 }
 
 .dragschedule div.class {
 background-color: #ffffff;
+cursor:pointer;
 }
 
 .dragschedule span.class {
@@ -540,20 +550,20 @@ background-color: #ffffff;
 
 .dragschedule td.holderclass{
 background-color: #552277;
-border: 0px solid #bbbbbb;
 }
 
 .dragschedule td.halfsize {
-height: 7px;
+height: 28px;
 }
 
 .dragschedule td.place {
-height: 14px;
+height: 56px;
 width: 20px;
 }
 
 .dragschedule td.time {
-height: 14px;
+height: 56px;
+width: 20px;
 background-color: #552277;
 color: #ffffff;
 }
@@ -578,7 +588,7 @@ border: 1px solid #bbbbbb;
 }
 
 .gridschedule td.normal {
-height: 14px;
+height: 56px;
 /*border: 0px solid #bbbbbb;*/
 }
 
@@ -612,16 +622,16 @@ border: 0px solid #bbbbbb;
 }
 
 .gridschedule td.halfsize {
-height: 7px;
+height: 28px;
 }
 
 .gridschedule td.place {
-height: 14px;
+height: 56px;
 width: 0px;
 }
 
 .gridschedule td.time {
-height: 14px;
+height: 56px;
 width: 20px;
 background-color: #552277;
 color: #ffffff;
@@ -818,6 +828,30 @@ text-decoration: none;
 color:blue;
 }
 
+#grab_bag {
+height: 600px;	
+}
+
+#grab_bag .course_drag {
+border:1px solid black;
+margin-bottom: 4px;
+height: 40px;
+}
+
+#grab_bag .course_drag a {
+margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+text-decoration: none;
+}
+
+#grab_bag .course_drag p {
+margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+font: 1em arial, sans-serif;
+font-weight: normal;
+color: #000000;
+}
+
 #titleabovetabbedwindow {
 text-align: right;
 font: 1.6em arial, sans-serif;
@@ -833,7 +867,7 @@ width: 608px;
 }
 
 #tabs.scheduletabs {
-margin: 0px 0 0 0;	
+margin: 0px 0 0 0;
 }
 
 #tabs ul {
@@ -852,6 +886,7 @@ text-align: center;
 height: 30px;
 width: 150px;
 float: left;
+/*border: 1px solid #ffffff;*/
 border-left: 1px solid #ffffff;
 border-right: 1px solid #ffffff;
 margin: 0;
@@ -866,8 +901,15 @@ text-decoration: none;
 color: #ffffff;
 }
 
+#tabs.scheduletabs li a {
+text-align: left;
+white-space: nowrap;
+padding-left:4px;
+}
+
 #tabs li a:hover {
-background: url('../images/tab.gif') #c5b358;
+background: /*url('../images/tab.gif')*/ #c5b358;
+width: auto;
 }
 
 #tabbedwindow {
@@ -878,8 +920,17 @@ width: 596px;
 margin: 0 0 0 0;
 min-height: 600px;
 font: 0.9em arial, sans-serif;
+margin-left:1px;
 /* height: 400px;
 overflow-y: auto; */
+}
+
+#tabbar {
+background: /*url('../images/tab.gif')*/ #c5b358;
+height:30px;
+width:608px;
+float:left;
+margin-left:1px;
 }
 /*
 #tabbedwindow p {
@@ -889,12 +940,24 @@ margin: 10px 0 10px 0;
 text-align: left;
 }
 */
+#tabs.scheduletabs .addtab {
+width: 30px;
+height: 30px;
+text-align: center;
+padding-left:0px;
+background: /*url('../images/tab.gif')*/ #D3C6DC;
+}
+
+#tabs.scheduletabs .addtab:hover {
+background: /*url('../images/tab.gif')*/ #c5b358;
+}
+
 .tabme {
-background: url('../images/tab.gif') #C5B358;
+background: /*url('../images/tab.gif')*/ #C5B358;
 }
 
 .normtab {
-background: url('../images/tab.gif') #552277;
+background: /*url('../images/tab.gif')*/ #552277;
 }
 
 .hidden {

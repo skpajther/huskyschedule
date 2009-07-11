@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090222185334) do
+ActiveRecord::Schema.define(:version => 20090325205346) do
 
   create_table "buildings", :force => true do |t|
     t.string   "name"
@@ -35,6 +35,20 @@ ActiveRecord::Schema.define(:version => 20090222185334) do
     t.datetime "updated_at"
     t.text     "abbrev"
     t.text     "url"
+  end
+
+  create_table "course_ratings", :force => true do |t|
+    t.integer  "quarter_taken",  :limit => 11
+    t.integer  "teacher_id",     :limit => 11
+    t.integer  "rating",         :limit => 11
+    t.text     "pros"
+    t.text     "cons"
+    t.text     "other_thoughts"
+    t.text     "rating_name"
+    t.integer  "user_id",        :limit => 11
+    t.string   "class_name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "course_reviews", :force => true do |t|
@@ -75,7 +89,7 @@ ActiveRecord::Schema.define(:version => 20090222185334) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.float    "rating"
-    t.integer  "total_reviews",     :limit => 11
+    t.integer  "total_ratingss",    :limit => 11
     t.integer  "year",              :limit => 11
     t.integer  "variable_credit",   :limit => 11
     t.text     "rendezvous"
@@ -145,15 +159,31 @@ ActiveRecord::Schema.define(:version => 20090222185334) do
   end
 
   create_table "teacher_infos", :force => true do |t|
-    t.integer  "teacher_id", :limit => 11
+    t.integer  "teacher_id",          :limit => 11
     t.string   "office"
-    t.integer  "sex",        :limit => 11
+    t.integer  "sex",                 :limit => 11
     t.string   "website"
     t.string   "email"
     t.string   "department"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text     "other"
+    t.integer  "total_confirmations", :limit => 11
+    t.text     "confirmed_by"
+    t.integer  "user_id",             :limit => 11
+  end
+
+  create_table "teacher_ratings", :force => true do |t|
+    t.integer  "teacher_id",       :limit => 11
+    t.integer  "course_taught_id", :limit => 11
+    t.integer  "rating",           :limit => 11
+    t.text     "pros"
+    t.text     "cons"
+    t.text     "other_thoughts"
+    t.string   "name"
+    t.integer  "user_id",          :limit => 11
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "teacher_reviews", :force => true do |t|

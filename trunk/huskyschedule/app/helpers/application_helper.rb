@@ -59,6 +59,7 @@ def generate_schedule(rendezvous, options={})
   start_hour = 7
   end_hour = 20
   identify = nil
+  display_text = nil
   table_class = "smallschedule"
   draggable_divs = false
   
@@ -82,6 +83,9 @@ def generate_schedule(rendezvous, options={})
   end
   if(options[:identify]!=nil)
     identify = options[:identify]
+  end
+  if(options[:display_text]!=nil)
+    display_text = options[:display_text]
   end
   if(options[:table_class]!=nil)
     table_class = options[:table_class]
@@ -123,6 +127,7 @@ def generate_schedule(rendezvous, options={})
             for rende in rendezvous
               k = 0
               while(k < rende.times.size)
+                adjusted_hour = ((rende.times[k][0].min>=50)? rende.times[k][0].hour+1 : rende.times[k][0].hour)
                 if(rende.times[k][0].wday == j && rende.times[k][0].hour == (start_hour+(i/2)))
                   if(rende.times[k][0].min < 20)
                     span_count = 2*(rende.times[k][1].hour - rende.times[k][0].hour)
@@ -130,7 +135,9 @@ def generate_schedule(rendezvous, options={})
                     span_count = 2*(rende.times[k][1].hour - rende.times[k][0].hour)
                     place_half = true
                   end
-                  if(rende.times[k][1].min >= 20)
+                  if(rende.times[k][1].min >= 50)
+                    span_count += 2
+                  elsif(rende.times[k][1].min >= 20)
                     span_count += 1
                   end
                 end
@@ -142,12 +149,12 @@ def generate_schedule(rendezvous, options={})
                 rows[i] += "<td rowspan=1 class='halfsize'></td>"#used to say just half!
                 if(span_count>1)
                   iden = ((identify!=nil)? "id='#{identify}_#{num_class_blocks}'" : "")
-                  rows[i+1] += "<td valign='top' rowspan=#{span_count-1} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<div #{iden} class='class' style='height:#{0*(span_count-1)+5}px'></div>" : "")}</td>"
+                  rows[i+1] += "<td valign='top' rowspan=#{span_count-1} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<div #{iden} class='class' style='height:#{0*(span_count-1)+26}px; cursor:move;'>#{display_text}</div>" : "")}</td>"
                   num_class_blocks += 1
                 end
               else
                 iden = ((identify!=nil)? "id='#{identify}_#{num_class_blocks}'" : "")
-                rows[i] += "<td valign='top' rowspan=#{span_count} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<span #{iden} class='class' style='height:#{0*span_count+5}px'>test</span>" : "")}</td>"
+                rows[i] += "<td valign='top' rowspan=#{span_count} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{((!draggable_divs)? iden : "")}>#{((draggable_divs)? "<div #{iden} class='class' style='height:#{0*span_count+26}px; cursor:move;'>#{display_text}</div>" : "")}</td>"
                 num_class_blocks += 1
               end
             end

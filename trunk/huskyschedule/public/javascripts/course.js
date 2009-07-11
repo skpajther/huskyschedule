@@ -9,6 +9,11 @@ function Course(parameters){
 	
 	//Methods
 	this.display_text = display_text;
+	this.display_name = display_name;
+}
+
+function display_name(){
+	return this.deptabbrev+" "+this.number+" "+this.section;
 }
 
 function display_text(){

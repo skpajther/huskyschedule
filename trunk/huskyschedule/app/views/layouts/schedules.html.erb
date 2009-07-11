@@ -1,4 +1,4 @@
-<% if controller.action_name=="add_to_grab_bag" %><%= yield %><% else %><%= render :partial => "layouts/header2", :locals => {:title=>"My Schedules"}%>
+<% if controller.action_name=="add_to_grab_bag" || controller.action_name=="new"%><%= yield %><% else %><%= render :partial => "layouts/header2", :locals => {:title=>"My Schedules"}%>
   <%= yield  %>
 <%= render :partial => "layouts/footer", :locals => {}%>
 <% end %>

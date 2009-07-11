@@ -1,22 +1,30 @@
 <div id="wrapper">
     <div id="side">
-            <div><a href="#" onclick="switch_bag('grab_bag')">All</a><a href="#" onclick="switch_bag('unsched')">Unscheduled</a></div>
-            Possible Courses
+            <div style="padding-bottom:10px;">
+                Possible Courses<br/>
+                <a href="#" onclick="switch_bag('grab_bag')" style="display:inline-block">All</a><a style="display:inline-block; text-decoration:none;">&nbsp;|&nbsp;</a><a href="#" onclick="switch_bag('unsched')" style="display:inline-block">Unscheduled</a>
+            </div>
             <div id="grab_bag">
             </div>
             <a href="#">View Trash</a>
     </div>
+    <!--<div id="print_stuff"><a href="javascript:add_schedule(108, 'test'); alert($('tab_list').innerHTML);">check</a></div>-->
     <div id="tabs" class="scheduletabs">
-        <ul>
+        <ul id="tab_list">
             <% first = true %>
             <% for schedule in @schedules %>
-                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b_<%= schedule.id %>"><a href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a></li>
+                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b<%= schedule.id %>"><a id="sched_b_a_<%= schedule.id %>" href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a></li>
                 <% first = false %>
             <% end %>
+            <li id="add_tab" class="addtab"><a class="addtab" href="javascript:create_schedule();">+</a></li>
         </ul>
     </div>
+    <div id="tabbar">
+        <%= text_field_tag "rename_tab", nil, {:style=>"margin-left:4px; margin-top:3px; width:200px;"} %>
+        <%= link_to_remote "Rename Schedule", {:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"'ajax=true&schedules['+current_schedule+'][name]='+$('rename_tab').value", :success=>"$('sched_b'+current_schedule).down().innerHTML = $('rename_tab').value;", :failure=>"$('rename_tab').value = $('sched_b'+current_schedule).down().innerHTML;"}, {:id=>"rename_tab_b"}  %>
+    </div>
     <div id="tabbedwindow">
-        <div id="schedules" style="width:600px;float:left;background:#9fcfba;">
+        <div id="schedules" style="width:600px;float:left;background:#9999cc;">
             <div id="grid">
                 <%= generate_schedule(nil, {:table_class=>"gridschedule", :show_times=>true, :show_days=>true, :show_text_schedule=>false}) %>
             </div>
@@ -24,7 +32,7 @@
             <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
                 <% i=0 %>
                 <% for course in @grab_bag.get_courses %>
-                    <div style="margin-top:-182px;">
+                    <div style="margin-top:-728px;">
                         <div style="visibility:hidden;" id="dragview_<%= course.id %>">
                             <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
                         </div>
@@ -33,8 +41,8 @@
                 <% end %>
                 <% i=0 %>
                 <% for course in @grab_bag.get_courses %>
-                    <div id="<%= course.id %>" style="margin-top:-182px;">
-                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                    <div id="<%= course.id %>" style="margin-top:-728px;">
+                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"#{course.name} #{course.section}"}) %>
                         <%= tmp[0] %>
                         <% num_blocks[course.id] = tmp[1] %>
                     </div>
@@ -94,10 +102,27 @@
                                                 if(element.id.substring(0,8) == "dragview")
                                                     remove_from_schedule(current_schedule, parseInt(element.id.substr(9)));
                                             }});
-  Droppables.add("schedules",{onDrop: function(element) {
+  Droppables.add("schedules",{onDrop:   function(element) {
+                                                ele = $("dragview_"+element.id.split("_")[1]);
+                                                ele.style.visibility = "hidden";
+                                                Element.removeClassName(ele, "dragscheduleHighlighted");
+                                                
                                                 revert_duration = 0;
                                                 add_to_schedule(current_schedule, parseInt(element.id.substr(8)));
-                                            }});
+                                            },
+                              onHover:  function(element, droppable, overlap) {
+                                                    ele = $("dragview_"+element.id.split("_")[1]);
+                                                    if(overlap==-1){
+                                                        ele.style.visibility = "hidden";
+                                                        Element.removeClassName(ele, "dragscheduleHighlighted");
+                                                    }
+                                                    else{
+                                                        Element.addClassName(ele, "dragscheduleHighlighted");
+                                                        ele.style.visibility = "visible";
+                                                    }
+                                            }              
+                                            });
+  
                                             
   <% keys = num_blocks.keys %>
   <% for key in keys %>
@@ -111,6 +136,8 @@
   
   switch_bag("grab_bag");
   switch_schedule(current_schedule);
+  adjust_schedule_tabs();
+  set_up_sotable_tabs();
   
   function add_to_schedule(schedule_id, course_id){
     if(all_schedules.get(schedule_id) != undefined && all_courses.get(course_id) != undefined){
@@ -159,16 +186,17 @@
     if(t_used-1 == 0){
         all_unsched.unset(course_id);
         if(!showing_grab_bag){
-            generate_course_drag("unsched_"+course_id, all_courses.get(course_id).display_text(), showing_grab_bag);
+            generate_course_drag("unsched_"+course_id, all_courses.get(course_id), showing_grab_bag);
         }
     }
         
   }
   
-  function generate_course_drag(id, course_info, show_grab_bag){
+  function generate_course_drag(id, course, show_grab_bag){
     tmp = document.createElement("div");
     tmp.setAttribute("id", id);
-    tmp.innerHTML = course_info
+    tmp.setAttribute("class", "course_drag");
+    tmp.innerHTML = "<p style='text-align:left; cursor:move;'><p style='cursor:move'>"+course.display_name()+"</p><p style='font-size:0.7em; height:2px; cursor:move;'>sln: "+course.sln+"</p></p><p style='text-align:right'><a href='#' style='display:inline-block'>details</a>&nbsp;&nbsp;&nbsp;<a href='#' style='display:inline-block; padding-right:3px;'>remove</a></p>"
     document.getElementById("grab_bag").appendChild(tmp);
     if(show_grab_bag){
         new Draggable(id, {revert: 'true', ghosting: 'true', reverteffect: function(element, top_offset, left_offset){
@@ -190,10 +218,60 @@
             course_keys = courses.keys();
             for(j=0;j<course_keys.length;j++){
                 ret += "&schedules["+keys[i]+"][courses][]="+course_keys[j];
+                ret += "&schedules["+keys[i]+"][name]="+$("sched_b"+keys[i]).down().innerHTML;
             }
         }
     }
     <%= remote_function(:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"ret") %>
+  }
+  
+  function create_schedule(){
+    <%= remote_function(:url=>{:controller=>"schedules", :action=>"new"}, :with=>("'ajax=true&schedule[user_id]="+current_user.id.to_s+"'"), :success=>"add_schedule_with_ajax(request)") %>
+    
+  }
+  
+  function set_up_sotable_tabs(){
+    Sortable.create("tab_list", {overlap:"horizontal", constraint:"horizontal", only:["tabme", "normtab"], no_destroy:true});
+  }
+  
+  function add_schedule_with_ajax(response){
+    to_parse = response.responseText;
+    //list = $("tabs").down();
+    //list.innerHTML = list.innerHTML + "hello"+to_parse;
+    to_parse_arr = to_parse.split(",");
+    schedule_id = to_parse_arr[0];
+    schedule_name = to_parse_arr[1];
+    response_message = to_parse_arr[2];
+    add_schedule(schedule_id, schedule_name);
+  }
+  
+   
+  
+  function add_schedule(schedule_id, schedule_name){
+    all_schedules.set(schedule_id, new Hash());
+    
+    Sortable.destroy("tab_list");
+    list = $("tab_list");
+    index = list.innerHTML.lastIndexOf("<li");
+    add_button = list.innerHTML.substring(index);
+    rest_of_list = list.innerHTML.substring(0, index);
+    list.innerHTML = rest_of_list + "<li class='normtab' id='sched_b"+ schedule_id +"'><a id='sched_b_a_"+schedule_id+"' href='javascript:switch_schedule("+ schedule_id +");'>"+ schedule_name +"</a></li>" + add_button;
+    switch_schedule(schedule_id);
+    adjust_schedule_tabs();
+    set_up_sotable_tabs();
+  }
+  
+  function adjust_schedule_tabs(){
+    max_width = 608-33; //-33 for width of add button
+    keys = all_schedules.keys();
+    if(keys.length>3){
+        each_tab_width = (max_width/keys.length)-2; //the -2 is for the border of each tab
+        for(i = 0; i< keys.length; i++){
+            $("sched_b"+keys[i]).style.width = each_tab_width+"px";
+            $("sched_b_a_"+keys[i]).style.width = (each_tab_width-4)+"px";
+            $("sched_b_a_"+keys[i]).style.overflow = "hidden";
+        }
+    }
   }
   
   function switch_schedule(schedule_id){
@@ -212,8 +290,9 @@
             dragview = document.getElementById("dragview_"+scan[i].id);
             dragview.style.visibility = "visible";
         }
-        document.getElementById("sched_b_"+current_schedule).className = "normtab";
-        document.getElementById("sched_b_"+schedule_id).className = "tabme";
+        document.getElementById("sched_b"+current_schedule).className = "normtab";
+        document.getElementById("sched_b"+schedule_id).className = "tabme";
+        $("rename_tab").value = $("sched_b"+schedule_id).down().innerHTML;
         current_schedule = schedule_id;
         
     }
@@ -225,7 +304,7 @@
         scan = all_courses.keys();
         for(i=0;i<scan.length;i++){
             var value = all_courses.get(scan[i]);
-            generate_course_drag("courses_"+value.id, value.display_text(), true);
+            generate_course_drag("courses_"+value.id, value, true);
             if(all_unsched.get(scan[i])==undefined){
                 tmp = document.getElementById("unsched_"+value.id);
                 if(tmp!=undefined)
@@ -251,13 +330,13 @@
             if(tmp!=undefined)
                 tmp.parentNode.removeChild(tmp);
             if(all_unsched.get(scan[i])==undefined){
-                generate_course_drag("unsched_"+value.id, value.display_text(), false);
+                generate_course_drag("unsched_"+value.id, value, false);
             }
         }
         //make all ids with unsched_course.id visible
         /*scan = all_unsched.values();
         for(i=0;i<scan.length;i++){
-            generate_course_drag("unsched_"+scan[i].id, scan[i].display_text(), false);
+            generate_course_drag("unsched_"+scan[i].id, scan[i], false);
         }*/
         showing_grab_bag = false;
     }
