@@ -1,5 +1,8 @@
 class SchedulesController < ApplicationController
   
+  def default_redirect
+    return {:controller=>"schedules", :action=>"index"}
+  end
   
   def index
     @grab_bag = Schedule.get_or_create_grab_bag(current_user)
@@ -29,16 +32,16 @@ class SchedulesController < ApplicationController
       if(params[:course_id]!=nil)
         grab_bag = Schedule.get_or_create_grab_bag(current_user)
         course = Course.find(params[:course_id])
-        #begin
+        begin
           @result = Schedule.add_to_schedule(grab_bag, course, current_user)
-        #rescue ScheduleError
-          #@result = "Failed to Add Course to Schedule"
-        #end
+        rescue ScheduleError
+          @result = "Failed to Add Course to Schedule"
+        end
       else
-        @result = "Failed to add Course to Schedule"
+        @result = "Failed to Add Course to Schedule"
       end
     else
-      redirect_to :back
+      redirect_back_or default_redirect
     end
   end
   
@@ -48,13 +51,35 @@ class SchedulesController < ApplicationController
         begin
           @result = Schedule.update_schedules(params[:schedules], current_user)
         rescue Schedule::ScheduleError
-          @result = "Failed to update Schedules"
+          @result = "Failed to Update Schedules"
         end  
       else
-        @result = "Failed to update Schedules"  
+        @result = "Failed to Update Schedules"  
       end
     else
-      redirect_to :back
+      redirect_back_or default_redirect
+    end
+  end
+  
+  def new
+    if(params[:ajax]!=nil && params[:ajax]=="true")
+      if(params[:schedule]!=nil)
+        #begin
+          schedule = Schedule.new(params[:schedule])
+          @result = Schedule.create(schedule, params, current_user)
+          @result = schedule.id.to_s+","+((schedule.name!=nil)? schedule.name : "Unamed Schedule")+","+@result
+        #rescue Schedule::ScheduleError
+          #@result = "Failed to Create Schedule"
+          #render :text=>@result, :status=>403
+          #return
+        #end  
+      else
+        @result = "Failed to Create Schedule"
+        render :text=>@result, :status=>403
+        return
+      end
+    else
+      redirect_back_or default_redirect
     end
   end
   

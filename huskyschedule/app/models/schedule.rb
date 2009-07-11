@@ -23,7 +23,8 @@ class Schedule < ActiveRecord::Base
     attributes = {:user_id=>curr_user.id, :grab_bag=>true, :quarter=>Quarter::CURRENT, :year=>Time.now.year}
     schedule = Schedule.find(:first, :conditions => attributes)
     if(schedule==nil)
-      schedule = Schedule.create(attributes)
+      schedule = Schedule.new(attributes)
+      Schedule.create(schedule, {:schedule=>attributes}, curr_user)
       schedule.name = "#{curr_user.login}'s grab bag"
       schedule.courses = []
       schedule.save!
@@ -66,7 +67,10 @@ class Schedule < ActiveRecord::Base
   def self.get_schedules(curr_user, options={})
     results = Schedule.find(:all, :conditions=>{:user_id=>curr_user.id, :grab_bag=>false})
     if(options[:create_on_none]!=nil && options[:create_on_none]==true && results.length<=0)
-      results = [Schedule.create(:user_id=>curr_user.id, :grab_bag => false, :courses=>[], :quarter => Quarter::CURRENT, :year => Time.now.year)]
+      attributes = {:user_id=>curr_user.id, :grab_bag => false, :courses=>[], :quarter => Quarter::CURRENT, :year => Time.now.year}
+      schedule = Schedule.new(attributes)
+      Schedule.create(schedule, {:schedule=>attributes}, curr_user)
+      results = [schedule]
     end
     return results
   end
@@ -108,6 +112,40 @@ class Schedule < ActiveRecord::Base
       if(errors[2]>0)
         ret += ", #{(errors[0]>0 || errors[1]>0)? errors[2] : ''} because of an internal error"
       end
+    end
+  end
+  
+  def self.create(schedule, params, curr_user)
+    if(schedule!=nil && params[:schedule]!=nil)
+      schedule.user = curr_user
+      courses = schedule.get_courses
+      if(schedule.grab_bag==nil)
+        schedule.grab_bag = 0
+      end
+      if(schedule.quarter==nil)
+        if(courses!=nil && courses.size>0)
+          schedule.quarter = courses[0].quarter_id
+        else
+          schedule.quarter = Quarter::CURRENT
+        end
+      end
+      if(schedule.year==nil)
+        if(courses!=nil && courses.size>0)
+          schedule.year = courses[0].year
+        else
+          schedule.year = Quarter::CURRENT_YEAR
+        end
+      end
+      if(schedule.rank==nil)
+        schedule.rank = 1
+      end
+      if(schedule.courses==nil)
+        schedule.courses = []
+      end
+      schedule.save!
+      return "Schedule Created Successfully"
+    else
+      raise ScheduleError.new("Failed To Create Schedule")
     end
   end
   

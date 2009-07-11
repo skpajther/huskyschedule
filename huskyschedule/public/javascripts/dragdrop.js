@@ -98,7 +98,11 @@ var Droppables = {
     if(affected.length>0)
       drop = Droppables.findDeepestChild(affected);
 
-    if(this.last_active && this.last_active != drop) this.deactivate(this.last_active);
+    if(this.last_active && this.last_active != drop){
+    	if(this.last_active.onHover)
+    		this.last_active.onHover(element, this.last_active, -1);  
+    	this.deactivate(this.last_active);
+    }
     if (drop) {
       Position.within(drop.element, point[0], point[1]);
       if(drop.onHover)
@@ -626,7 +630,7 @@ var Sortable = {
   
   sortables: { },
   
-  _findRootElement: function(element) {
+  _findRootElement: function(element, act_special) {
     while (element.tagName.toUpperCase() != "BODY") {  
       if(element.id && Sortable.sortables[element.id]) return element;
       element = element.parentNode;
@@ -635,24 +639,30 @@ var Sortable = {
 
   options: function(element) {
     element = Sortable._findRootElement($(element));
+    
     if(!element) return;
     return Sortable.sortables[element.id];
   },
   
   destroy: function(element){
-    var s = Sortable.options(element);
-    
-    if(s) {
-      Draggables.removeObserver(s.element);
-      s.droppables.each(function(d){ Droppables.remove(d) });
-      s.draggables.invoke('destroy');
-      
-      delete Sortable.sortables[s.element.id];
-    }
-  },
+	var s = Sortable.options(element);
 
+	if(s) {
+		if(element.id == s.element.id) { //Modification.
+			Draggables.removeObserver(s.element);
+			s.droppables.each(function(d){ Droppables.remove(d) });
+
+			s.draggables.invoke('destroy');
+
+			delete Sortable.sortables[s.element.id];
+			Sortable.options
+		}
+	}
+  },
+  
   create: function(element) {
     element = $(element);
+    this.element = element;
     var options = Object.extend({ 
       element:     element,
       tag:         'li',       // assumes li children, override with tag: 'tagname'
@@ -683,7 +693,8 @@ var Sortable = {
     }, arguments[1] || { });
 
     // clear any old sortable with same element
-    this.destroy(element);
+    if(!options.no_destroy)
+    	this.destroy(element);
 
     // build options for the draggables
     var options_for_draggable = {
@@ -780,6 +791,7 @@ var Sortable = {
   },
 
   onHover: function(element, dropon, overlap) {
+  	if(overlap==-1) return;
     if(Element.isParent(dropon, element)) return;
 
     if(overlap > .33 && overlap < .66 && Sortable.options(dropon).tree) {
@@ -848,8 +860,9 @@ var Sortable = {
   mark: function(dropon, position) {
     // mark on ghosting only
     var sortable = Sortable.options(dropon.parentNode);
+    
     if(sortable && !sortable.ghosting) return; 
-
+	
     if(!Sortable._marker) {
       Sortable._marker = 
         ($('dropmarker') || Element.extend(document.createElement('DIV'))).
@@ -859,7 +872,7 @@ var Sortable = {
     var offsets = Position.cumulativeOffset(dropon);
     Sortable._marker.setStyle({left: offsets[0]+'px', top: offsets[1] + 'px'});
     
-    if(position=='after')
+    if(position=='after' && sortable)
       if(sortable.overlap == 'horizontal') 
         Sortable._marker.setStyle({left: (offsets[0]+dropon.clientWidth) + 'px'});
       else

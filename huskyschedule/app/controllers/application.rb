@@ -25,10 +25,16 @@ class ApplicationController < ActionController::Base
     if logged_in?
       #check is done continue
     else
-      self.current_user = User.create(:login=>request.remote_ip, :email => request.remote_ip, :tmp_user => true, :last_used => Time.today.utc)
+      self.current_user = User.create(:login=>request.remote_ip, :email => request.remote_ip, :tmp_user => true, :last_used => Time.now.utc)
       self.current_user.remember_me
       cookies[:auth_token] = { :value => self.current_user.remember_token , :expires => self.current_user.remember_token_expires_at }
     end
+  end
+  
+  def redirect_back_or(path)
+    redirect_to :back
+    rescue ActionController::RedirectBackError
+    redirect_to path
   end
   
   def help

@@ -9,6 +9,8 @@ class Quarter < ActiveRecord::Base
   QUARTER_SUMMER = 4
   CURRENT = QUARTER_WINTER
   
+  CURRENT_YEAR = 2008
+  
   QUARTER_DISPLAY_NAMES = ["Autumn", "Winter", "Spring", "Summer"]
     
   QUARTER_TYPES = [
