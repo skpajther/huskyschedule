@@ -548,6 +548,33 @@ cursor:pointer;
 background-color: #ffffff;
 }
 
+.dragschedule p.drag_text {
+margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+font: 0.8em arial, sans-serif;
+height: 13px;
+font-weight: normal;
+color: #000000;
+}
+
+.dragschedule p.drag_options {
+margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+font: 0.6em arial, sans-serif;
+font-weight: normal;
+color: #000000;
+}
+
+.dragschedule p.drag_options select {
+margin: 0px 0px 0px 0px;
+padding: -3px 0px 0px 0px;
+font: 1em arial, sans-serif;
+font-weight: normal;
+color: #000000;
+height: 12px;
+width: 37px;
+}
+
 .dragschedule td.holderclass{
 background-color: #552277;
 }
