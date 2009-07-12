@@ -34,7 +34,7 @@
                 <% for course in @grab_bag.get_courses %>
                     <div style="margin-top:-728px;">
                         <div style="visibility:hidden;" id="dragview_<%= course.id %>">
-                            <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false}) %>
+                            <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false, :color=>@grab_bag.get_color_for_course(course)}) %>
                         </div>
                     </div>
                     <% i+=1 %>
@@ -42,7 +42,7 @@
                 <% i=0 %>
                 <% for course in @grab_bag.get_courses %>
                     <div id="<%= course.id %>" style="margin-top:-728px;">
-                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"#{course.name} #{course.section}"}) %>
+                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"<p class='drag_text'>#{course.name} #{course.section}</p><p class='drag_options'>QZ:<select><option>AA</option></select>  LAB:<select><option>AB</option></select></p>", :color=>@grab_bag.get_color_for_course(course)}) %>
                         <%= tmp[0] %>
                         <% num_blocks[course.id] = tmp[1] %>
                     </div>
@@ -81,7 +81,7 @@
   
     <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
         <% for course in @grab_bag.get_courses %>
-            all_courses.set(<%= course.id %>, new Course({id: <%= course.id %>, sln: <%= course.sln %>, deptabbrev: "<%= course.deptabbrev %>", number: <%= course.number %>, section: "<%= course.section %>"}));
+            all_courses.set(<%= course.id %>, new Course({id: <%= course.id %>, sln: <%= course.sln %>, deptabbrev: "<%= course.deptabbrev %>", number: <%= course.number %>, section: "<%= course.section %>", color: "<%= @grab_bag.get_color_for_course(course) %>"}));
         <% end %>
     <% end %>
     
@@ -196,7 +196,7 @@
     tmp = document.createElement("div");
     tmp.setAttribute("id", id);
     tmp.setAttribute("class", "course_drag");
-    tmp.innerHTML = "<p style='text-align:left; cursor:move;'><p style='cursor:move'>"+course.display_name()+"</p><p style='font-size:0.7em; height:2px; cursor:move;'>sln: "+course.sln+"</p></p><p style='text-align:right'><a href='#' style='display:inline-block'>details</a>&nbsp;&nbsp;&nbsp;<a href='#' style='display:inline-block; padding-right:3px;'>remove</a></p>"
+    tmp.innerHTML = "<p style='text-align:left; cursor:move;'><p style='cursor:move; background-color:#"+course.color+";'>"+course.display_name()+"</p><p style='font-size:0.7em; height:2px; cursor:move;'>sln: "+course.sln+"</p></p><p style='text-align:right'><a href='<%= url_for :controller=>"courses", :action=>"index", :id=>"" %>"+course.id+"' style='display:inline-block'>details</a>&nbsp;&nbsp;&nbsp;<a href='#' style='display:inline-block; padding-right:3px;'>remove</a></p>"
     document.getElementById("grab_bag").appendChild(tmp);
     if(show_grab_bag){
         new Draggable(id, {revert: 'true', ghosting: 'true', reverteffect: function(element, top_offset, left_offset){

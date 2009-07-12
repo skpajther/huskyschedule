@@ -6,6 +6,7 @@ function Course(parameters){
 	this.number = parameters["number"];
 	this.section = parameters["section"];
 	this.id = parameters["id"];
+	this.color = parameters["color"];
 	
 	//Methods
 	this.display_text = display_text;
