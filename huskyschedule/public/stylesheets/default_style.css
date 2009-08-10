@@ -928,7 +928,7 @@ color:blue;
 }
 
 #grab_bag {
-height: 600px;	
+min-height: 600px;	
 }
 
 #grab_bag .course_drag {
