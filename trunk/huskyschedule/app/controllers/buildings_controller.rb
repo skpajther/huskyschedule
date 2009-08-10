@@ -139,5 +139,10 @@ class BuildingsController < ApplicationController
   def search_results
     @buildings = Building.search(params[:search_text])
   end
+  
+  def abbrev_find_and_edit
+    building = Building.find_by_abbrev(params[:building][:abbrev])
+    building.update_attributes!(params[:building])
+  end
 
 end
