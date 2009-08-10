@@ -3,6 +3,7 @@ var map;
 var markers; //holds the markers
 var selectedMarker; //the open marker
 var currentMapType; //the maptype in use
+var customMapType;
 var icon; //icon for the markers
 var uw_center; //center of UW Map
 var center; //center of G_SATELLITE_MAP & G_HYBRID_MAP
@@ -41,7 +42,7 @@ function initialize(abbrev, path) {
 		
 function prepareMap() {
 	map = new GMap2(mapDiv);
-	map.setCenter(center, 16); //UW campus
+	map.setCenter(center, zoom=16); //UW campus
 	map.addMapType(G_SATELLITE_MAP);
 	map.addMapType(G_HYBRID_MAP);
 	map.removeMapType(G_NORMAL_MAP);
@@ -50,7 +51,7 @@ function prepareMap() {
 	map.enableScrollWheelZoom();
 	map.addControl(new GSmallMapControl(), new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(10, 10)));
 	map.addControl(new GMapTypeControl());
-	var customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
+	customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
 	map.addMapType(customMapType);
 	svOverlay = new GStreetviewOverlay();
 	//map.addOverlay(svOverlay);
@@ -111,22 +112,8 @@ function mapListeners() {
 	GEvent.addListener(map,"maptypechanged", 
 		function() {
 			var newMapType = map.getCurrentMapType();
-			if((newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)&&
-			  !(currentMapType==G_HYBRID_MAP || currentMapType==G_SATELLITE_MAP)) {
-			  	for(i in markers) {
-					markerData = markers[i];
-					markerData.marker.setLatLng(markerData.normal);
-				}
-				if(selectedMarker != null) {
-					map.setZoom(16);
-					openMarker(selectedMarker.abbrev);
-				}
-				else {
-					map.setCenter(center, 16);
-				}
-			}
-			else if(!(newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)) { //custom
-				for(i in markers) {
+			if(newMapType == customMapType) {
+				/*for(i in markers) {
 					markerData = markers[i];
 					markerData.marker.setLatLng(markerData.uw);
 				}
@@ -134,9 +121,23 @@ function mapListeners() {
 					openMarker(selectedMarker.abbrev);
 					map.setZoom(4);
 				}
-				else {
-					map.setCenter(uw_center, 4);
+				else {*/
+					map.setCenter(uw_center, zoom=4);
+				//}
+			}
+			else {
+				/*alert("here!");
+				for(i in markers) {
+					markerData = markers[i];
+					markerData.marker.setLatLng(markerData.normal);
 				}
+				if(selectedMarker != null) {
+					map.setZoom(16);
+					openMarker(selectedMarker.abbrev);
+				}
+				else {*/
+					map.setCenter(center, zoom=16);
+				//}
 			}
 			currentMapType = newMapType;
 		}
@@ -149,6 +150,15 @@ function mapListeners() {
 	GEvent.addListener(map, "click",
 		function(a,e,c) {
 			var latlng = new GLatLng(e.lat(),e.lng());
+			if(currentMapType!=customMapType) {
+				document.getElementById("input_lat").value = e.lat();
+				document.getElementById("input_lng").value = e.lng();
+			}
+			else {
+				document.getElementById("input_uwlat").value = e.lat();
+				document.getElementById("input_uwlng").value = e.lng();
+			}
+			/*
 			var myPOV = { yaw:0, pitch:0 };
 			if(streetview==null)
 				getNewStreetview();
@@ -157,6 +167,7 @@ function mapListeners() {
 			lng = "sv_lng="+e.lng();
 			s = "UPDATE huskyschedule_development.buildings SET "+lat+", "+lng+"WHERE abbrev = ''";
 			sendtoclipboard(s);
+			*/
 		}
 	);
 }
