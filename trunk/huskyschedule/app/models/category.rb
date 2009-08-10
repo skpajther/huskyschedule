@@ -1,8 +1,18 @@
 class Category < ActiveRecord::Base
   
-  has_many :courses, :class_name => "Course", :foreign_key => "parent_id"
-  has_many :children, :class_name => "Category", :foreign_key => "parent_id"
-  belongs_to :parent, :class_name => "Category", :foreign_key => "parent_id"
+  has_and_belongs_to_many :children,
+          :class_name => 'Category',
+          :join_table => 'category_edges',
+          :foreign_key => 'parent_id',
+          :association_foreign_key => 'child_id'
+  
+  has_and_belongs_to_many :parents,
+      :class_name => 'Category',
+      :join_table => 'category_edges',
+      :foreign_key => 'child_id',
+      :association_foreign_key => 'parent_id'
+  #has_many :children, :class_name => "Category", :foreign_key => "parent_id"
+  #belongs_to :parent, :class_name => "Category", :foreign_key => "parent_id"
   
   DESCRIPTION_URL = "http://www.washington.edu/students/crscat/"
   HOME_ID = 1
