@@ -142,6 +142,9 @@ class BuildingsController < ApplicationController
   
   def abbrev_find_and_edit
     building = Building.find_by_abbrev(params[:building][:abbrev])
+    if(building.nil?)
+      building = Building.create(:abbrev=>params[:building][:abbrev])
+    end
     building.update_attributes!(params[:building])
   end
 
