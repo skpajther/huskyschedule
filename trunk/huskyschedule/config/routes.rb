@@ -9,7 +9,11 @@ ActionController::Routing::Routes.draw do |map|
     :controller => "buildings",
     :action => "map_loader",
     :method => "get"
-  
+    
+  map.connect_map_abbrev_find_and_edit "buildings/abbrev_find_and_edit",
+    :controller => "buildings",
+    :action => "abbrev_find_and_edit",
+    :method => "post"
     
   # The priority is based upon order of creation: first created -> highest priority.
 

@@ -20,6 +20,18 @@
         <input id="streetviewdata" type="submit" style="width:90px;" value="Data" onclick="streetviewData();" />-->
         <div id="streetview"></div>
         <div id="searchResults"></div>
+        
     </div> <!-- content -->
     <script type="text/javascript">initialize(<%= ((@show_building!=nil)? "\"#{@show_building.abbrev}\"" : "\"\"") %>, "<%= url_for(:controller=>"/", :only_path=>false) %>");</script>
+    <div id="data" style="width:100%; height:400px;">
+        <%= form_remote_tag( :url=>{:controller=>"buildings", :action=>"abbrev_find_and_edit"}) %>
+        Abbrev: <input type="text" id="input_abbrev" name="building[abbrev]" /><br />
+        Name: <input type="text" id="input_name" name="building[name]" /><br />
+        Lat: <input type="text" id="input_lat" name="builing[lat]" /><br />
+        Lng: <input type="text" id="input_lng" name="building[lng]" /><br />
+        UW_Lat: <input type="text" id="input_uwlat" name="building[uw_lng]" /><br />
+        UW_Lng: <input type="text" id="input_uwlng" name="building[uw_lng]" /><br />
+        <%= submit_tag "Submit" %>
+    </form>
+    </div>
 </div><!--wrapper-->
