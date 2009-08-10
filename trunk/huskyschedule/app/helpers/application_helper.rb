@@ -157,11 +157,11 @@ def generate_schedule(rendezvous, options={})
               if(place_half)
                 rows[i] += "<td rowspan=1 class='halfsize'></td>"#used to say just half!
                 if(span_count>1)
-                  rows[i+1] += "<td valign='top' #{style} rowspan=#{span_count-1} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{iden}>#{((draggable_divs)? "<div class='class' style='height:#{0*(span_count-1)+26}px; cursor:move;'>#{display_text}</div>" : "")}</td>"
+                  rows[i+1] += "<td valign='top' #{style} rowspan=#{span_count-1} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{iden}>#{((draggable_divs)? "<div class='class' style='height:#{0*(span_count-1)+26}px; cursor:move;'>#{display_text.gsub("$^$block_num$^$", num_class_blocks.to_s)}</div>" : "")}</td>"
                   num_class_blocks += 1
                 end
               else
-                rows[i] += "<td valign='top' #{style} rowspan=#{span_count} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{iden}>#{((draggable_divs)? "<div class='class' style='height:#{0*span_count+26}px; cursor:move;'>#{display_text}</div>" : "")}</td>"
+                rows[i] += "<td valign='top' #{style} rowspan=#{span_count} #{(!draggable_divs)? "class='class'" : "class='holderclass'"} #{iden}>#{((draggable_divs)? "<div class='class' style='height:#{0*span_count+26}px; cursor:move;'>#{display_text.gsub("$^$block_num$^$", num_class_blocks.to_s)}</div>" : "")}</td>"
                 num_class_blocks += 1
               end
             end

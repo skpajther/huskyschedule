@@ -17,7 +17,7 @@
 <% if((controller.controller_name=="buildings" && (controller.action_name=="map" || controller.action_name=="index")) || (controller.controller_name=="course" && controller.action_name=="name")) %>
     <body onload="stripe()" onunload="GUnload()">
 <% elsif(controller.controller_name=="schedules") %>
-    <body onunload="save_schedules();">
+    <body onunload="unload();">
 <% else %>
     <body>
 <% end %>

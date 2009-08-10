@@ -95,12 +95,17 @@ margin: 0;
 padding: 0;
 }
 
-/* #side ul {
+#side ul {
 list-style: none;
-margin: 0 0 0 0;
+margin: 0 0 0 10px;
 padding: 0;
 border: 0;
 }
+
+#side li {
+padding: 3px 0 3px 0;
+}
+/*
 		
 #side li {
 margin: 0;
@@ -536,7 +541,7 @@ background-color: #552277;
 }
 
 .dragscheduleHighlighted td.class {
-border: 5px dashed #ffffff;	
+border: 5px dashed #ffffff;
 }
 
 .dragschedule div.class {
@@ -810,12 +815,83 @@ text-align: left;
 
 /* Indiv Class Information */
 
-#addtoschedule {
+.addtoschedule {
 padding: 0;
 margin: 25px 0 0 30px;
 text-align: right;
 float: left;
 border: 1px solid #bbbbbb;
+}
+
+.alreadyinschedule {
+padding: 0;
+margin: 25px 0 0 30px;
+text-align: right;
+float: left;
+border: 1px solid #bbbbbb;
+background-color: #999999;
+color: #cccccc;
+font-weight:bold;
+}
+
+.addtoschedule a {
+text-decoration:none;
+font-weight:bold;
+padding:10px 10px 10px 10px;
+color:#552277;
+}
+
+.page_bar {
+background-color: #552277;
+float:right;
+height: 25px;
+}
+
+.pagination {
+	float:right;
+	font-family:"Myriad", "Trebuchet MS", "Arial", "FreeSans";
+	font-weight:bold;
+	padding-top:0px;
+	margin-top:0px;
+	line-height:20px;
+}
+.pagination .current {
+	color:#cccc00;
+	font-weight:bold;
+	font-size:20px;
+}
+.pagination a {
+	color:white;
+	text-decoration:none;
+	padding-left:5px;
+}
+.pagination a:hover{
+	color:#C5B358;
+	text-decoration:none;
+	font-weight:bold;
+	font-size:20px;
+	padding-left:2px;
+}
+.pagination .next_page {
+	padding-right:12px;
+}
+.pagination .next_page:hover {
+	padding-right:1px;
+}
+.pagination .disabled-next_page{
+	padding-right:8px;
+}
+.pagination .disabled.next_page:hover{
+	padding-right:12px;
+}
+.pagination .prev_page {
+	padding-left:30px;
+}
+.pagination .prev_page:hover {
+	padding-left:8px;
+}
+.pagination .disabled.prev_page:hover {
+	padding-left:30px;
 }
 
 #addtoschedule2 {
@@ -824,10 +900,6 @@ margin: 0 0 0 0;
 text-align: right;
 float: right;
 border: 1px solid #bbbbbb;
-}
-
-#addtoschedule img {
-border: 0;
 }
 
 #addtoschedule2 img {
@@ -890,7 +962,7 @@ margin: 50px 0 0px 0;
 #tabs {
 margin: 20px 0 0 0;
 float: left;
-width: 608px;
+width: 765px;
 }
 
 #tabs.scheduletabs {
@@ -920,6 +992,7 @@ margin: 0;
 }
 
 #tabs li a {
+float:left;
 display: block;
 line-height: 30px;
 width: 150px;
@@ -928,15 +1001,32 @@ text-decoration: none;
 color: #ffffff;
 }
 
+#tabs li a.close{
+float:left;
+display:block;
+width:7px;
+height:11px;
+overflow:hidden;
+padding: 0px 0px 0px 0px;
+margin: 3px 0px 0px 0px;
+background-repeat:no-repeat;
+background-image:url('/images/schedules/close.png');
+}
+
+#tabs li a.close:hover {
+background-image:url('/images/schedules/close_highlighted.png');
+background-repeat:no-repeat;
+width:7px;
+}
+
 #tabs.scheduletabs li a {
 text-align: left;
 white-space: nowrap;
 padding-left:4px;
 }
 
-#tabs li a:hover {
+#tabs li:hover {
 background: /*url('../images/tab.gif')*/ #c5b358;
-width: auto;
 }
 
 #tabbedwindow {
@@ -985,6 +1075,37 @@ background: /*url('../images/tab.gif')*/ #C5B358;
 
 .normtab {
 background: /*url('../images/tab.gif')*/ #552277;
+}
+
+#schedule_stats .credit_totals {
+margin:0px 0px 0px 0px;
+padding:0px 0px 0px 10px;	
+}
+
+#schedule_stats .credit_totals tr {
+padding: 5px 0px 0px 0px;	
+}
+
+#schedule_stats span {
+text-align: left;
+width: auto;
+font: inherit;
+line-height: inherit;
+font-weight: inherit;
+text-decoration: inherit;
+color: inherit;
+}
+
+.button-to {
+display: inline;	
+}
+
+.button-to div {
+display: inline;	
+}
+
+.button-to input {
+display: inline;	
 }
 
 .hidden {

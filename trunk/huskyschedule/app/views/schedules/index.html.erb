@@ -13,17 +13,21 @@
         <ul id="tab_list">
             <% first = true %>
             <% for schedule in @schedules %>
-                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b<%= schedule.id %>"><a id="sched_b_a_<%= schedule.id %>" href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a></li>
+                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b<%= schedule.id %>" ><a id="sched_b_a_<%= schedule.id %>" href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a><a class="close" href="javascript:"></a></li>
                 <% first = false %>
             <% end %>
+            <li id="tab_place_holder" style="display:none;">loading</li>
             <li id="add_tab" class="addtab"><a class="addtab" href="javascript:create_schedule();">+</a></li>
         </ul>
     </div>
-    <div id="tabbar">
-        <%= text_field_tag "rename_tab", nil, {:style=>"margin-left:4px; margin-top:3px; width:200px;"} %>
-        <%= link_to_remote "Rename Schedule", {:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"'ajax=true&schedules['+current_schedule+'][name]='+$('rename_tab').value", :success=>"$('sched_b'+current_schedule).down().innerHTML = $('rename_tab').value;", :failure=>"$('rename_tab').value = $('sched_b'+current_schedule).down().innerHTML;"}, {:id=>"rename_tab_b"}  %>
+    <div id="tabbar" style="width:762px;">
+        <form action="#" method="post" onsubmit="rename_schedule($('rename_tab').value);return false;" style="display:inline;"><%= text_field_tag "rename_tab", nil, {:style=>"margin-left:4px; margin-top:3px; width:150px;"} %></form>
+        <%= button_to_function "Rename", "rename_schedule($('rename_tab').value);", {:id=>"rename_tab_b"}  %>
+        <%= button_to_function "Saved", "save_schedules([current_schedule]);", {:disabled=>true, :id=>"save_schedule_btn", :style=>"margin-left:30px;"} %>
+        <div style="display:inline;color:#ffffff;margin-left:8px;width:200px;overflow:hidden;" id="last_saved_text"></div>
+        <%= button_to_function "Save All", "save_dirty_schedules();", {:id=>"save_all_schedules_btn", :style=>"display:none;margin-left:5px;"} %>
     </div>
-    <div id="tabbedwindow">
+    <div id="tabbedwindow" style="width:750px;">
         <div id="schedules" style="width:600px;float:left;background:#9999cc;">
             <div id="grid">
                 <%= generate_schedule(nil, {:table_class=>"gridschedule", :show_times=>true, :show_days=>true, :show_text_schedule=>false}) %>
@@ -33,7 +37,7 @@
                 <% i=0 %>
                 <% for course in @grab_bag.get_courses %>
                     <div style="margin-top:-728px;">
-                        <div style="visibility:hidden;" id="dragview_<%= course.id %>">
+                        <div style="visibility:hidden;position:relative;z-index:0;" id="dragview_<%= course.id %>">
                             <%= generate_schedule(course.rendezvous, {:table_class=>"dragschedule", :show_times=>false, :show_days=>false, :show_text_schedule=>false, :color=>@grab_bag.get_color_for_course(course)}) %>
                         </div>
                     </div>
@@ -42,19 +46,89 @@
                 <% i=0 %>
                 <% for course in @grab_bag.get_courses %>
                     <div id="<%= course.id %>" style="margin-top:-728px;">
-                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule",:identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"<p class='drag_text'>#{course.name} #{course.section}</p><p class='drag_options'>QZ:<select><option>AA</option></select>  LAB:<select><option>AB</option></select></p>", :color=>@grab_bag.get_color_for_course(course)}) %>
+                        <% default_qz = @grab_bag.quiz_sections[course.id] %>
+                        <% tmp = generate_schedule(course.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule", :identify=>course.id, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"<p class='drag_text'>#{course.name} #{course.section}</p><p class='drag_options'>#{(course.quiz_sections!=nil && course.quiz_sections.size>0)? "QZ:<select id='sel_qz_#{course.id}_$^$block_num$^$' selected='qz_#{(default_qz!=nil)? default_qz : course.quiz_sections[0].id }' title='qz_#{(default_qz!=nil)? default_qz : course.quiz_sections[0].id }' onchange='new_val = this.options[this.selectedIndex].value; ret = switch_quiz_section(this.title, new_val); old_val=this.title; this.title=new_val; if(ret){ correct_qzselects_#{course.id}(this.selectedIndex, new_val); } else{ (Array.from(this.options)).each(function(item, index){if(item.value==old_val){ correct_qzselects_#{course.id}(index, old_val); }}); }'>"+course.quiz_sections.collect{|qz| "<option value='qz_"+qz.id.to_s+"'>"+qz.section+"</option>" }.join("")+"</select>" : ""}  #{(course.labs!=nil && course.labs.size>0)? "LAB:<select><option>AB</option></select>" : ""}</p>", :color=>@grab_bag.get_color_for_course(course)}) %>
                         <%= tmp[0] %>
-                        <% num_blocks[course.id] = tmp[1] %>
+                        <% num_blocks[course.id] = [tmp[1],{}] %>
+                        <script>function correct_qzselects_<%= course.id %>(selectedIndex, val){
+                                    <% j = 0 %>
+                                    <% while( j < tmp[1]) %>
+                                        if($('sel_qz_<%= course.id %>_<%= j %>').title!=val){
+                                            $('sel_qz_<%= course.id %>_<%= j %>').selectedIndex = selectedIndex;
+                                            $('sel_qz_<%= course.id %>_<%= j %>').title = val;
+                                        }
+                                        <% j = j + 1 %>
+                                    <% end %>
+                                }
+                        </script>
                     </div>
+                    <% for qz in course.quiz_sections %>
+                    <div id="qz_<%= qz.id %>" style="margin-top:-728px;">
+                        <% tmp2 = generate_schedule(qz.rendezvous, {:draggable_divs=>true, :table_class=>"dragschedule", :identify=>"qz_"+qz.id.to_s, :show_times=>false, :show_days=>false, :show_text_schedule=>false, :display_text=>"<p class='drag_text' style='cursor:auto'>QZ:#{course.name} #{qz.section}</p>", :color=>@grab_bag.get_color_for_course(course)}) %>
+                        <%= tmp2[0] %>
+                        <% num_blocks[course.id][1]["qz_"+qz.id.to_s] = tmp2[1] %>
+                    </div>
+                    <% end %>
                     <% i+=1 %>
                 <% end %>
             <% end %>
+        </div>
+        <div id="schedule_stats" style="float:left;padding-left:5px;margin-left:5px;width:137px;border: 1px solid #bbbbbb;">
+            Properties<br/>
+            <table>
+                <tr>
+                    <td>Classes:</td>
+                    <td id="total_classes" align="right"></td>
+                <tr/>
+                <tr>
+                    <td>Hours:</td>
+                    <td id="total_hours" align="right"></td>
+                </tr>
+                <tr><td>Credits:</td></tr>
+                <tr>
+                    <td colspan="2">
+                        <table class="credit_totals">
+                            <tr>
+                                <td width="50px">Total</td>
+                                <td id="total_credits" align="right"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>VLPA</td>
+                                <td id="total_vlpa" align="right"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>I&S</td>
+                                <td id="total_is" align="right"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td >NW</td>
+                                <td id="total_nw" align="right"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>QSR</td>
+                                <td id="total_qsr" align="right"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>COMP</td>
+                                <td id="total_c" align="right"></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
     
 </div>
 <div style="float:left;" id="handle"></div>
 <%= javascript_include_tag 'course' %>
+<%= javascript_include_tag 'schedule' %>
 <script type="text/javascript">
     
     revert_duration = 0.5;
@@ -66,35 +140,65 @@
     times_used = new Hash();
     
     all_schedules = new Hash();
+    dirty_schedules = new Hash();
     
     dependencies = new Hash();
+    
+    all_quiz_sections = new Hash();
+    
+    ranks_dirty = false;
+    
+    Day_arr = ["Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"];
+    Month_arr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec"];
     
     <% for key in @dependancies.keys %>
         tmp<%= key %> = new Hash();
         <% for key2 in @dependancies[key].keys %>
             <% if @dependancies[key][key2]==false %>
-                tmp<%= key %>.set(<%= key2 %>, 'false');
+                tmp<%= key %>.set(<%= (key2.kind_of?(String))? "'#{key2}'" : key2 %>, 'false');
             <% end %>
         <% end %>
-        dependencies.set(<%= key %>, tmp<%= key %>);
+        dependencies.set(<%= (key.kind_of?(String))? "'#{key}'" : key %>, tmp<%= key %>);
     <% end %>
   
     <% if @grab_bag != nil && @grab_bag.get_courses != nil %>
         <% for course in @grab_bag.get_courses %>
-            all_courses.set(<%= course.id %>, new Course({id: <%= course.id %>, sln: <%= course.sln %>, deptabbrev: "<%= course.deptabbrev %>", number: <%= course.number %>, section: "<%= course.section %>", color: "<%= @grab_bag.get_color_for_course(course) %>"}));
+            <% course_color = @grab_bag.get_color_for_course(course) %>
+            <% default_qz = @grab_bag.quiz_sections[course.id] %>
+            <% for qz in course.quiz_sections %>
+                all_quiz_sections.set(<%= qz.id %>, <%= "new Course({id: "+qz.id.to_s+", sln: "+course.sln.to_s+", section: '"+qz.section+"', hours: "+qz.hours.to_s+", color: '"+course_color+"', parent_id: "+course.id.to_s+"})" %>);
+            <% end %>
+            <% course_credits = ((course.credits==nil)? 0 : course.credits) %>
+            all_courses.set(<%= course.id %>, new Course({id: <%= course.id %>, sln: <%= course.sln %>, deptabbrev: "<%= course.deptabbrev %>", number: <%= course.number %>, section: "<%= course.section %>", hours: <%= course.hours %>, credits: <%= course_credits %>, vlpa: <%= ((course.credit_type.include?(Course::CREDITTYPE_VLPA))? course_credits : 0 ) %>, is: <%= ((course.credit_type.include?(Course::CREDITTYPE_IS))? course_credits : 0 ) %>, nw: <%= ((course.credit_type.include?(Course::CREDITTYPE_NW))? course_credits : 0 ) %>, qsr: <%= ((course.credit_type.include?(Course::CREDITTYPE_QSR))? course_credits : 0 ) %>, c: <%= ((course.credit_type.include?(Course::CREDITTYPE_C))? course_credits : 0 ) %>, color: "<%= course_color %>"<%= (default_qz!=nil)? ", default_quiz_section: \""+default_qz.to_s+"\"" : "" %>, <% if(course.quiz_sections!=nil && course.quiz_sections.size>0) %>quiz_sections: new Hash({<%= course.quiz_sections.collect{|qz| "#{qz.id}: all_quiz_sections.get('#{qz.id}')"}.join(",") %>})<% end %>}));
         <% end %>
     <% end %>
     
     <% for sched in @schedules %>
-        all_schedules.set(<%= sched.id %>, new Hash());
+        <% if(sched.last_saved==nil) %>
+            <% sched.last_saved = sched.updated_at %>
+        <% end %>
+        updated_at = new Date();
+        updated_at.setUTCDate(<%= sched.last_saved.utc.day %>);
+        updated_at.setUTCMonth(<%= sched.last_saved.utc.month-1 %>);
+        updated_at.setUTCFullYear(<%= sched.last_saved.utc.year %>);
+        updated_at.setUTCHours(<%= sched.last_saved.utc.hour %>);
+        updated_at.setUTCMinutes(<%= sched.last_saved.utc.min %>);
+        updated_at.setUTCSeconds(<%= sched.last_saved.utc.sec %>);
+        all_schedules.set(<%= sched.id %>, new Schedule({name: "<%= sched.name %>", id: <%= sched.id %>, dirty: false, last_saved:updated_at , courses: new Hash()}));
         <% for course_id in sched.courses %>
-                all_schedules.get(<%= sched.id %>).set( <%= course_id %>, all_courses.get(<%= course_id %>));
+                all_schedules.get(<%= sched.id %>).courses.set( <%= course_id %>, all_courses.get(<%= course_id %>));
                 all_unsched.set(<%= course_id %>, all_courses.get(<%= course.id %>));
                 var t_used = times_used.get(<%= course_id %>);
                 if(t_used == undefined)
                     t_used = 0;
                 times_used.set(<%= course_id %>, t_used+1);
-        <% end %>    
+        <% end %>
+        <% if sched.quiz_sections != nil %>
+            <% for course_id in sched.quiz_sections.keys %>
+                <% qz_id = sched.quiz_sections[course_id] %>
+                all_schedules.get(<%= sched.id %>).courses.set( "qz_<%= qz_id %>", all_quiz_sections.get(<%= qz_id %>));
+            <% end %>
+        <% end %>
     <% end %>
     
 
@@ -106,56 +210,128 @@
                                                 ele = $("dragview_"+element.id.split("_")[1]);
                                                 ele.style.visibility = "hidden";
                                                 Element.removeClassName(ele, "dragscheduleHighlighted");
+                                                ele.style.zIndex = "0";
+                                                ele.style.opacity = "1";
                                                 
                                                 revert_duration = 0;
                                                 add_to_schedule(current_schedule, parseInt(element.id.substr(8)));
                                             },
                               onHover:  function(element, droppable, overlap) {
                                                     ele = $("dragview_"+element.id.split("_")[1]);
-                                                    if(overlap==-1){
-                                                        ele.style.visibility = "hidden";
-                                                        Element.removeClassName(ele, "dragscheduleHighlighted");
-                                                    }
-                                                    else{
-                                                        Element.addClassName(ele, "dragscheduleHighlighted");
-                                                        ele.style.visibility = "visible";
+                                                    if(ele!=undefined && ele!=null){
+                                                        if(overlap==-1){
+                                                            ele.style.visibility = "hidden";
+                                                            Element.removeClassName(ele, "dragscheduleHighlighted");
+                                                            ele.style.zIndex = "0";
+                                                            ele.style.opacity = "1";
+                                                        }
+                                                        else{
+                                                            Element.addClassName(ele, "dragscheduleHighlighted");
+                                                            ele.style.visibility = "visible";
+                                                            ele.style.zIndex = "3000";
+                                                            ele.style.opacity = "0.8";
+                                                        }
                                                     }
                                             }              
                                             });
   
                                             
-  <% keys = num_blocks.keys %>
-  <% for key in keys %>
+  <% course_keys = num_blocks.keys %>
+  <% for course_key in course_keys %>
     <% arr = [] %>
-    <% 0.upto(num_blocks[key]-1){|i| arr[i] = "#{key}_#{i}" }%>
-    <% 0.upto(num_blocks[key]-1){|i| %>
-        <%= "new Draggable(\"#{key}_#{i}\", {handle: 'handle', revert: 'true', ghosting: 'true'});" %>
+    <% index = 0 %>
+    <% 0.upto(num_blocks[course_key][0]-1){|i| arr[i] = "#{course_key}_#{i}" }%>
+    <% index += num_blocks[course_key][0] %>
+    <% 0.upto(num_blocks[course_key][0]-1){|i| %>
+        <%= "new Draggable(\"#{course_key}_#{i}\", {handle: 'handle', revert: 'true', ghosting: 'true'});" %>
     <% } %>
-    <%= "new Draggable(\"dragview_#{key}\", {handle: #{arr.inspect}, revert: 'true', ghosting: 'true'});" %>
+    <% for qz_key in num_blocks[course_key][1].keys %>
+        <% 0.upto(num_blocks[course_key][1][qz_key]-1){|i| arr[i+index] = "#{qz_key}_#{i}" }%>
+        <% 0.upto(num_blocks[course_key][1][qz_key]-1){|i| %>
+            <%= "new Draggable(\"#{qz_key}_#{i}\", {handle: 'handle', revert: 'true', ghosting: 'true'});" %>
+        <% } %>
+        <% index += num_blocks[course_key][1][qz_key] %>
+    <% end %>
+    <%= "new Draggable(\"dragview_#{course_key}\", {handle: #{arr.inspect}, revert: 'true', ghosting: 'true'});" %>
   <% end %>
   
   switch_bag("grab_bag");
   switch_schedule(current_schedule);
   adjust_schedule_tabs();
-  set_up_sotable_tabs();
+  set_up_sortable_tabs();
+  check_save_time_and_timeout();
+  
+  function unload(){
+    save_dirty_schedules();
+  }
+  
+  function check_save_time_and_timeout(){
+    update_save_time();
+    now = new Date();
+    wait_time = (1000*60) - (now.getMilliseconds()+(now.getSeconds()*1000));
+    setTimeout(function(){check_save_time_and_timeout();}, wait_time+10);
+  }
   
   function add_to_schedule(schedule_id, course_id){
-    if(all_schedules.get(schedule_id) != undefined && all_courses.get(course_id) != undefined){
-        if(all_schedules.get(schedule_id).get(course_id) == undefined){
-            schedu = all_schedules.get(schedule_id);
+    if(all_schedules.get(schedule_id).courses != undefined && all_courses.get(course_id) != undefined){
+        if(all_schedules.get(schedule_id).courses.get(course_id) == undefined){
+            schedu = all_schedules.get(schedule_id).courses;
             keys = schedu.keys();
+            
+            course_obj = all_courses.get(course_id);
+            default_qz = course_obj.default_quiz_section;
+            quiz_sections = course_obj.quiz_sections;
+            if(quiz_sections!=null && quiz_sections!=undefined){
+                quiz_sections = quiz_sections.values();
+            }
             for(i=0;i<keys.length;i++){
                 //alert(keys[i]);
                 if(dependencies.get(course_id).get(keys[i])!=undefined){
                     alert("There is a conflict!");
                     return;
                 }
+                if(quiz_sections!=null && quiz_sections!=undefined){
+                    remove_qzs = new Array();
+                    for(j=0;j<quiz_sections.length;j++){
+                        if(dependencies.get("qz_"+quiz_sections[j].id).get(keys[i])!=undefined){
+                            remove_qzs.push(quiz_sections[j]);
+                        }
+                    }
+                    for(j=0;j<remove_qzs.length;j++){
+                        quiz_sections = quiz_sections.without(remove_qzs[j]);
+                        if(default_qz == remove_qzs[j].id){
+                            default_qz = null;
+                        }
+                    }
+                    if(quiz_sections.length==0){
+                        alert("There is a conflict (no quiz section exists that fits in your schedule)");
+                        return;
+                    }
+                }
+            }
+            if(default_qz == null && quiz_sections!=null && quiz_sections!=undefined && quiz_sections.length > 0){
+                default_qz = quiz_sections[0].id;
             }
             schedu.set(course_id , all_courses.get(course_id));
+            mark_schedule_dirty(schedule_id);
             course = document.getElementById(course_id);
             course.style.visibility = "visible";
             dragview = document.getElementById("dragview_"+course_id);
             dragview.style.visibility = "visible";
+            
+            if(default_qz!=undefined && default_qz!=null){
+                qz = document.getElementById("qz_"+default_qz);
+                qz.style.visibility = "visible";
+                schedu.set("qz_"+default_qz, all_quiz_sections.get(default_qz));
+                sel = $("sel_qz_"+course_id+"_0");
+                if(sel!=undefined && sel!=null){
+                    for(i=0;i<sel.options.length;i++){
+                        if(sel.options[i].value==("qz_"+default_qz)){
+                            eval("correct_qzselects_"+course_id+"("+i+", '"+sel.options[i].value+"')");
+                        }
+                    }
+                }
+            }
             all_unsched.set(course_id, all_courses.get(course_id));
             var t_used = times_used.get(course_id);
             if(t_used == undefined)
@@ -165,6 +341,7 @@
                 var element = document.getElementById("unsched_"+course_id);
                 element.parentNode.removeChild(element);
             }
+            update_properties(schedule_id);
         }
         else
             alert("course already part of this schedule!");
@@ -175,7 +352,21 @@
   }
   
   function remove_from_schedule(schedule_id, course_id){
-    all_schedules.get(schedule_id).unset(course_id);
+    schedu = all_schedules.get(schedule_id).courses;
+    schedu.unset(course_id);
+    mark_schedule_dirty(schedule_id);
+    course_obj = all_courses.get(course_id);
+    default_qz = course_obj.default_quiz_section;
+    if(default_qz!=undefined && default_qz!=null){
+        quiz_section_ids = course_obj.quiz_sections.keys();
+        for(i=0;i<quiz_section_ids.length;i++){
+            if(schedu.get("qz_"+quiz_section_ids[i])!=undefined){
+                schedu.unset("qz_"+quiz_section_ids[i]);
+                qz = document.getElementById("qz_"+quiz_section_ids[i]);
+                qz.style.visibility = "hidden";
+            }
+        }
+    }
     course = document.getElementById(course_id);
     course.style.visibility = "hidden";
     dragview = document.getElementById("dragview_"+course_id);
@@ -189,7 +380,113 @@
             generate_course_drag("unsched_"+course_id, all_courses.get(course_id), showing_grab_bag);
         }
     }
-        
+    update_properties(schedule_id);
+  }
+  
+  function calculate_schedule_properties(schedule_id){
+    credits = [0,0,0,0,0,0];
+    class_tot = 0;
+    hours_tot = 0;
+    schedu = all_schedules.get(schedule_id).courses;
+    keys = schedu.keys();
+    for(i=0;i<keys.length;i++){
+        course = schedu.get(keys[i]);
+        credits[0] = credits[0] + ((course.credits==undefined)? 0 : course.credits);
+        credits[1] = credits[1] + ((course.vlpa==undefined)? 0 : course.vlpa);
+        credits[2] = credits[2] + ((course.is==undefined)? 0 : course.is);
+        credits[3] = credits[3] + ((course.nw==undefined)? 0 : course.nw);
+        credits[4] = credits[4] + ((course.qsr==undefined)? 0 : course.qsr);
+        credits[5] = credits[5] + ((course.c==undefined)? 0 : course.c);
+        check = keys[i].match("qz_");
+        if(check==null || check==undefined){
+            class_tot = class_tot + 1;
+        }
+        if(course.hours!=null && course.hours!=undefined){
+            hours_tot = hours_tot + course.hours;
+        }
+    }
+    return [class_tot, hours_tot, credits];
+  }
+  
+  function update_schedule_credits(credits){
+    $("total_credits").innerHTML = credits[0];
+    $("total_vlpa").innerHTML = credits[1];
+    $("total_is").innerHTML = credits[2];
+    $("total_nw").innerHTML = credits[3];
+    $("total_qsr").innerHTML = credits[4];
+    $("total_c").innerHTML = credits[5];
+  }
+  
+  function update_properties(schedule_id){
+    props = calculate_schedule_properties(schedule_id);
+    update_schedule_credits(props[2]);
+    $("total_classes").innerHTML = props[0];
+    $("total_hours").innerHTML = props[1];
+  }
+  
+  function rename_schedule(new_name){
+    all_schedules.get(current_schedule).name = new_name;
+    $("sched_b_a_"+current_schedule).innerHTML = new_name;
+    mark_schedule_dirty(current_schedule);
+  }
+  
+  function update_save_btns(){
+    dirty = all_schedules.get(current_schedule).dirty;
+    if(dirty){
+        $("save_schedule_btn").value = "Save Now";
+        $("save_schedule_btn").disabled = false;
+    }
+    else {
+        $("save_schedule_btn").value = "Saved";
+        $("save_schedule_btn").disabled = true;
+    }
+    if(dirty_schedules.keys().length > 1){
+        $("save_all_schedules_btn").show();
+    }
+    else {
+        $("save_all_schedules_btn").hide();
+    }
+  }
+  
+  
+  
+  function update_save_time(){
+    schedule_time = all_schedules.get(current_schedule).last_saved;
+    now = new Date();
+    diff = (now.getTime() - (schedule_time.getTime()-(schedule_time.getMilliseconds() + (schedule_time.getSeconds()*1000))));
+    time = "";
+    if((diff/(1000*60*60)) < 24){
+        if((diff/(1000*60*60)) < 1){
+            time = "("+Math.floor(diff/(1000*60))+" minutes ago)";
+        }
+        else {
+            time = "("+Math.floor(diff/(1000*60*60))+" hours ago)";
+        }
+        ampm = "AM";
+        if(schedule_time.getHours() >= 12)
+            ampm = "PM";
+        time = ((schedule_time.getHours()>12)? schedule_time.getHours()-12 : schedule_time.getHours())+":"+((schedule_time.getMinutes()<10)? "0"+schedule_time.getMinutes() : schedule_time.getMinutes())+" "+ampm+" "+time;
+    }
+    else {
+        time = Day_arr[schedule_time.getDay()]+", "+Month_arr[schedule_time.getMonth()]+" "+schedule_time.getDate()+", "+schedule_time.getFullYear()+" ("+Math.floor(diff/(1000*60*60*24))+" days ago)";
+    }
+    $("last_saved_text").innerHTML = "Schedule saved at "+time;
+  }
+  
+  function mark_schedule_dirty(schedule_id){
+    schedule = all_schedules.get(schedule_id);
+    schedule.dirty = true;
+    dirty_schedules.set(schedule_id, schedule);
+    update_save_btns();
+  }
+  
+  function mark_schedule_clean(schedule_id){
+    schedule = all_schedules.get(schedule_id);
+    schedule.dirty = false;
+    schedule.last_saved = new Date();
+    dirty_schedules.unset(schedule_id);
+    update_save_btns();
+    update_save_time();
   }
   
   function generate_course_drag(id, course, show_grab_bag){
@@ -209,73 +506,177 @@
     }
   }
   
-  function save_schedules() {
-    ret = "ajax=true";
-    keys = all_schedules.keys();
+  function switch_quiz_section(old_quiz_section_altid, new_quiz_section_altid){
+    
+    schedu = all_schedules.get(current_schedule).courses;
+    keys = schedu.keys();
     for(i=0;i<keys.length;i++){
-        var courses = all_schedules.get(keys[i]);
-        if(courses!=undefined){
-            course_keys = courses.keys();
-            for(j=0;j<course_keys.length;j++){
-                ret += "&schedules["+keys[i]+"][courses][]="+course_keys[j];
+        //alert(keys[i]);
+        if(dependencies.get(new_quiz_section_altid).get(keys[i])!=undefined){
+            
+            alert("There is a conflict!");
+            return false;
+        }
+    }
+    
+    schedu.unset(old_quiz_section_altid);
+    old_qz = document.getElementById(old_quiz_section_altid);
+    old_qz.style.visibility = "hidden";
+    
+    schedu.set(new_quiz_section_altid, all_quiz_sections.get(new_quiz_section_altid.split("_")[1]));
+    qz = document.getElementById(new_quiz_section_altid);
+    qz.style.visibility = "visible";
+    mark_schedule_dirty(current_schedule);
+    update_properties(current_schedule);
+    
+    return true;
+  }
+  
+  function save_dirty_schedules(){
+    dirty_keys = dirty_schedules.keys();
+    save_schedules(dirty_keys);
+  }
+  
+  function save_all_schedules(){
+    save_schedules(all_schedules.keys());
+  }
+  
+  function save_schedules(keys) {
+    var ret = "ajax=true";
+    if(keys!=undefined && keys!=null){
+        for(var i=0; i < keys.length; i++){
+            var courses = all_schedules.get(keys[i]).courses;
+            if(courses!=undefined){
+                course_keys = courses.keys();
                 ret += "&schedules["+keys[i]+"][name]="+$("sched_b"+keys[i]).down().innerHTML;
+                ret += "&schedules["+keys[i]+"][last_saved]='true'";
+                for(j=0;j<course_keys.length;j++){
+                    if((course_keys[j]+"").match("qz")==null){
+                        ret += "&schedules["+keys[i]+"][courses][]="+course_keys[j];
+                    }
+                    else{
+                        qz = all_quiz_sections.get(course_keys[j].split("_")[1]);
+                        course_id = qz.parent_id;
+                        ret += "&schedules["+keys[i]+"][quiz_sections]["+course_id+"]="+qz.id;
+                    }
+                }
             }
         }
     }
-    <%= remote_function(:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"ret") %>
+    if(ranks_dirty){
+        var ranks = get_schedule_ranks();
+        var all_keys = all_schedules.keys();
+        for(var i = 0; i < all_keys.length; i++){
+            ret += "&schedules["+all_keys[i]+"][rank]="+ranks.get(all_keys[i]);
+        }
+    }
+    if(ret!="ajax=true")
+        <%= remote_function(:url=>{:controller=>"schedules", :action=>"save_schedules"}, :with=>"ret", :success=>"after_save_schedules(keys, true);", :failure=>"after_save_schedules(keys, false);") %>
+  }
+  
+  function get_schedule_ranks(){
+    var item = $("tab_list").down();
+    var rank_hash = new Hash();
+    for(var i = 0;(item!=undefined && item!=null && item.id!="tab_place_holder");i++){
+        rank_hash.set(parseInt(item.id.split("_b")[1]), i);
+        item = item.next();
+    }
+    return rank_hash;
+  }
+  
+  function after_save_schedules(keys, success){
+    if(success){
+        for(i = 0; i < keys.length; i++){
+            mark_schedule_clean(keys[i]);
+        }
+        ranks_dirty = false;
+    }
+    else {
+        alert("Saving Failed");
+    }
   }
   
   function create_schedule(){
-    <%= remote_function(:url=>{:controller=>"schedules", :action=>"new"}, :with=>("'ajax=true&schedule[user_id]="+current_user.id.to_s+"'"), :success=>"add_schedule_with_ajax(request)") %>
+    before_add_schedule_with_ajax();
+    <%= remote_function(:url=>{:controller=>"schedules", :action=>"new"}, :with=>("'ajax=true&schedule[user_id]="+current_user.id.to_s+"'"), :success=>"add_schedule_with_ajax(request, true);", :failure=>"add_schedule_with_ajax(request, false);") %>
     
   }
   
-  function set_up_sotable_tabs(){
-    Sortable.create("tab_list", {overlap:"horizontal", constraint:"horizontal", only:["tabme", "normtab"], no_destroy:true});
+  function delete_schedule(schedule_id){
+    <%= remote_function(:url=>{:controller=>"schedules", :action=>"delete"}, :with=>("'ajax=true&id='+schedule_id"), :success=>"delete_schedule_with_ajax(request, true)", :failure=>"delete_schedule_with_ajax(request, false)") %>
   }
   
-  function add_schedule_with_ajax(response){
-    to_parse = response.responseText;
-    //list = $("tabs").down();
-    //list.innerHTML = list.innerHTML + "hello"+to_parse;
-    to_parse_arr = to_parse.split(",");
-    schedule_id = to_parse_arr[0];
-    schedule_name = to_parse_arr[1];
-    response_message = to_parse_arr[2];
-    add_schedule(schedule_id, schedule_name);
+  function delete_schedule_with_ajax(response, success){
+    if(success){
+        
+    }
+    else {
+    
+    }
+  }
+  
+  function set_up_sortable_tabs(){
+    Sortable.create("tab_list", {overlap:"horizontal", constraint:"horizontal", only:["tabme", "normtab"], no_destroy:true, onUpdate:function(){ranks_dirty = true;}});
+  }
+  
+  function before_add_schedule_with_ajax(){
+    tmp_width = adjust_schedule_tabs(1);
+    $("tab_place_holder").style.width = tmp_width+"px";
+    $("tab_place_holder").show();
+    //<%= visual_effect :Appear, "tab_place_holder", :duration => 0.5, :delay => 0.0 %>
+  }
+  
+  function add_schedule_with_ajax(response, success){
+    if(success){
+        to_parse = response.responseText;
+        //list = $("tabs").down();
+        //list.innerHTML = list.innerHTML + "hello"+to_parse;
+        to_parse_arr = to_parse.split(",");
+        schedule_id = to_parse_arr[0];
+        schedule_name = to_parse_arr[1];
+        response_message = to_parse_arr[2];
+        $("tab_place_holder").hide();
+        add_schedule(schedule_id, schedule_name);
+    }
+    else{
+        
+    }
   }
   
    
   
   function add_schedule(schedule_id, schedule_name){
-    all_schedules.set(schedule_id, new Hash());
-    
+    all_schedules.set(schedule_id, new Schedule({name: schedule_name, id: schedule_id, dirty: false, last_saved: new Date(), courses: new Hash()}));
     Sortable.destroy("tab_list");
     list = $("tab_list");
-    index = list.innerHTML.lastIndexOf("<li");
+    //index = list.innerHTML.lastIndexOf("<li");
+    index = list.innerHTML.lastIndexOf("tab_place_holder")-8;
     add_button = list.innerHTML.substring(index);
     rest_of_list = list.innerHTML.substring(0, index);
     list.innerHTML = rest_of_list + "<li class='normtab' id='sched_b"+ schedule_id +"'><a id='sched_b_a_"+schedule_id+"' href='javascript:switch_schedule("+ schedule_id +");'>"+ schedule_name +"</a></li>" + add_button;
     switch_schedule(schedule_id);
     adjust_schedule_tabs();
-    set_up_sotable_tabs();
+    set_up_sortable_tabs();
   }
   
-  function adjust_schedule_tabs(){
-    max_width = 608-33; //-33 for width of add button
+  function adjust_schedule_tabs(blank_spots){
+    if(blank_spots==undefined || blank_spots==null)
+        blank_spots = 0;
+    max_width = 765-33; //-33 for width of add button
     keys = all_schedules.keys();
     if(keys.length>3){
-        each_tab_width = (max_width/keys.length)-2; //the -2 is for the border of each tab
+        each_tab_width = (max_width/(keys.length+blank_spots))-2; //the -2 is for the border of each tab
         for(i = 0; i< keys.length; i++){
             $("sched_b"+keys[i]).style.width = each_tab_width+"px";
-            $("sched_b_a_"+keys[i]).style.width = (each_tab_width-4)+"px";
+            $("sched_b_a_"+keys[i]).style.width = (each_tab_width-(11+4))+"px";
             $("sched_b_a_"+keys[i]).style.overflow = "hidden";
         }
+        return each_tab_width;
     }
   }
   
   function switch_schedule(schedule_id){
-    if(all_schedules.get(schedule_id) != undefined){
+    if(all_schedules.get(schedule_id).courses != undefined){
         scan = all_courses.values();
         for(i=0;i<scan.length;i++){
             course = document.getElementById(scan[i].id);
@@ -283,18 +684,39 @@
             dragview = document.getElementById("dragview_"+scan[i].id);
             dragview.style.visibility = "hidden";
         }
-        scan = all_schedules.get(schedule_id).values();
+        scan = all_quiz_sections.values();
         for(i=0;i<scan.length;i++){
-            course = document.getElementById(scan[i].id);
+            qz = document.getElementById("qz_"+scan[i].id);
+            qz.style.visibility = "hidden";
+        }
+        scan = all_schedules.get(schedule_id).courses.keys();
+        for(i=0;i<scan.length;i++){
+            course = document.getElementById(scan[i]);
             course.style.visibility = "visible";
-            dragview = document.getElementById("dragview_"+scan[i].id);
-            dragview.style.visibility = "visible";
+            if((scan[i]+"").match("qz")==null){
+                dragview = document.getElementById("dragview_"+scan[i]);
+                dragview.style.visibility = "visible";
+            }
+            else{
+                qz = all_quiz_sections.get(scan[i].split("_")[1]);
+                course = all_courses.get(qz.parent_id);
+                sel = $("sel_qz_"+course.id+"_0");
+                if(sel!=undefined && sel!=null){
+                    for(j=0;j<sel.options.length;j++){
+                        if(sel.options[j].value==(scan[i])){
+                            eval("correct_qzselects_"+course.id+"("+j+", '"+sel.options[j].value+"')");
+                        }
+                    }
+                }
+            }
         }
         document.getElementById("sched_b"+current_schedule).className = "normtab";
         document.getElementById("sched_b"+schedule_id).className = "tabme";
         $("rename_tab").value = $("sched_b"+schedule_id).down().innerHTML;
         current_schedule = schedule_id;
-        
+        update_save_btns();
+        update_save_time();
+        update_properties(schedule_id);
     }
   }
   

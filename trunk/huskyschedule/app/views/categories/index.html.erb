@@ -1,41 +1,6 @@
-<script type="text/javascript">
-    var xmlhttp;
-    function add_to_grab_bag(url){
-        xmlhttp=null;
-        if (window.XMLHttpRequest)
-          {// code for all new browsers
-          xmlhttp=new XMLHttpRequest();
-          }
-        else if (window.ActiveXObject)
-          {// code for IE5 and IE6
-          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-          }
-        if (xmlhttp!=null)
-          {
-          xmlhttp.onreadystatechange=state_Change;
-          xmlhttp.open("GET",url,true);
-          xmlhttp.send(null);
-          }
-        else
-          {
-          alert("Your browser does not support XMLHTTP.");
-          }
-    }
-    
-    function state_Change(){
-        if (xmlhttp.readyState==4){// 4 = "loaded"
-            if (xmlhttp.status==200){// 200 = OK
-                document.getElementById('message').innerHTML=xmlhttp.responseText;
-            }
-            else{
-                document.getElementById('message').innerHTML="Failed to add Course to Schedule";
-            }
-        }
-    }
-</script>
 <div id="wrapper">
     <div id="side">
-        <div id="credit_type">
+        <div id="credit_type" style="padding-top:5px;">
             <% first = true %>
             <% for ct in Course::CREDITTYPES %>
                 <% query = "courses.credit_type LIKE '%#{ct[1]}%'" %>
@@ -58,7 +23,7 @@
             </ul>
         </div>
         
-        <div id="credit_amount">
+        <div id="credit_amount" style="padding-top:5px;">
             <% query = "courses.credits >= 6" %>
             <% if(@limitors["credits"]==nil && (@limitors["custom"]==nil || !@limitors["custom"].include?(query))) %>
                 <% first = true %>
@@ -83,7 +48,7 @@
             <% end %>
         </div>
         
-        <div id="categories">
+        <div id="categories" style="padding-top:5px;">
             <% if(@category.children.size>0) %>
                 Categories
                 <ul>
@@ -107,7 +72,10 @@
         <div class="breadcrumbs">
            <%= bread_crumbs(@category, {:include_self_link=>true, :limitors=>@limitors}) %>
         </div>
-        <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
+        <div class="page_bar">
+            <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
+        </div>
+        <% grab_bag = Schedule.get_or_create_grab_bag(current_user) %>
         <% for course in @courses %>
             <div class="classcontainer">
                 <div class="sampleclassschedule">
@@ -131,8 +99,13 @@
                     </div>
                     <%= generate_enrollment_image(course) %>
                     <%= generate_credits_image(course) %>
-                    <div id="addtoschedule">
-                        <a href="#" onclick="add_to_grab_bag('<%= url_for(:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id) %>');"><img src="/images/addtoschedule.gif" /></a>
+                    <% in_grab_bag = grab_bag.courses.include?(course.id) %>
+                    <div class="<%= (in_grab_bag)? "alreadyinschedule" : "addtoschedule" %>" id="addtoschedule_<%= course.id %>">
+                        <% if(in_grab_bag) %>
+                            Already in mySchedule
+                        <% else %>
+                            <%= link_to_remote "Add to mySchedule", :url=>{:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id}, :html=>{:id=>"add_course_#{course.id}"}, :loading=>"$('add_course_#{course.id}').innerHTML = 'Adding...';$('addtoschedule_#{course.id}').setAttribute('class','alreadyinschedule');", :success=>"$('addtoschedule_#{course.id}').innerHTML = 'Already in mySchedule';", :failure=>"$('add_course_#{course.id}').innerHTML = 'Add to mySchedule';" %>
+                        <% end %>
                     </div>
                     <div class="rating">
                         <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">
