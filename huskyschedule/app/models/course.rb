@@ -100,6 +100,14 @@ class Course < ActiveRecord::Base
     return result
   end
   
+  def hours
+    ret = 0.0;
+    for rende in rendezvous
+      ret = ret + rende.total_hours
+    end
+    return ret
+  end
+  
   def self.get_credit_types(string_representation)
     elements = string_representation.split(/[,\/]/)
     types = []
@@ -180,6 +188,7 @@ class Course < ActiveRecord::Base
     a = courseA.get_all_times()
     b = courseB.get_all_times()
     
+    
     a.sort!{|x,y| date_to_weeknum(x[0])<=>date_to_weeknum(y[0])}
     b.sort!{|x,y| date_to_weeknum(x[0])<=>date_to_weeknum(y[0])}
     i = 0
@@ -188,13 +197,13 @@ class Course < ActiveRecord::Base
       ai = a[i]
       bj = b[j]
       if(ai[0] < bj[0])
-        if(ai[1] >= bj[1])
+        if(ai[1] >= bj[0])
           return false
         else
           i += 1
         end
       elsif(bj[0] < ai[0])
-        if(bj[1] >= ai[1])
+        if(bj[1] >= ai[0])
           return false
         else
           j += 1
@@ -351,6 +360,20 @@ class Rendezvous
         raise Exception.new("room must be a String")
       end
     end
+  end
+  
+  def total_hours
+    ret = 0.0;
+    for time_span in @times
+      ret = ret + (time_span[1].hour - time_span[0].hour)
+      if(time_span[0].min >= 20)
+        ret = ret - 0.5
+      end
+      if(time_span[1].min >= 20)
+        ret = ret + 0.5
+      end
+    end
+    return ret
   end
  
   #passed an array of Rendezvous objects

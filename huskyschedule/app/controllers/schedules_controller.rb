@@ -9,19 +9,36 @@ class SchedulesController < ApplicationController
     @schedules = Schedule.get_schedules(current_user, {:create_on_none => true})
     @dependancies = {}
     courses = @grab_bag.get_courses
+    quiz_sections = []
     for course in courses
-      if(@dependancies[course.id] == nil)
-        @dependancies[course.id] = {}
+      for qz in course.quiz_sections
+        quiz_sections << qz
       end
-      list = @dependancies[course.id]
+    end
+    courses = courses + quiz_sections
+    for course in courses
+      course_id = course.id
+      if(course.kind_of?(QuizSection))
+        course_id = "qz_"+course.id.to_s
+      end
+      if(@dependancies[course_id] == nil)
+        @dependancies[course_id] = {}
+      end
+      list = @dependancies[course_id]
       for course2 in courses
-        if(course2!=course && list[course2.id]==nil)
-          list[course2.id] = Course.compatible(course, course2)
-          if(@dependancies[course2.id]==nil)
-            @dependancies[course2.id] = {}
+        if(!((course.kind_of?(QuizSection) && course2.kind_of?(Course) && course.parent_id == course2.id) || (course2.kind_of?(QuizSection) && course.kind_of?(Course) && course2.parent_id == course.id) || (course.kind_of?(QuizSection) && course2.kind_of?(QuizSection) && course.parent_id == course2.parent_id)))
+          course2_id = course2.id
+          if(course2.kind_of?(QuizSection))
+            course2_id = "qz_"+course2.id.to_s
           end
-          list_tmp = @dependancies[course2.id]
-          list_tmp[course.id] = list[course2.id]
+          if(course2!=course && list[course2_id]==nil)
+            list[course2_id] = Course.compatible(course, course2)
+            if(@dependancies[course2_id]==nil)
+              @dependancies[course2_id] = {}
+            end
+            list_tmp = @dependancies[course2_id]
+            list_tmp[course_id] = list[course2_id]
+          end
         end
       end
     end
@@ -50,11 +67,15 @@ class SchedulesController < ApplicationController
       if(params[:schedules]!=nil)
         begin
           @result = Schedule.update_schedules(params[:schedules], current_user)
-        rescue Schedule::ScheduleError
-          @result = "Failed to Update Schedules"
+        rescue Schedule::ScheduleError => error
+          @result = error.to_s
+          render :text=>@result, :status=>403
+          return
         end  
       else
-        @result = "Failed to Update Schedules"  
+        @result = "Failed to Update Schedules"
+        render :text=>@result, :status=>403
+        return 
       end
     else
       redirect_back_or default_redirect

@@ -7,6 +7,20 @@ function Course(parameters){
 	this.section = parameters["section"];
 	this.id = parameters["id"];
 	this.color = parameters["color"];
+	this.hours = parameters["hours"];
+	this.credits = parameters["credits"];
+	this.vlpa = parameters["vlpa"];
+	this.is = parameters["is"];
+	this.nw = parameters["nw"];
+	this.qsr = parameters["qsr"];
+	this.c = parameters["c"];
+	//this.reqiuresQuiz = parameters["requiresQuiz"];
+	//this.requiresLab = parameters["requiresLab"];
+	this.default_quiz_section = parameters["default_quiz_section"];
+	this.quiz_sections = parameters["quiz_sections"];
+	this.labs = parameters["labs"];
+	this.parent_id = parameters["parent_id"];
+	
 	
 	//Methods
 	this.display_text = display_text;

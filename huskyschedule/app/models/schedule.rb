@@ -8,6 +8,8 @@ class Schedule < ActiveRecord::Base
   serialize :quiz_sections
   serialize :labs
   
+  WRITING_USERS = {}
+  
   COLORS = {1=>"ff6666",   2=>"ff66cc",  3=>"cc66ff",  4=>"6666ff",  5=>"66ccff",  6=>"66ffcc",  7=>"66ff66",  8=>"ccff66",  9=>"ffcc66", 10=>"ff6666",
             11=>"cc6666", 12=>"cc66cc", 13=>"6666cc", 14=>"66cccc", 15=>"66cc66", 16=>"cccc66", 17=>"cc6666", 18=>"666666", 19=>"9999cc", 20=>"ffcccc",
             21=>"cc0000", 22=>"336600", 23=>"003399", 24=>"cccccc", 25=>"cc9966", 26=>"99cc66", 27=>"66cc99", 28=>"6699cc", 29=>"9966cc", 30=>"cc6699",
@@ -132,12 +134,12 @@ class Schedule < ActiveRecord::Base
       if(quiz_section!=nil)
         schedule.quiz_sections[course.id] = quiz_section.id
       elsif(course.quiz_sections!=nil && course.quiz_sections.size>0)
-        schedule.quiz_sections[course.id] = course.quiz_sections[0]
+        schedule.quiz_sections[course.id] = course.quiz_sections[0].id
       end
       if(lab!=nil)
         schedule.labs[course.id] = lab.id
       elsif(course.labs!=nil && course.labs.size>0)
-        schedule.labs[course.id] = course.labs[0]
+        schedule.labs[course.id] = course.labs[0].id
       end
       if(schedule.save)
         return "Course Added Successfully"
@@ -150,12 +152,15 @@ class Schedule < ActiveRecord::Base
   end
   
   def self.get_schedules(curr_user, options={})
-    results = Schedule.find(:all, :conditions=>{:user_id=>curr_user.id, :grab_bag=>false})
-    if(options[:create_on_none]!=nil && options[:create_on_none]==true && results.length<=0)
-      attributes = {:user_id=>curr_user.id, :grab_bag => false, :courses=>[], :quarter => Quarter::CURRENT, :year => Time.now.year}
-      schedule = Schedule.new(attributes)
-      Schedule.create(schedule, {:schedule=>attributes}, curr_user)
-      results = [schedule]
+    results = []
+    Schedule.transaction do
+      results = Schedule.find(:all, :conditions=>{:user_id=>curr_user.id, :grab_bag=>false}, :order=>"rank")
+      if(options[:create_on_none]!=nil && options[:create_on_none]==true && results.length<=0)
+        attributes = {:user_id=>curr_user.id, :grab_bag => false, :courses=>[], :quarter => Quarter::CURRENT, :year => Time.now.year}
+        schedule = Schedule.new(attributes)
+        Schedule.create(schedule, {:schedule=>attributes}, curr_user)
+        results = [schedule]
+      end
     end
     return results
   end
@@ -167,35 +172,57 @@ class Schedule < ActiveRecord::Base
     if(curr_user==nil)
       raise ScheduleError.new("No user specified to use while updating schedules")
     end
-    errors = [0,0,0]
-    for key in schedules.keys
-    begin sched = Schedule.find(key) rescue errors[1] += 1 end # Add to the schedule not found error count
-      if(authorized_to_edit(sched, curr_user))
-        begin
-          if(schedules[key]['courses']!=nil)
-            #for each id make it an int instead of a string
-            schedules[key]['courses'].collect!{|elem| elem.to_i }
+    error_arr = [0,0,0]
+    Schedule.transaction do
+      for key in schedules.keys
+        begin 
+          sched = Schedule.find(key)
+        rescue # Add to the schedule not found error count
+          error_arr[1] += 1
+          sched = nil
+        end 
+        if(sched != nil)
+          if(authorized_to_edit(sched, curr_user))
+            begin
+              if(schedules[key]['courses']!=nil)
+                #for each id make it an int instead of a string
+                schedules[key]['courses'].collect!{|elem| elem.to_i }
+              end
+              if(schedules[key]['quiz_sections']!=nil)
+                quiz_hash = {}
+                schedules[key]['quiz_sections'].keys.each{|hkey| quiz_hash[hkey.to_i] = schedules[key]['quiz_sections'][hkey].to_i}
+                sched.quiz_sections = quiz_hash
+                schedules[key].delete('quiz_sections')
+              end
+              if(schedules[key]['last_saved']!=nil && schedules[key]['last_saved']=="true")
+                sched.last_saved = Time.now
+                schedules[key].delete('last_saved')
+              end
+              sched.update_attributes!(schedules[key])
+            rescue
+              error_arr[2] += 1 # Add to the general error count
+            end
+          else
+            error_arr[0] += 1 # Add to the unauthorized error count
           end
-          sched.update_attributes!(schedules[key])
-        rescue
-          errors[2] += 1 # Add to the general error count
         end
+      end
+      ret = ""
+      total_errors = error_arr[0] + error_arr[1] + error_arr[2]
+      if(total_errors>0)
+        ret += "#{total_errors} Schedules were not updated"
+        if(error_arr[0]>0)
+          ret += ", #{(error_arr[1]>0 || error_arr[2]>0)? error_arr[0] : ''} because you are not authorized to edit them"
+        end
+        if(error_arr[1]>0)
+          ret += ", #{(error_arr[0]>0 || error_arr[2]>0)? error_arr[1] : ''} because the schedules specified were not found"
+        end
+        if(error_arr[2]>0)
+          ret += ", #{(error_arr[0]>0 || error_arr[1]>0)? error_arr[2] : ''} because of an internal error"
+        end
+        raise ScheduleError.new(ret)
       else
-        errors[0] += 1 # Add to the unauthorized error count
-      end
-    end
-    ret = ""
-    total_errors = errors[0] + errors[1] + errors[2]
-    if(total_errors>0)
-      ret += "#{total_errors} Schedules were not updated"
-      if(errors[0]>0)
-        ret += ", #{(errors[1]>0 || errors[2]>0)? errors[0] : ''} because you are not authorized to edit them"
-      end
-      if(errors[1]>0)
-        ret += ", #{(errors[0]>0 || errors[2]>0)? errors[1] : ''} because the schedules specified were not found"
-      end
-      if(errors[2]>0)
-        ret += ", #{(errors[0]>0 || errors[1]>0)? errors[2] : ''} because of an internal error"
+        return "Schedules Saved Successfully"
       end
     end
   end
@@ -227,6 +254,13 @@ class Schedule < ActiveRecord::Base
       if(schedule.courses==nil)
         schedule.courses = []
       end
+      if(schedule.quiz_sections==nil)
+        schedule.quiz_sections = {}
+      end
+      if(schedule.labs==nil)
+        schedule.labs = {}
+      end
+      schedule.last_saved = Time.now
       schedule.save!
       return "Schedule Created Successfully"
     else
