@@ -25,6 +25,15 @@ class Parser < ActiveRecord::Base
 #parser for list of categories
 #################################################################################################
   def self.time_schedule_parser(url)
+    #only run this line if you want to repopulate the categories / category_edges tables
+#    Category.create_all_categories
+#    #if you ran that, the parent_id's of all courses are incorrect, delete them all too
+#    sql = ActiveRecord::Base.connection();
+#    sql.execute("DELETE FROM courses");
+#    sql.execute("DELETE FROM quiz_sections")
+#    sql.execute("DELETE FROM labs")
+    # NOT SURE HOW THIS EFFECTS REVIEWS ETC.
+    
     contents = get_html_array(url)
     quarter = -1
     year = -1
@@ -52,10 +61,7 @@ class Parser < ActiveRecord::Base
       QuizSection.delete_all(:parent_id=>c.id)
       Lab.delete_all(:parent_id=>c.id)
     end
-    
-    Category.create_all_categories
-    i=50
-    
+   
     #DO VERK
     categories = Category.find(:all, :conditions=>"url != ''")
     for category in categories
@@ -63,15 +69,15 @@ class Parser < ActiveRecord::Base
     end
     
     
-    abbrev = "CSE"
-    url_L = "cse.html"
-    cat = Category.find(:first, :conditions=>"abbrev = '#{abbrev}'")
-    category_parser(url+url_L, url_L, abbrev, quarter, year, cat.id)
+#    abbrev = "CSE"
+#    url_L = "cse.html"
+#    cat = Category.find(:first, :conditions=>"abbrev = '#{abbrev}'")
+#    category_parser(url+url_L, url_L, abbrev, quarter, year, cat.id)
     #use these to parse one section only
-    abbrev = "INFO"
-    url_L = "info.html"
-    cat = Category.find(:first, :conditions=>"abbrev = '#{abbrev}'")
-    category_parser(url+url_L, url_L, abbrev, quarter, year, cat.id)
+#    abbrev = "INFO"
+#    url_L = "info.html"
+#    cat = Category.find(:first, :conditions=>"abbrev = '#{abbrev}'")
+#    category_parser(url+url_L, url_L, abbrev, quarter, year, cat.id)
   end
   
   #  def self.time_schedule_parser(url)
