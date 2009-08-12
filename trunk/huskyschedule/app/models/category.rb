@@ -15,7 +15,7 @@ class Category < ActiveRecord::Base
   #belongs_to :parent, :class_name => "Category", :foreign_key => "parent_id"
   
   DESCRIPTION_URL = "http://www.washington.edu/students/crscat/"
-  HOME_ID = 1
+  HOME_ID = Category.find_by_name("Home")
   
   def all_children
     ret = []
@@ -34,16 +34,15 @@ class Category < ActiveRecord::Base
     return "courses.parent_id IN (#{self.id}#{st}#{self.all_children.map{|child| child.id }.inspect.delete!('[]')})"
   end
   
-  def parent_path
+  def parent_path(options={})
     curr = self
     familypath = []
     familypath.push(curr)
     
-    while curr.parent!=nil
-      familypath.push(curr.parent)
-      curr = curr.parent
+    while curr.parents!=nil && curr.parents[0]!=nil
+      familypath.push(curr.parents[0])
+      curr = curr.parents[0]
     end
-    
     return familypath
   end
   

@@ -853,7 +853,6 @@ height: 25px;
 	font-weight:bold;
 	padding-top:0px;
 	margin-top:0px;
-	line-height:20px;
 }
 .pagination .current {
 	color:#cccc00;
@@ -977,6 +976,12 @@ margin: 0;
 padding: 0;
 }
 
+#tab_list {
+height: 30px;
+overflow:hidden;
+white-space: nowrap;
+}
+
 #tabs li {
 font: 1em arial, sans-serif;
 color: #ffffff;
@@ -994,8 +999,9 @@ margin: 0;
 #tabs li a {
 float:left;
 display: block;
+overflow:hidden;
 line-height: 30px;
-width: 150px;
+width: 130px;
 height: 30px;
 text-decoration: none;
 color: #ffffff;

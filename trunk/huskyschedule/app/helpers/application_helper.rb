@@ -344,18 +344,22 @@ def mini_schedule(times, options={})
     if(options[limitors_name]!=nil)
       limitors = options[limitors_name]
     end
+    if(options[:familypath]!=nil)
+      familypath = options[:familypath]
+    else
+      familypath = []
+    end
     
     result = ""
     if(category_or_course!=nil)
-      familypath = []
-      familypath.push(category_or_course)
-      while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parent!=nil)
+      familypath.insert(0, category_or_course)
+      while( (category_or_course.is_a?(Course))? category_or_course.category!=nil : category_or_course.parents[0]!=nil)
         if(category_or_course.is_a?(Course))
           familypath.push(category_or_course.category)
           category_or_course = category_or_course.category
         else
-          familypath.push(category_or_course.parent)
-          category_or_course = category_or_course.parent
+          familypath.push(category_or_course.parents[0])
+          category_or_course = category_or_course.parents[0]
         end
       end
       

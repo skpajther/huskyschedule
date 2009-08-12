@@ -15,7 +15,7 @@
                             <ul>
                             <% first = false %>
                         <% end %>
-                        <li><%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :limitors => @limitors %></li>
+                        <li><%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :limitors => @limitors %></li>
                     <% end %>
                     <% delete_from_limitors(@params, place_order) %>
                  <% end %>
@@ -40,7 +40,7 @@
                             <ul>
                             <% first = false %>
                         <% end %>
-                        <li><%= link_to "#{((i==6)? '6 or more' : i)} credits (#{numcourses})", :controller=>"categories", :action=>"index", :limitors=>@limitors %></li>
+                        <li><%= link_to "#{((i==6)? '6 or more' : i)} credits (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :limitors=>@limitors %></li>
                     <% end %>
                     <% delete_from_limitors(@params, place_order) %>
                 <% } %>
@@ -58,7 +58,7 @@
                 <% place_order = add_to_limitors(@params, "parent_id", child.all_children_query_string, {:do_not_add_to_order=>true}) %>
                 <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
                 <% if(numcourses>0) %>
-                    <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :id=>child.id, :limitors=>@limitors, :no_child_search_needed => true %></li>
+                    <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :id=>child.id, :limitors=>@limitors, :no_child_search_needed => true %></li>
                 <% end %>
               <% end %>
             <% end %>
@@ -73,7 +73,7 @@
            <%= bread_crumbs(@category, {:include_self_link=>true, :limitors=>@limitors}) %>
         </div>
         <div class="page_bar">
-            <% if(@courses!=nil) %><%= will_paginate @courses %><% end %>
+            <% if(@courses!=nil) %><span style="float:left;">Per Page</span><% old_per_page = request.parameters[:per_page]; request.parameters[:per_page] = "##replace_this##" %><%= select("per_page", "", [5,10,15,20,40,60,100], {:selected=>((old_per_page!=nil)? old_per_page.to_i : 20)}, {:style=>"float:left;margin-top:3px;", :onchange=>"window.location.assign('http://'+window.location.host+'#{url_for(request.parameters).gsub("%23%23replace_this%23%23", "'+this.options[this.selectedIndex].value+'")}');"}) %><% request.parameters[:per_page] = old_per_page; %><%= will_paginate @courses %><% end %>
         </div>
         <% grab_bag = Schedule.get_or_create_grab_bag(current_user) %>
         <% for course in @courses %>
