@@ -13,10 +13,10 @@
         <ul id="tab_list">
             <% first = true %>
             <% for schedule in @schedules %>
-                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b<%= schedule.id %>" ><a id="sched_b_a_<%= schedule.id %>" href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a><a class="close" href="javascript:"></a></li>
+                <li class="<%= ((first)? 'tabme' : 'normtab') %>" id="sched_b<%= schedule.id %>" ><a id="sched_b_a_<%= schedule.id %>" href="javascript:switch_schedule(<%= schedule.id %>);"><%= ((schedule.name == nil || schedule.name=="")? "Unamed Schedule" : schedule.name) %></a><a class="close" href="javascript:delete_schedule(<%= schedule.id %>);"></a></li>
                 <% first = false %>
             <% end %>
-            <li id="tab_place_holder" style="display:none;">loading</li>
+            <li id="tab_place_holder" style="display:none;background-color:#cccccc;">loading</li>
             <li id="add_tab" class="addtab"><a class="addtab" href="javascript:create_schedule();">+</a></li>
         </ul>
     </div>
@@ -603,15 +603,24 @@
   }
   
   function delete_schedule(schedule_id){
-    <%= remote_function(:url=>{:controller=>"schedules", :action=>"delete"}, :with=>("'ajax=true&id='+schedule_id"), :success=>"delete_schedule_with_ajax(request, true)", :failure=>"delete_schedule_with_ajax(request, false)") %>
+    <%= remote_function(:url=>{:controller=>"schedules", :action=>"delete"}, :with=>("'ajax=true&id='+schedule_id"), :confirm=>"Are You Sure You Want To Permanently Delete This Schedule?", :loading=>"before_delete_schedule_with_ajax(schedule_id);", :success=>"delete_schedule_with_ajax(schedule_id, request, true)", :failure=>"delete_schedule_with_ajax(schedule_id, request, false)") %>
   }
   
-  function delete_schedule_with_ajax(response, success){
+  function before_delete_schedule_with_ajax(schedule_id){
+    if($("sched_b"+schedule_id)!=null && $("sched_b"+schedule_id)!=undefined){
+        $("sched_b"+schedule_id).style.opacity = 0;
+        $("sched_b"+schedule_id).filters.alpha.opacity=0;
+    }
+  }
+  
+  function delete_schedule_with_ajax(schedule_id, response, success){
     if(success){
-        
+        remove_schedule(schedule_id);
     }
     else {
-    
+        $("sched_b"+schedule_id).style.opacity = 1;
+        $("sched_b"+schedule_id).filters.alpha.opacity=100;
+        alert("Failed to Delete Schedule: "+response.responseText);
     }
   }
   
@@ -620,7 +629,7 @@
   }
   
   function before_add_schedule_with_ajax(){
-    tmp_width = adjust_schedule_tabs(1);
+    var tmp_width = adjust_schedule_tabs(1);
     $("tab_place_holder").style.width = tmp_width+"px";
     $("tab_place_holder").show();
     //<%= visual_effect :Appear, "tab_place_holder", :duration => 0.5, :delay => 0.0 %>
@@ -639,7 +648,9 @@
         add_schedule(schedule_id, schedule_name);
     }
     else{
-        
+        $("tab_place_holder").hide();
+        adjust_schedule_tabs();
+        alert("Failed to Create Schedule: "+response.responseText);
     }
   }
   
@@ -653,10 +664,23 @@
     index = list.innerHTML.lastIndexOf("tab_place_holder")-8;
     add_button = list.innerHTML.substring(index);
     rest_of_list = list.innerHTML.substring(0, index);
-    list.innerHTML = rest_of_list + "<li class='normtab' id='sched_b"+ schedule_id +"'><a id='sched_b_a_"+schedule_id+"' href='javascript:switch_schedule("+ schedule_id +");'>"+ schedule_name +"</a></li>" + add_button;
+    list.innerHTML = rest_of_list + "<li class='normtab' id='sched_b"+ schedule_id +"'><a id='sched_b_a_"+schedule_id+"' href='javascript:switch_schedule("+ schedule_id +");'>"+ schedule_name +"</a><a class='close' href='javascript:delete_schedule("+schedule_id+");'></a></li>" + add_button;
     switch_schedule(schedule_id);
     adjust_schedule_tabs();
     set_up_sortable_tabs();
+  }
+  
+  function remove_schedule(schedule_id){
+    if($("sched_b"+schedule_id)!=null && $("sched_b"+schedule_id)!=undefined){
+        if(current_schedule == schedule_id){
+            switch_schedule(all_schedules.keys()[0]);
+        }
+        Sortable.destroy("tab_list");
+        all_schedules.unset(schedule_id);
+        $("tab_list").removeChild($("sched_b"+schedule_id));
+        adjust_schedule_tabs();
+        set_up_sortable_tabs();
+    }
   }
   
   function adjust_schedule_tabs(blank_spots){
@@ -664,7 +688,7 @@
         blank_spots = 0;
     max_width = 765-33; //-33 for width of add button
     keys = all_schedules.keys();
-    if(keys.length>3){
+    if((keys.length+blank_spots)>4){
         each_tab_width = (max_width/(keys.length+blank_spots))-2; //the -2 is for the border of each tab
         for(i = 0; i< keys.length; i++){
             $("sched_b"+keys[i]).style.width = each_tab_width+"px";

@@ -275,7 +275,7 @@ class Course < ActiveRecord::Base
           end
         }
       end
-      puts("query!!! #{query} #{limitors.inspect}")
+      #puts("query!!! #{query} #{limitors.inspect}")
       return self.general_find_or_count_by_sql(query, options)
     end
     return nil

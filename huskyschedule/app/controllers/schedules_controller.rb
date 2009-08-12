@@ -85,17 +85,40 @@ class SchedulesController < ApplicationController
   def new
     if(params[:ajax]!=nil && params[:ajax]=="true")
       if(params[:schedule]!=nil)
-        #begin
+        begin
           schedule = Schedule.new(params[:schedule])
           @result = Schedule.create(schedule, params, current_user)
           @result = schedule.id.to_s+","+((schedule.name!=nil)? schedule.name : "Unamed Schedule")+","+@result
+        rescue Schedule::ScheduleError => error
+          @result = "Failed to Create Schedule: "+error.to_s
+          render :text=>@result, :status=>403
+          return
+        end  
+      else
+        @result = "Failed to Create Schedule: No parameters specified for schedule."
+        render :text=>@result, :status=>403
+        return
+      end
+    else
+      redirect_back_or default_redirect
+    end
+  end
+  
+  def delete
+    if(params[:ajax]!=nil && params[:ajax]=="true")
+      if(params[:id]!=nil)
+        #begin
+          schedule = Schedule.find(params[:id])
+          @result = Schedule.delete(schedule, current_user)
+          render :text=>@result
+          return
         #rescue Schedule::ScheduleError
           #@result = "Failed to Create Schedule"
           #render :text=>@result, :status=>403
           #return
         #end  
       else
-        @result = "Failed to Create Schedule"
+        @result = "Failed to Delete Schedule"
         render :text=>@result, :status=>403
         return
       end

@@ -8,6 +8,8 @@ class Schedule < ActiveRecord::Base
   serialize :quiz_sections
   serialize :labs
   
+  include GeneralModelSecurity
+  
   WRITING_USERS = {}
   
   COLORS = {1=>"ff6666",   2=>"ff66cc",  3=>"cc66ff",  4=>"6666ff",  5=>"66ccff",  6=>"66ffcc",  7=>"66ff66",  8=>"ccff66",  9=>"ffcc66", 10=>"ff6666",
@@ -49,14 +51,14 @@ class Schedule < ActiveRecord::Base
     end
   end
   
-  def self.authorized_to_view(schedule, curr_user)
+  def self.authorized_to_view(curr_user, schedule)
     if(schedule.user_id==nil)
       return true
     end
     return schedule.user_id = curr_user.id
   end
   
-  def self.authorized_to_edit(schedule, curr_user)
+  def self.authorized_to_edit(curr_user, schedule)
     if(schedule.user_id==nil)
       return true
     end
@@ -74,7 +76,7 @@ class Schedule < ActiveRecord::Base
       schedule.colors = []
       schedule.quiz_sections = {}
       schedule.labs = {}
-      schedule.save!
+      schedule.save!(curr_user)
     end
     return schedule
   end
@@ -112,7 +114,7 @@ class Schedule < ActiveRecord::Base
     if(schedule.quarter!=course.quarter_id || schedule.year!=course.year)
       raise ScheduleError.new("Course And Schedule Differ in Quarter")
     end
-    if(authorized_to_edit(schedule, curr_user))
+    if(authorized_to_edit(curr_user, schedule))
       if(schedule.courses==nil)
         schedule.courses = []
       end
@@ -141,7 +143,7 @@ class Schedule < ActiveRecord::Base
       elsif(course.labs!=nil && course.labs.size>0)
         schedule.labs[course.id] = course.labs[0].id
       end
-      if(schedule.save)
+      if(schedule.save(curr_user))
         return "Course Added Successfully"
       else
         return "Course Failed to be Added"
@@ -182,7 +184,7 @@ class Schedule < ActiveRecord::Base
           sched = nil
         end 
         if(sched != nil)
-          if(authorized_to_edit(sched, curr_user))
+          if(authorized_to_edit(curr_user, sched))
             begin
               if(schedules[key]['courses']!=nil)
                 #for each id make it an int instead of a string
@@ -198,7 +200,7 @@ class Schedule < ActiveRecord::Base
                 sched.last_saved = Time.now
                 schedules[key].delete('last_saved')
               end
-              sched.update_attributes!(schedules[key])
+              sched.update_attributes!(schedules[key], curr_user)
             rescue
               error_arr[2] += 1 # Add to the general error count
             end
@@ -261,10 +263,18 @@ class Schedule < ActiveRecord::Base
         schedule.labs = {}
       end
       schedule.last_saved = Time.now
-      schedule.save!
+      schedule.save!(curr_user)
       return "Schedule Created Successfully"
     else
       raise ScheduleError.new("Failed To Create Schedule")
+    end
+  end
+  
+  def self.delete(schedule, curr_user)
+    if(schedule!=nil)
+      schedule.destroy(curr_user)
+    else
+      raise ScheduleError.new("Failed To Delete Schedule")
     end
   end
   
