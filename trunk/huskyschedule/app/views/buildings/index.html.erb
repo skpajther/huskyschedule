@@ -1,11 +1,11 @@
 <%= @searched_on %><br>
 <%= @results %>
 <% if(!(@building.nil?)) %>
-<script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTq2hRdhlyrxqNJP-kbJ_LGz2xTAhQmIySyY5okdypVbzAsga6vQ_niZw" type="text/javascript"></script>
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTJQa0g3IQ9GZqIMmInSLzwtGDKaBTTyiM3rgGZ7othsxSjupyAGkLDdw" type="text/javascript"></script>
 <%= javascript_include_tag 'gmapuploader'%>
 <%= javascript_include_tag 'minimap'%>
 <div id="wrapper"> 
-    <div id="side"> 
+    <div id="side">
         <p>QUARTER:</p>
             <% if(!(@distinct_quarters.nil?)) %>
                 <% for distinct_quarter in @distinct_quarters %>
@@ -67,11 +67,11 @@
        <br />
     </div><!--side--> 
     <div class="content" id="content"> 
-        <div class="breadcrumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'map', :id=>(@building.id)) %>">Map</a> > <%= "#{@building.name} (#{@building.abbrev})" %> > <%= @distinct_quarter_data.to_s %> > <%= BuildingsController.get_view_string(@view) %> > <%= BuildingsController.get_day_string(@day) %></div><br /> 
+        <div class="breadcrumbs"><a href="index.html">Home</a> > <%= link_to("Map", :controller=>'buildings', :action=>'map', :id=>(@building.id)) %> > <%= "#{@building.name} (#{@building.abbrev})" %> > <%= @distinct_quarter_data.to_s %> > <%= BuildingsController.get_view_string(@view) %> > <%= BuildingsController.get_day_string(@day) %></div><br /> 
         <!--<div class="searchmap" style="float: right; width: 300px; text-align: right;">Search Map: <input type="text"/><input type="submit" style="width: 50px;" value="Find" /></div>--> 
-        <div class="map_pictures_wrapper" style="margin-top: 10px; float: left;"> 
+        <div id="map_pictures_wrapper"> 
             <div id="minimap"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div> 
-            <div id="building_picture" style="width:360px; float:left;"><%= image_tag("buildings/small/#{@building.abbrev}.jpg", :style=>"width:400px") %></div> 
+            <!--<div id="building_picture"><%= image_tag("buildings/small/#{@building.abbrev}.jpg") %></div>-->
         </div><!--map_pictures_wrapper-->
         <div id="building_courses"> 
             <table> 
