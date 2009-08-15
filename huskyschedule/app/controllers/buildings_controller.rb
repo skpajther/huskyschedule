@@ -3,7 +3,7 @@ class BuildingsController < ApplicationController
      if(params[:id]!=nil)
        @show_building = Building.find(params[:id])
      end
-     @buildings = Building.find(:all, :conditions => "uw_lat != ''", :order => "abbrev")
+     @buildings = Building.find(:all, :conditions => "uw_lat <> ''", :order => "abbrev")
   end
   
   #view constants
@@ -98,7 +98,7 @@ class BuildingsController < ApplicationController
         @results = "Found #{courses.length.to_s} courses, #{quiz_sections.length.to_s} quiz sections, and #{labs.length.to_s} lab sections."
         @distinct_quarter_data = DistinctQuarterData.new(:distinct_quarter=>selected_quarter, :courses=>courses, :quiz_sections=>quiz_sections, :labs=>labs)
         @searched_on = "I searched for courses in #{Quarter.quarter_disp_name(quarter_id)}#{year} on #{@day} in #{Building.find(@building.id).name}"
-      end  
+      end
     end
   end
   
@@ -111,8 +111,8 @@ class BuildingsController < ApplicationController
       ids = params[:find_multi].split(/,/)
       ids.each{|id| @buildings.push(Building.find(id))}
     else
-      @buildings = Building.find_by_sql("SELECT * FROM buildings WHERE lat != '' ORDER BY abbrev")
-      @buildings = Building.find(:all, :conditions => "lat != ''", :order => "abbrev")
+      @buildings = Building.find_by_sql("SELECT * FROM buildings WHERE lat <> '' ORDER BY abbrev")
+      @buildings = Building.find(:all, :conditions => "lat <> ''", :order => "abbrev")
     end
     @xml.buildings {
       for building in @buildings
