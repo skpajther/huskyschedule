@@ -15,7 +15,7 @@
 
 
 <% if((controller.controller_name=="buildings" && (controller.action_name=="map" || controller.action_name=="index")) || (controller.controller_name=="course" && controller.action_name=="name")) %>
-    <body onload="stripe()" onunload="GUnload()">
+    <body onunload="GUnload(); if(streetview!=null){streetview.remove();}">
 <% elsif(controller.controller_name=="schedules") %>
     <body onunload="unload();">
 <% else %>
