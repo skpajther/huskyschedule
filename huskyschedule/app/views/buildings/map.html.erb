@@ -1,37 +1,39 @@
-<script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTq2hRdhlyrxqNJP-kbJ_LGz2xTAhQmIySyY5okdypVbzAsga6vQ_niZw" type="text/javascript"></script>
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAASuQu2CS4gyV_0PBMtAhQmxTJQa0g3IQ9GZqIMmInSLzwtGDKaBTTyiM3rgGZ7othsxSjupyAGkLDdw" type="text/javascript"></script>
 <%= javascript_include_tag 'gmapuploader'%>
 <%= javascript_include_tag 'map'%>
-<%= javascript_include_tag 'Geometry' %>
 
 <div id="wrapper"> 
     <div id="side">
         <select size="2" id="mapmenu" onchange="processSideIndexChanged(this.options[this.selectedIndex].value);">
-            <% for building in @buildings %>
-                <option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("#{building.abbrev} - #{building.name}", 28)}" %></option>
-            <% end %>
+            <% for building in @buildings %><option title='<%="#{building.name}"%>' value='<%="#{building.abbrev}"%>'><%= "#{truncate("#{building.abbrev} - #{building.name}", 28)}" %></option><% end %>
         </select>
     </div><!-- side -->
     <div class="content" id="content">
-        <div class="breadcrumbs" id="crumbs" style="width: 400px; float: left;"><a href="index.html">Home</a> > <a href="javascript:processReturnToMap();">Map</a></div>
-        <div class="searchmap" style="float: right; width: 330px; text-align: right;">Search Map: <input type="text" id="searchField" onKeyDown="if(event.keyCode==13) { searchFor(this.value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>'); }" /><input type="submit" style="width: 50px;" value="Find" onclick="searchFor(document.getElementById('searchField').value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>');"/></div>
-      
-        <div id="map"><noscript>Javascript is required to view our campus map. Please enable Javascript in your browser and try again.</noscript></div>
-        <!--<input id="showstreetview" type="submit" style="width:90px;" value="Streetview" onclick="showStreetview();" />
-        <input id="streetviewdata" type="submit" style="width:90px;" value="Data" onclick="streetviewData();" />-->
-        <div id="streetview"></div>
+        <div class="breadcrumbs" id="crumbs" style="float: left;"><a href="index.html">Home</a> > <a href="javascript:processReturnToMap();">Map</a></div>
+        <%= image_tag("map/ajax-loader.gif", :id=>"map_loading_gif", :style=>"float:right; display:none; margin-top:3px;") %>
+        <div id="searchmap">Search Map: <input type="text" id="searchField" onkeydown="if(event.keyCode==13) { searchFor(this.value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>'); }" /><input type="button" id="searchmap_button" style="width: 40px;" value="Go" onclick="searchFor(document.getElementById('searchField').value, '<%= url_for(:controller=>'buildings', :only_path=>false, :action=>'search_results') %>');"/></div>
+        <div id="map">
+            <noscript>
+                Javascript is required to view our campus map. Please enable Javascript in your browser and try again.
+            </noscript>
+        </div>
+        <!--<input id="showstreetview" type="submit" style="width:90px;" value="Streetview" onclick="showStreetview();" />-->
+        <!--<div id="streetview"></div>-->
         <div id="searchResults"></div>
-        
-    </div> <!-- content -->
-    <script type="text/javascript">initialize(<%= ((@show_building!=nil)? "\"#{@show_building.abbrev}\"" : "\"\"") %>, "<%= url_for(:controller=>"/", :only_path=>false) %>");</script>
-    <div id="data" style="width:100%; height:400px;">
+    </div><!-- content -->
+    <!--<script type="text/javascript">initialize(<%= ((@show_building!=nil)? "\"#{@show_building.abbrev}\"" : "\"\"") %>, "<%= url_for(:controller=>"/", :only_path=>false) %>");</script>-->
+    <!--<div id="data" style="width:100%; height:400px;">
         <%= form_remote_tag( :url=>{:controller=>"buildings", :action=>"abbrev_find_and_edit"}) %>
+        Yaw: <input type="text" id="input_yaw" name="building[sv_yaw]" /><br />
+        Pitch: <input type="text" id="input_pitch" name="building[sv_pitch]" /><br />
+        Zoom: <input type="text" id="input_zoom" name="building[sv_zoom]" /><br />
+        Lat: <input type="text" id="input_lat" name="building[sv_lat]" /><br />
+        Lng: <input type="text" id="input_lng" name="building[sv_lng]" /><br />
         Abbrev: <input type="text" id="input_abbrev" name="building[abbrev]" /><br />
-        Name: <input type="text" id="input_name" name="building[name]" /><br />
-        Lat: <input type="text" id="input_lat" name="builing[lat]" /><br />
-        Lng: <input type="text" id="input_lng" name="building[lng]" /><br />
-        UW_Lat: <input type="text" id="input_uwlat" name="building[uw_lng]" /><br />
-        UW_Lng: <input type="text" id="input_uwlng" name="building[uw_lng]" /><br />
         <%= submit_tag "Submit" %>
+        <input type="button" value="Clear" onclick="clear_form();" />
+        <input type="button" value="Populate" onclick="setYawPitchZoom();" />
     </form>
-    </div>
+    </div>-->
+    <script type="text/javascript">initialize(<%= ((@show_building!=nil)? "\"#{@show_building.abbrev}\"" : "\"\"") %>, "<%= url_for(:controller=>"/", :only_path=>false) %>");</script>
 </div><!--wrapper-->

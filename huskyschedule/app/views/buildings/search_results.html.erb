@@ -11,7 +11,7 @@ end
 <%= amount_string %>
     <ul>
     <% for building in @buildings %>
-        <li><a href="#" onclick="hideResultsOpenMarker('<%= building.abbrev %>');"><%= building.name %> (<%= building.abbrev %>)</a></li>
+        <li><%= building.name %>&nbsp;(<a href="javascript:hideResultsOpenMarker('<%= building.abbrev %>');">view in map</a>,&nbsp;<%= link_to("building details", :controller=>"buildings", :action=>"index", :id=>building.id)%>)</li>
     <% end %>
     </ul>
 
