@@ -2,6 +2,7 @@
 var map;
 var markerWrapper;
 var currentMapType;
+var customMapType;
 var markerOpen;
 //END GLOBAL VARIABLES
 
@@ -26,8 +27,8 @@ function prepareMap() {
 	map.setMapType(currentMapType);
 	map.enableContinuousZoom();
 	map.enableScrollWheelZoom();
-	map.addControl(new GSmallMapControl(), new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(10, 10)));
-	var customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
+	map.addControl(new GSmallMapControl(), new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(5, 5)));
+	customMapType = new GmapUploaderMapType(map, "http://mt.gmapuploader.com/tiles/iGp7TBqnME", "png", 5);
 	map.addMapType(customMapType);
 	map.addControl(new GMapTypeControl());
 }
@@ -57,21 +58,20 @@ function mapListeners() {
 	GEvent.addListener(map,"maptypechanged", 
 		function() {
 			var newMapType = map.getCurrentMapType();
-			if((newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)&&
-			  !(currentMapType==G_HYBRID_MAP || currentMapType==G_SATELLITE_MAP)) {
-			  	markerWrapper.marker.setLatLng(markerWrapper.normal);
-			  	map.setCenter(markerWrapper.normal, 17);
-				if(markerOpen) {
-					map.setZoom(17);
-					markerWrapper.marker.openInfoWindowHtml(markerWrapper.html);
-				}
-			}
-			else if(!(newMapType==G_HYBRID_MAP || newMapType==G_SATELLITE_MAP)) { //custom
-				markerWrapper.marker.setLatLng(markerWrapper.uw);
-				map.setCenter(markerWrapper.uw, 4);
+			if(newMapType == customMapType) {
+			  	markerWrapper.marker.setLatLng(markerWrapper.uw);
+				map.setCenter(markerWrapper.uw, zoom=4);
 				if(markerOpen) {
 					map.setZoom(4);
-					markerWrapper.marker.openInfoWindowHtml(markerWrapper.html);
+					markerWrapper.marker.openInfoWindowHtml(markerWrapper.html, {maxWidth:200});
+				}
+			}
+			else if(currentMapType!=G_HYBRID_MAP && currentMapType!=G_SATELLITE_MAP) {
+				markerWrapper.marker.setLatLng(markerWrapper.normal);
+			  	map.setCenter(markerWrapper.normal, zoom=17);
+				if(markerOpen) {
+					map.setZoom(17);
+					markerWrapper.marker.openInfoWindowHtml(markerWrapper.html, {maxWidth:200});
 				}
 			}
 			currentMapType = newMapType;
@@ -100,30 +100,25 @@ function createMarker(data, path) {
 	var uwPoint = new GLatLng(uw_lat, uw_lng);
 	var abbrev = data.getAttribute("abbrev");
 	var id = parseInt(data.getAttribute("id"));
-	map.setCenter(regularPoint, 17);
-	var gmarker = new GMarker(regularPoint, makeIcon(path));
+	map.setCenter(regularPoint, zoom=17);
+	var gmarker = new GMarker(regularPoint, {title:name});
 	gmarker.abbrev = abbrev;
-	gmarker.title = name;
 	var html = makeMarkerHTML(name, abbrev, path, id);
-	gmarker.bindInfoWindowHtml(html);
+	gmarker.bindInfoWindowHtml(html, {maxWidth:200});
 	GEvent.addListener(gmarker, "infowindowclose", 
-		function() {
-			markerOpen = false;
-		}
+		function() { markerOpen = false; }
 	);
 	GEvent.addListener(gmarker, "infowindowopen",
-		function() {
-			markerOpen = true;
-		}
+		function() { markerOpen = true; }
 	);
 	map.addOverlay(gmarker);
-	markerWrapper = { marker:gmarker, name:name, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html };
+	markerWrapper = { marker:gmarker, abbrev:abbrev, normal:regularPoint, uw:uwPoint, html:html };
 }
 
 function makeMarkerHTML(name, abbrev, path, id) {
-    var html = "<html>\n";
-	html += "<b>"+name+"&nbsp;("+abbrev+")</b><br>\n";
-	html += "<a href=\""+path+"buildings/map?id="+id+"\">Return to map</a><br>\n";
-	html += "</html>";
-	return html;
+	var html = "<html><div id='markerHTML'>";
+	html += "<strong>"+name+"&nbsp;("+abbrev+")</strong><br />";
+    html += "<br /><a href=\""+path+"buildings/map?id="+id+"\">return to map</a>";
+    html += "</div></html>";
+    return html;
 }
