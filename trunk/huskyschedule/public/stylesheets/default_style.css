@@ -60,7 +60,7 @@ border: 1px solid #bbbbbb;
 float: left;
 width: 164px;
 margin: 0 8px 0 0;
-padding: 0 5px 0 5px;
+padding: 0 0 0 0;
 }
 
 #side a {
@@ -147,7 +147,7 @@ font-family: arial, sans-serif;
 border: 1px solid #bbbbbb;
 margin: 0 0 0 0;
 padding: 10px 10px 10px 10px;
-width: 744px;
+width: 754px;
 float: left;
 }
 
@@ -960,8 +960,8 @@ margin: 50px 0 0px 0;
 
 #tabs {
 margin: 20px 0 0 0;
-float: left;
-width: 765px;
+float: right;
+width: 590px;
 }
 
 #tabs.scheduletabs {
@@ -988,7 +988,7 @@ color: #ffffff;
 font-weight: bold;
 text-align: center;
 height: 30px;
-width: 150px;
+width: 145px;
 float: left;
 /*border: 1px solid #ffffff;*/
 border-left: 1px solid #ffffff;
@@ -1037,9 +1037,9 @@ background: /*url('../images/tab.gif')*/ #c5b358;
 
 #tabbedwindow {
 border: 1px solid #bbbbbb;
-float: left;
-padding: 5px;
-width: 596px;
+float: right;
+padding: 7px;
+width: 575px;
 margin: 0 0 0 0;
 min-height: 600px;
 font: 0.9em arial, sans-serif;
