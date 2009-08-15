@@ -6,7 +6,7 @@ GmapUploaderBug.prototype.initialize = function(a) {
 	var b = document.createElement("div");
 	b.id = 'GmapUploaderBug';
   	b.style.zIndex = 25500;
-  	b.innerHTML = '+ <a href="http://gmapuploader.com" style="display: inline; font: 12px arial; text-decoration: none; padding: 4px; border: 1px dotted black; color: black;">GmapUploader</a>';
+  	//b.innerHTML = '+ <a href="http://gmapuploader.com" style="display: inline; font: 12px arial; text-decoration: none; padding: 4px; border: 1px dotted black; color: black;">GmapUploader</a>';
   	a.getContainer().appendChild(b);
   	var c = 1;
   	var d = document.getElementById(b.id);
