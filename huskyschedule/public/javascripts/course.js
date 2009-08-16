@@ -17,6 +17,7 @@ function Course(parameters){
 	//this.reqiuresQuiz = parameters["requiresQuiz"];
 	//this.requiresLab = parameters["requiresLab"];
 	this.default_quiz_section = parameters["default_quiz_section"];
+	this.default_lab = parameters["default_lab"];
 	this.quiz_sections = parameters["quiz_sections"];
 	this.labs = parameters["labs"];
 	this.parent_id = parameters["parent_id"];

@@ -960,12 +960,17 @@ margin: 50px 0 0px 0;
 
 #tabs {
 margin: 20px 0 0 0;
+<<<<<<< .mine
+float: left;
+=======
 float: right;
 width: 590px;
+>>>>>>> .r150
 }
 
 #tabs.scheduletabs {
 margin: 0px 0 0 0;
+width: 765px;
 }
 
 #tabs ul {
@@ -988,15 +993,45 @@ color: #ffffff;
 font-weight: bold;
 text-align: center;
 height: 30px;
+<<<<<<< .mine
+=======
 width: 145px;
+>>>>>>> .r150
 float: left;
 /*border: 1px solid #ffffff;*/
 border-left: 1px solid #ffffff;
 border-right: 1px solid #ffffff;
 margin: 0;
+padding-right: 8px;
+padding-left: 8px;
 }
 
 #tabs li a {
+float:left;
+display: block;
+overflow:hidden;
+line-height: 30px;
+height: 30px;
+text-decoration: none;
+color: #ffffff;
+}
+
+#tabs.scheduletabs li {
+font: 1em arial, sans-serif;
+color: #ffffff;
+font-weight: bold;
+text-align: center;
+height: 30px;
+width: 150px;
+float: left;
+/*border: 1px solid #ffffff;*/
+border-left: 1px solid #ffffff;
+border-right: 1px solid #ffffff;
+margin: 0;
+padding: 0 0 0 0;
+}
+
+#tabs.scheduletabs li a {
 float:left;
 display: block;
 overflow:hidden;
@@ -1025,6 +1060,10 @@ background-repeat:no-repeat;
 width:7px;
 }
 
+#tabs #load_close_image {
+background-image:url('/images/schedules/close_highlighted.png');
+}
+
 #tabs.scheduletabs li a {
 text-align: left;
 white-space: nowrap;
@@ -1037,9 +1076,9 @@ background: /*url('../images/tab.gif')*/ #c5b358;
 
 #tabbedwindow {
 border: 1px solid #bbbbbb;
-float: right;
-padding: 7px;
-width: 575px;
+float: left;
+padding: 5px;
+width: 590px;
 margin: 0 0 0 0;
 min-height: 600px;
 font: 0.9em arial, sans-serif;
