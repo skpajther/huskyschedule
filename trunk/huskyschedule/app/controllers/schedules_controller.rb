@@ -15,21 +15,32 @@ class SchedulesController < ApplicationController
         quiz_sections << qz
       end
     end
+    labs = []
+    for course in courses
+      for lab in course.labs
+        labs << lab
+      end
+    end
     courses = courses + quiz_sections
+    courses = courses + labs
     for course in courses
       course_id = course.id
       if(course.kind_of?(QuizSection))
         course_id = "qz_"+course.id.to_s
+      elsif(course.kind_of?(Lab))
+        course_id = "lab_"+course.id.to_s
       end
       if(@dependancies[course_id] == nil)
         @dependancies[course_id] = {}
       end
       list = @dependancies[course_id]
       for course2 in courses
-        if(!((course.kind_of?(QuizSection) && course2.kind_of?(Course) && course.parent_id == course2.id) || (course2.kind_of?(QuizSection) && course.kind_of?(Course) && course2.parent_id == course.id) || (course.kind_of?(QuizSection) && course2.kind_of?(QuizSection) && course.parent_id == course2.parent_id)))
+        if(!((course.kind_of?(QuizSection) && course2.kind_of?(Course) && course.parent_id == course2.id) || (course2.kind_of?(QuizSection) && course.kind_of?(Course) && course2.parent_id == course.id) || (course.kind_of?(QuizSection) && course2.kind_of?(QuizSection) && course.parent_id == course2.parent_id) || (course.kind_of?(Lab) && course2.kind_of?(Course) && course.parent_id == course2.id) || (course2.kind_of?(Lab) && course.kind_of?(Course) && course2.parent_id == course.id) || (course.kind_of?(Lab) && course2.kind_of?(Lab) && course.parent_id == course2.parent_id)))
           course2_id = course2.id
           if(course2.kind_of?(QuizSection))
             course2_id = "qz_"+course2.id.to_s
+          elsif(course2.kind_of?(Lab))
+            course2_id = "lab_"+course2.id.to_s
           end
           if(course2!=course && list[course2_id]==nil)
             list[course2_id] = Course.compatible(course, course2)
@@ -51,7 +62,7 @@ class SchedulesController < ApplicationController
         course = Course.find(params[:course_id])
         begin
           @result = Schedule.add_to_schedule(grab_bag, course, current_user)
-        rescue ScheduleError
+        rescue Schedule::ScheduleError
           @result = "Failed to Add Course to Schedule"
         end
       else

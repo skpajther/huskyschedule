@@ -143,7 +143,7 @@ class Schedule < ActiveRecord::Base
       elsif(course.labs!=nil && course.labs.size>0)
         schedule.labs[course.id] = course.labs[0].id
       end
-      if(schedule.save(curr_user))
+      if(schedule.save_changes(curr_user))
         return "Course Added Successfully"
       else
         return "Course Failed to be Added"
@@ -187,14 +187,29 @@ class Schedule < ActiveRecord::Base
           if(authorized_to_edit(curr_user, sched))
             begin
               if(schedules[key]['courses']!=nil)
-                #for each id make it an int instead of a string
-                schedules[key]['courses'].collect!{|elem| elem.to_i }
+                if(schedules[key]['courses']!="[]")
+                  #for each id make it an int instead of a string
+                  schedules[key]['courses'].collect!{|elem| elem.to_i }
+                else
+                  sched.courses = []
+                  schedules[key].delete('courses')
+                end
               end
               if(schedules[key]['quiz_sections']!=nil)
                 quiz_hash = {}
-                schedules[key]['quiz_sections'].keys.each{|hkey| quiz_hash[hkey.to_i] = schedules[key]['quiz_sections'][hkey].to_i}
+                if(schedules[key]['quiz_sections']!="{}")
+                  schedules[key]['quiz_sections'].keys.each{|hkey| quiz_hash[hkey.to_i] = schedules[key]['quiz_sections'][hkey].to_i}
+                end
                 sched.quiz_sections = quiz_hash
                 schedules[key].delete('quiz_sections')
+              end
+              if(schedules[key]['labs']!=nil)
+                lab_hash = {}
+                if(schedules[key]['labs']!="{}")
+                  schedules[key]['labs'].keys.each{|hkey| lab_hash[hkey.to_i] = schedules[key]['labs'][hkey].to_i}
+                end
+                sched.labs = lab_hash
+                schedules[key].delete('labs')
               end
               if(schedules[key]['last_saved']!=nil && schedules[key]['last_saved']=="true")
                 sched.last_saved = Time.now

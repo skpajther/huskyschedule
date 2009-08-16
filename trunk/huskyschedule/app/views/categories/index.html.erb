@@ -113,5 +113,8 @@
                 </div>
             </div>
         <% end %>
+        <div class="page_bar">
+            <% if(@courses!=nil) %><span style="float:left;">Per Page</span><% old_per_page = request.parameters[:per_page]; request.parameters[:per_page] = "##replace_this##" %><%= select("per_page", "", [5,10,15,20,40,60,100], {:selected=>((old_per_page!=nil)? old_per_page.to_i : 20)}, {:style=>"float:left;margin-top:3px;", :onchange=>"window.location.assign('http://'+window.location.host+'#{url_for(request.parameters).gsub("%23%23replace_this%23%23", "'+this.options[this.selectedIndex].value+'")}');"}) %><% request.parameters[:per_page] = old_per_page; %><%= will_paginate @courses %><% end %>
+        </div>
     </div>
 </div>

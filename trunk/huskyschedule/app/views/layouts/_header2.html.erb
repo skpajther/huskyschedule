@@ -27,8 +27,36 @@
         <% if current_user!=nil && !current_user.tmp_user %>
             <%= current_user.login %> :: <a href="">Account</a> :: <%= link_to "Logout", :controller=>"login", :action=>"logout", :next_page=>request.parameters %>
         <% else %>
-            <%= link_to "Login", :controller=>"login", :action=>"login", :next_page=>request.parameters %> :: <%= link_to "Signup", :controller=>"login", :action=>"signup" %>
+            <a href="javascript:show_hide_login_screen();" id="login_button">Login</a> :: <%= link_to "Signup", :controller=>"login", :action=>"signup" %>
         <% end %>
+        <div id="login_popup" style="display:none;position:absolute;background-color:rgb(153, 153, 204);border:2px #552277 solid;padding: 4px 8px 4px 8px;"><a href="javascript:show_hide_login_screen();">close(X)</a><%= render :partial=>"login/login_form", :locals=>{:next_page=>request.parameters} %></div>
+        <script>
+            showing_login_screen = false;
+        
+            function show_hide_login_screen(){
+                if(!showing_login_screen){
+                    var pos_arr = findPos($("login_button"));
+                    $("login_popup").style.top = pos_arr[1]+20+"px";
+                    $("login_popup").style.left = (pos_arr[0]-25)+"px";
+                    $("login_popup").show();
+                }
+                else{
+                    $("login_popup").hide();
+                }
+                showing_login_screen = !showing_login_screen;
+            }
+            
+            function findPos(obj) {
+	           var curleft = curtop = 0;
+	           if (obj.offsetParent) {
+	               do {
+			         curleft += obj.offsetLeft;
+			         curtop += obj.offsetTop;
+			       } while (obj = obj.offsetParent);
+			   }
+			   return [curleft,curtop];
+            }
+        </script>
     </div>
     <div id="head">
 

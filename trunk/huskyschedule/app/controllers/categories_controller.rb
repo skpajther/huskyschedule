@@ -32,8 +32,12 @@ class CategoriesController < ApplicationController
     end
     session[:category_page] = params[:page]
     
-    if(params[:per_page]==nil && session[:category_per_page])
-      params[:per_page] = session[:category_per_page]
+    if(params[:per_page]==nil || params[:par_page]=="")
+      if(session[:category_per_page]!=nil)
+        params[:per_page] = session[:category_per_page]
+      else
+        params[:per_page] = 20
+      end
     end
     session[:category_per_page] = params[:per_page]
     
