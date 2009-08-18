@@ -87,6 +87,7 @@ function mapListeners() {
 		function() {
 			var newMapType = map.getCurrentMapType();
 			if(newMapType == customMapType) {
+				currentMapType = newMapType;
 				for(var i in markers) {
 					markerData = markers[i];
 					if(markerData.marker == null)
@@ -101,7 +102,8 @@ function mapListeners() {
 					map.setCenter(uw_center, zoom=4);
 				}
 			}
-			else if(currentMapType!=G_HYBRID_MAP && currentMapType!=G_SATELLITE_MAP){
+			else if(currentMapType!=G_HYBRID_MAP && currentMapType!=G_SATELLITE_MAP) {
+				currentMapType = newMapType;
 				for(var i in markers) {
 					markerData = markers[i];
 					if(markerData.marker == null)
@@ -116,7 +118,6 @@ function mapListeners() {
 					map.setCenter(map_center, zoom=17);
 				}
 			}
-			currentMapType = newMapType;
 		}
 	);
 	GEvent.addListener(map, "click",
