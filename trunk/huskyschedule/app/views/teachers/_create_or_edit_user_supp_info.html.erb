@@ -1,22 +1,44 @@
-User Supplied Information<br/>
-<% remote_form_for :teacher_info, info, :before=>"set_attribute_count(#{((info.other!=nil)?info.other.size : 0)});fix_attribute_additions()", :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((render=="new_user_info")?-1 : ((teacher_info_index!=nil)?teacher_info_index : -1))}), :url => {:controller=>"teachers", :action=>render, :id=>((render=="new_user_info")? teacher.id : info.id)}, :html => { :method => :post, :class => "edit_teacher_info", :id => "edit_teacher_info" } do |f| %>
-    <div id="attributes">
-        Gender: <%= f.select(:sex, [["Female", 0], ["Male", 1]], {:include_blank=>true}) %><br/>
-        Department: <%= f.text_field(:department) %><br/>
-        Office: <%= f.text_field(:office) %><br/>
-        Email: <%= f.text_field(:email) %><br/>
-        Website: <%= f.text_field(:website) %><br/>
-        <% other_size = 0 %>
-        <% if(info.other!=nil) %>
-            <% for attribute in info.other.keys %>
-              <%= text_field_tag("attribute_name_#{other_size}", attribute, {}) %>
-              <%= text_field_tag("teacher_info_#{other_size}", info.other[attribute], {}) %><br/>
-              <% other_size+=1 %>  
+<div class="teacher_info_header">User Supplied Information
+ <span class="sub_header">
+   <% if(info.author!=curr_user) %>
+        <% curr_user_info = TeacherInfo.is_author?(teacher, curr_user) %>
+        <% if(curr_user_info==nil) %>
+            <% if(info==nil) %>
+                ( No one has provided info about this teacher yet.
+            <% elsif(!curr_user.tmp_user) %>
+                ( Don't like the info others provided?
             <% end %>
+            <% if(!curr_user.tmp_user) %>
+                <%= link_to_remote("Supply info about this teacher.", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"new_user_info", :id=>teacher.id, :teacher_info_index=>teacher_info_index}, :method=>:get, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %>
+            <% end %>
+        <% else %>
+            (<%= link_to_remote("View your added Information", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :render=>"user_supplied_info", :id=>teacher.id, :teacher_info_id=>curr_user_info.id} ) %>
         <% end %>
-    </div>
-    <a href="javascript:set_attribute_count(<%= other_size %>);add_attribute('attributes');">Add attribute</a><br/>
-    <%= f.submit("Submit Your Information") %> &nbsp <%= link_to_remote("Cancel", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}) %>
-<% end %>
-
-
+        )
+    <% end %>
+  </span>
+</div>
+<div class="teacher_info">
+    <% if(curr_user.tmp_user) %>
+        To add or confirm information about this teacher, first <%= link_to("Login Here", :controller=>"login", :action=>"login", :next_page=>request.path_parameters) %> or <%= link_to("Signup for a new account", :controller=>"login", :action=>"signup", :next_page=>request.path_parameters) %>
+    <% end %>
+    
+    <% if(info!=nil) %><!--<%= link_to_remote("Edit", :before=>"alert('Editing your information will cause it to loose all confirmations.');", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"edit_user_info", :id=>info.id, :teacher_info_index=>teacher_info_index}, :html=>{:class=>"control_btn"}) %>-->
+        <div id="user_supp_info_controls"><%= link_to_remote("<", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>info.teacher_id, :render=>"user_supplied_info", :teacher_info_index=>teacher_info_index-1}, :html=>{:class=>"prev_next_btn", :id=>"prev_btn"}, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %> Provided by: <% if(info.author==curr_user) %>You <%= link_to_remote("Cancel", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}, :html=>{:class=>"control_btn", :id=>"edit_btn"}, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %><% else %><%= info.author.login %><% if(!curr_user.tmp_user) %>&nbsp<% if(!TeacherInfo.already_confirmed(info, curr_user)) %><%= link_to_remote("Confirm Info", :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :teacher_info_index=>teacher_info_index, :id=>info.teacher.id, :render=>"user_supplied_info"}) ,:url=>{:controller=>"teachers", :action=>"confirm_user_info", :id=>info.id}, :html=>{:class=>"control_btn", :id=>"confirm_btn"}, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %><% end %><% end %><% end %>&nbsp<%= link_to_remote(">", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>info.teacher_id, :render=>"user_supplied_info", :teacher_info_index=>teacher_info_index+1}, :condition=>"navigation_allowed==true", :html=>{:class=>"prev_next_btn", :id=>"next_btn"}, :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %></div>
+        <div id="curr_user_supp_info">
+        <% remote_form_for :teacher_info, info, :before=>"fix_attribute_additions()", :success=>remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}), :url => {:controller=>"teachers", :action=>"new_user_info"}, :html => { :method => :post, :class => "edit_teacher_info", :id => "edit_teacher_info" }, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();" do |f| %>
+            <table id="attr_table">
+                <tr id="attr_row_sex"><td class="attr_name">Gender:</td><td class="attr"><%= f.select(:sex, [["Female", 0], ["Male", 1]], {:include_blank=>true}, {}) %></td></tr>
+                <tr id="attr_row_dept"><td class="attr_name">Department:</td><td class="attr"><%= f.text_field(:department) %></td></tr>
+                <tr id="attr_row_office"><td class="attr_name">Office:</td><td class="attr"><%= f.text_field(:office) %></td></tr>
+                <tr id="attr_row_email"><td class="attr_name">Email:</td><td class="attr"><%= f.text_field(:email) %></td></tr>
+                <tr id="attr_row_website"><td class="attr_name">Website:</td><td class="attr"><%= f.text_field(:website) %></td></tr>
+                
+                <script>set_attribute_count(0);set_teacher_info_index(<%= ((teacher_info_index!=nil)?teacher_info_index : -1) %>);</script>
+            </table>
+            <a id="add_attribute_btn" class="control_btn" style="margin: 4px 0px 10px 0px;" href="javascript:if(navigation_allowed){add_attribute('attr_table');}">Add attribute</a><br/>
+            <div id="submit_btn"><%= f.submit("Submit Your Information", :class=>"control_btn", :style=>"cursor:pointer;") %> &nbsp <%= link_to_remote("Cancel", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>teacher.id, :render=>"user_supplied_info", :teacher_info_index=>((teacher_info_index!=nil)?teacher_info_index : -1)}, :html=>{:class=>"control_btn", :id=>"cancel_btn"}, :condition=>"navigation_allowed==true", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();") %></div>
+        <% end %>
+        </div>
+    <% end %>
+</div>

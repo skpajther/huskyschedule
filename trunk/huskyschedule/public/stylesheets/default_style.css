@@ -960,12 +960,7 @@ margin: 50px 0 0px 0;
 
 #tabs {
 margin: 20px 0 0 0;
-<<<<<<< .mine
 float: left;
-=======
-float: right;
-width: 590px;
->>>>>>> .r150
 }
 
 #tabs.scheduletabs {
@@ -993,10 +988,6 @@ color: #ffffff;
 font-weight: bold;
 text-align: center;
 height: 30px;
-<<<<<<< .mine
-=======
-width: 145px;
->>>>>>> .r150
 float: left;
 /*border: 1px solid #ffffff;*/
 border-left: 1px solid #ffffff;
@@ -1139,6 +1130,79 @@ line-height: inherit;
 font-weight: inherit;
 text-decoration: inherit;
 color: inherit;
+}
+
+#overview .teacher_info_header {
+font-weight:bold;
+}
+
+#overview .teacher_info_header span.sub_header {
+font-weight:normal;
+color:inherit;
+}
+
+#overview .teacher_info {
+margin-left: 10px;
+}
+
+#user_supp_info #curr_user_supp_info {
+margin-left: 10px;
+}
+
+#user_supp_info #curr_user_supp_info .attr_name {
+color:gray;
+min-width:160px;
+}
+
+#user_supp_info #curr_user_supp_info .attr_name span{
+text-align: left;
+width: auto;
+font: inherit;
+line-height: inherit;
+font-weight: inherit;
+text-decoration: inherit;
+color: inherit;
+max-width:300px;
+overflow:hidden;
+float:left;
+white-space:nowrap;
+}
+
+#user_supp_info #curr_user_supp_info .attr input{
+width:200px;
+}
+
+#user_supp_info #curr_user_supp_info .attr span{
+text-align: left;
+width: auto;
+font: inherit;
+line-height: inherit;
+font-weight: inherit;
+text-decoration: inherit;
+color: inherit;
+}
+
+#user_supp_info #user_supp_info_controls .prev_next_btn {
+text-decoration: none;
+padding-left:3px;
+padding-right:3px;
+color: white;
+font-weight: bold;
+background-color: #552277;
+}
+
+#user_supp_info #user_supp_info_controls .prev_next_btn:hover {
+background-color: #c5b358;
+}
+
+#user_supp_info .control_btn {
+text-decoration: none;
+padding-left:3px;
+padding-right:3px;
+color: #552277;
+font-weight: bold;
+border: 1px solid #BBBBBB;
+background-color:white;
 }
 
 .button-to {
