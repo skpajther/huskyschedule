@@ -3,7 +3,7 @@ class TeacherInfo < ActiveRecord::Base
   belongs_to :author, :class_name => "User", :foreign_key => "user_id"
   belongs_to :teacher, :class_name => "Teacher", :foreign_key => "teacher_id"
   
-  Course.partial_updates = false
+  TeacherInfo.partial_updates = false
   serialize :other
   serialize :confirmed_by
   
@@ -13,8 +13,9 @@ class TeacherInfo < ActiveRecord::Base
   
   def self.create(teacher_info, teacher, params, curr_user)
     if(teacher_info!=nil && params[:teacher_info]!=nil && teacher!=nil && curr_user!=nil && !curr_user.tmp_user)
-      teacher_info.user_id = curr_user.id
-      teacher_info.teacher_id = teacher.id
+      teacher_info.author = curr_user
+      teacher_info.teacher = teacher
+      teacher_info.total_confirmations = 0
       teacher_info.save!
       message = "Teacher Information Created Successfully"
     else

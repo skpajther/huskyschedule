@@ -13,6 +13,12 @@ class TeachersController < ApplicationController
     if(params[:teacher_info_id]!=nil)
       #@teacher_info_index = TeacherInfo.get_techer_info_index(params[:teacher_info_id])
       begin @teacher_info = TeacherInfo.find(params[:teacher_info_id].to_i) rescue @teacher_info = nil end
+      @teacher_info_index = TeacherInfo.count_by_sql("SELECT count(ti2.id) FROM teacher_infos ti1, teacher_infos ti2 WHERE ti1.id = #{params[:teacher_info_id].to_i} AND ti2.teacher_id = ti1.teacher_id AND (ti2.total_confirmations > ti1.total_confirmations OR (ti2.total_confirmations=ti1.total_confirmations AND ti2.id > ti1.id))")
+      if(@teacher_info_index!=nil && @teacher_info_index!="")
+        @teacher_info_index = @teacher_info_index[0].to_i
+      else
+        @teacher_info_index = 0
+      end
     end
     @total_infos = TeacherInfo.count_by_sql("SELECT COUNT(*) FROM teacher_infos WHERE teacher_id=#{@teacher.id}")
     if(@teacher_info_index >= @total_infos)
@@ -21,7 +27,7 @@ class TeachersController < ApplicationController
       @teacher_info_index = @total_infos-1
     end
     if(@teacher_info==nil)
-      @teacher_info = TeacherInfo.find_by_sql("SELECT * FROM teacher_infos WHERE teacher_id=#{@teacher.id} ORDER BY total_confirmations DESC LIMIT #{@teacher_info_index},1")[0]
+      @teacher_info = TeacherInfo.find_by_sql("SELECT * FROM teacher_infos WHERE teacher_id=#{@teacher.id} ORDER BY total_confirmations DESC, id DESC LIMIT #{@teacher_info_index},1")[0]
     end
     if(params[:render] == "user_supplied_info")
       render :partial => "teachers/user_supplied_info", :locals => {:info=>@teacher_info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :curr_user=>current_user}
@@ -74,7 +80,7 @@ class TeachersController < ApplicationController
     if(params[:teacher_info_index]!=nil)
       @teacher_info_index = params[:teacher_info_index]
     end
-    render :partial => "teachers/create_or_edit_user_supp_info", :locals => {:info=>@info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :render=>"new_user_info"} 
+    render :partial => "teachers/create_or_edit_user_supp_info", :locals => {:info=>@info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index.to_i, :render=>"new_user_info", :curr_user=>current_user} 
   end
   
   def edit_user_info
@@ -95,7 +101,7 @@ class TeachersController < ApplicationController
       end
     end
     @info = user_info
-    render :partial => "teachers/create_or_edit_user_supp_info", :locals => {:info=>@info, :teacher=>@info.teacher, :render=>"edit_user_info", :teacher_info_index=>params[:teacher_info_index]}
+    render :partial=>"teachers/blank", :locals=>{}#render :partial => "teachers/user_supplied_info", :locals => {:info=>@info, :teacher=>@info.teacher, :render=>"edit_user_info", :teacher_info_index=>params[:teacher_info_index]}
   end
   
   def destroy_user_info

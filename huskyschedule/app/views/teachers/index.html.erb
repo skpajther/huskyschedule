@@ -1,4 +1,18 @@
 <%= javascript_include_tag 'courseDetails'%>
+<script>
+    attribute_count = 0;
+    current_teacher_info_index = 0;
+    
+    function set_attribute_count(count) {
+        //if(count > attribute_count)
+            attribute_count = count;
+    }
+    
+    function set_teacher_info_index(index) {
+        current_teacher_info_index = index;
+    }
+    
+</script>
 <div id="singlewrapper">
     <div class="breadcrumbs">breadcrumbs</div>
     <div class="classschedule">    
@@ -42,9 +56,9 @@
     
     <div id="tabbedwindow" style="">
         <div id = "overview">
-            <div>
-                Confirmed Information<br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;Name:<%= @teacher.name %>
+            <div id="confirmed_info">
+                <div class="teacher_info_header">Confirmed Information</div>
+                <div class="teacher_info">Name:<%= @teacher.name %></diV>
             </div>
             <br/>
             <div id="user_supp_info">
@@ -52,8 +66,9 @@
             </div>
             <br/>
             <div>
-                Courses Taught<br/>
-                &nbsp Future<br/>
+                <div class="teacher_info_header">Courses Taught</div>
+                <div class="teacher_info">
+                    Future<br/>
                     <% future_courses = @teacher.courses_future(Time.now.year, Quarter::CURRENT) %>
                     <% for course in future_courses %>
                         &nbsp&nbsp <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
@@ -61,7 +76,7 @@
                     <% if future_courses.size == 0 %>
                         &nbsp&nbsp None Known Yet<br/>
                     <% end %>
-                &nbsp Present<br />
+                    Present<br />
                     <% present_courses = @teacher.courses_present(Time.now.year, Quarter::CURRENT) %>
                     <% for course in present_courses %>
                         &nbsp&nbsp <%= link_to course.name, :controller=>"courses", :action=>"index", :id=>course.id %><br/>
@@ -69,7 +84,7 @@
                     <% if(present_courses.size == 0) %>
                         &nbsp&nbsp None Known<br/>
                     <% end %>
-                &nbsp Past<br/>
+                    Past<br/>
                     <% past_courses = @teacher.courses_past(Time.now.year, Quarter::CURRENT) %>
                     <% for course in past_courses %>
                         &nbsp&nbsp <%= link_to "#{course.name}: #{Quarter.quarter_disp_name(course.quarter_id)}, #{course.year}", :controller=>"courses", :action=>"index", :id=>course.id %><br/>
@@ -77,6 +92,7 @@
                     <% if past_courses.size == 0 %>
                         &nbsp&nbsp None Known<br/>
                     <% end %>
+                </div>
             </div>
         </div><!-- overview -->
         <div id="teacherReviews">
@@ -85,45 +101,172 @@
     </div><!-- tabbedWindow -->
 </div><!-- singlewrapper -->
 <script type="text/javascript">
-    attribute_count = 0;
+    
 
     initializeCDfields("overview");
     hideTab("teacherReviews");
     
-    
+    function trim(str) {
+    	var	str = str.replace(/^\s\s*/, ''),
+    		ws = /\s/,
+    		i = str.length;
+    	while (ws.test(str.charAt(--i)));
+    	return str.slice(0, i + 1);
+    }
     
     function fix_attribute_additions() {
-        alert("here "+attribute_count);
+        //alert("here "+attribute_count);
         for(var i = 0; i<attribute_count; i++){
             attribute = document.getElementById("teacher_info_"+i);
             attribute_name = document.getElementById("attribute_name_"+i);
-            alert("hello"+attribute_name.value);
-            //adjusted_attri_name = attribute_name.value.replace(" ", "_");;
-            attribute.name = "teacher_info[other]["+attribute_name.value+"]";
+            //alert("trimmed "+trim(attribute.value));
+            if(attribute.value!="Attribute Value" && trim(attribute.value)!="" && attribute_name.value!="Attribute Name" && trim(attribute_name.value)!=""){
+                //alert("hello"+attribute_name.value);
+                //adjusted_attri_name = attribute_name.value.replace(" ", "_");;
+                attribute.name = "teacher_info[other]["+attribute_name.value+"]";
+            }
         }
     }
     
-    function set_attribute_count(count) {
-        if(count > attribute_count)
-            attribute_count = count;
+    function check_attribute_text_focus(attribute_id, default_string) {
+        if($(attribute_id).value == default_string){
+            $(attribute_id).value = "";
+            $(attribute_id).style.color = "black";
+        }
+    }
+    
+    function check_attribute_text_blur(attribute_id, default_string) {
+        if($(attribute_id).value == ""){
+            $(attribute_id).style.color = "lightgray";
+            $(attribute_id).value = default_string;
+        }
     }
     
     function add_attribute(add_to) {
-        attribute_name = document.getElementById("teacher_info_website").cloneNode(true);
-        attribute = attribute_name.cloneNode(true);
+        //var attribute_str = </td><td></td>";
+        var row = document.createElement("tr");
+        row.id = "attribute_row_"+attribute_count;
         
-        attribute_name.id = "attribute_name_"+attribute_count;
-        attribute_name.name = "dont_use";
-        attribute_name.value = "Attribute Name";
-        //"<input id="teacher_info_website" name="teacher_info[website]" size="30" type="text" />"
+        var name_col = document.createElement("td");
+        name_col.class = "attr_name";
+        name_col.innerHTML = "<span id='attribute_name_label_"+attribute_count+"' style='display:none;'></span><%= text_field_tag("attribute_name_\"+attribute_count+\"", "Attribute Name", {:title=>"Attribute Name",:style=>"color:lightgray", :onfocus=>"check_attribute_text_focus(\\\"attribute_name_\"+attribute_count+\"\\\", \\\"Attribute Name\\\");", :onblur=>"check_attribute_text_blur(\\\"attribute_name_\"+attribute_count+\"\\\", \\\"Attribute Name\\\");"}).gsub("\"", "'").gsub("&quot;", "\"") %>";
+        row.appendChild(name_col);
         
-        attribute.id = "teacher_info_"+attribute_count;
-        attribute.name = "teacher_info[]"
+        var attr_col = document.createElement("td");
+        attr_col.class = "attr";
+        attr_col.style.width = "200px";
+        attr_col.innerHTML = "<span id='attr_"+attribute_count+"' style='display:none;'></span><%= text_field_tag("teacher_info_\"+attribute_count+\"", "Attribute Value", {:title=>"Attribute Value", :size=>"30", :style=>"color:lightgray;width:200px;", :onfocus=>"check_attribute_text_focus(\\\"teacher_info_\"+attribute_count+\"\\\", \\\"Attribute Value\\\");", :onblur=>"check_attribute_text_blur(\\\"teacher_info_\"+attribute_count+\"\\\", \\\"Attribute Value\\\");"}).gsub("\"", "'").gsub("&quot;", "\"") %>";
+        row.appendChild(attr_col);
         
-        add_to_element = document.getElementById(add_to);
-        add_to_element.appendChild(attribute_name);
-        add_to_element.appendChild(attribute);
-        attribute_count++;
+        var remove_col = document.createElement("td");
+        remove_col.innerHTML = "<a id='remove_attr_"+attribute_count+"' href='javascript:remove_attribute(\"attribute_row_"+attribute_count+"\");' class='control_btn' style=''>Remove</a>";
+        row.appendChild(remove_col);
+        
+        //row.innerHTML = attribute_str;
+        //$(add_to).innerHTML = $(add_to).innerHTML + attribute_str;
+        var tabBody=$(add_to).getElementsByTagName("TBODY").item(0);
+        tabBody.appendChild(row);
+        attribute_count = attribute_count + 1;
+    }
+    
+    function remove_attribute(to_remove) {
+        //alert(to_remove);
+        //$(remove_from).removeChild($(to_remove));
+        $(to_remove).parentNode.removeChild($(to_remove));
+        attribute_count = attribute_count - 1;
+    }
+    
+    function edit_attributes() {
+        $("add_attribute_btn").show();
+        $("submit_btn").show();
+    
+        $("attr_row_sex").show();
+        $("attr_gender").hide();
+        $("teacher_info_sex").show();
+        $("attr_row_dept").show();
+        $("attr_dept").hide();
+        $("teacher_info_department").show();
+        $("attr_row_office").show();
+        $("attr_office").hide();
+        $("teacher_info_office").show();
+        $("attr_row_email").show();
+        $("attr_email").hide();
+        $("teacher_info_email").show();
+        $("attr_row_website").show();
+        $("attr_website").hide();
+        $("teacher_info_website").show();
+        //alert("attr_count "+attribute_count);
+        for(var i = 0; i < attribute_count; i++){
+            //alert("attribute_name_label_"+i);
+            var text_span = $("attribute_name_label_"+i);
+            var text = text_span.innerHTML;
+            text = text.substring(0, text.length-1);
+            text_span.hide();
+            var text_field = $("attribute_name_"+i);
+            text_field.value = text;
+            text_field.show();
+            
+            text_span = $("attr_"+i);
+            text = text_span.innerHTML;
+            text_span.hide();
+            text_field = $("teacher_info_"+i);
+            text_field.value = text;
+            text_field.show();
+            
+            $("remove_attr_"+i).show();
+        }
+        
+        $("edit_btn").innerHTML = "Cancel";
+        $("edit_btn").href = "javascript:cancel_edit_attributes();";
+    }
+    
+    function cancel_edit_attributes() {
+        <%= remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id, :render=>"user_supplied_info", :teacher_info_index=>"'+current_teacher_info_index+'"}, :condition=>"navigation_allowed", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();").gsub("%27", "'").gsub("%2B", "+") %>
+    }
+    
+    navigation_allowed = true;
+    
+    function prepare_for_navigation(right) {
+        if(right==null || right==undefined){
+            right = true;
+        }
+        navigation_allowed = false;
+        to_disable = new Array("prev_btn", "next_btn", "edit_btn", "delete_btn", "confirm_btn", "add_attribute_btn", "teacher_info_submit", "cancel_btn");
+        for(var i = 0; i < attribute_count; i++){
+            if($("attribute_name_"+i)){
+               $("attribute_name_"+i).disabled = true; 
+            }
+            if($("teacher_info_"+i)){
+                $("teacher_info_"+i).disabled = true;
+            }
+            if($("remove_attr_"+i)){
+                to_disable.push("remove_attr_"+i);
+            }
+        }
+        for(var i = 0; i < to_disable.length; i++){
+            var tmp_id_str = to_disable[i];
+            if($(tmp_id_str)){
+                $(tmp_id_str).style.backgroundColor = "#999999";
+                $(tmp_id_str).style.color = "#cccccc";
+                $(tmp_id_str).style.cursor = "default";
+            }
+        }
+        $("teacher_info_sex").disabled = true;
+        $("teacher_info_department").disabled = true;
+        $("teacher_info_office").disabled = true;
+        $("teacher_info_email").disabled = true;
+        $("teacher_info_website").disabled = true;
+        new Effect.Parallel([
+          new Effect.Move('curr_user_supp_info', { sync: true, x: ((right)? -200 : 200), y: 0, mode: 'relative' }), 
+          new Effect.Opacity('curr_user_supp_info', { sync: true, from: 1, to: 0 }) 
+        ], { 
+          duration: 0.8,
+          delay: 0.5
+        });
+    }
+    
+    function recover_from_navigation() {
+        navigation_allowed = true;
     }
     
     
