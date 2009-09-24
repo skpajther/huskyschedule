@@ -1,4 +1,4 @@
-<%= javascript_include_tag 'courseDetails'%>
+<%= javascript_include_tag 'tabControl'%>
 <script>
     attribute_count = 0;
     current_teacher_info_index = 0;
@@ -21,30 +21,57 @@
             <% if(logged_in?) 
                 curr_user_vote_is_best = (@teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil && @teacher.user_vote_map[current_user.id] == tmp[0])
                end %>
-            <div><%= votable_image( tmp[0], tmp[1], @teacher.total_photo_votes, ((logged_in? && !curr_user_vote_is_best)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>tmp[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_width=>300, :max_height=>300}) %></div>
-            <div><% if(logged_in? && !current_user.tmp_user && @teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil) %>
+            <div style="float:left;width:300px;height:300px;"><%= votable_image( tmp[0], tmp[1], @teacher.total_photo_votes, ((logged_in? && !curr_user_vote_is_best)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>tmp[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_width=>300, :max_height=>300}) %></div>
+            <div style=""><% if(logged_in? && !current_user.tmp_user && @teacher.user_vote_map!=nil && @teacher.user_vote_map[current_user.id]!=nil) %>
                         <% if(curr_user_vote_is_best) %>
-                            You voted for the current best photo
+                            <div  style="float:left;width:300px;margin-top:4px;">You voted for the current best photo</div>
                         <% else %>
                             <% tmp = @teacher.user_vote_photo_location(current_user, {:long_location=>true, :all_info=>true})%>
                             <% runners_up.delete(tmp) %>
-                            You voted for:<%= votable_image(tmp[0],tmp[1], @teacher.total_photo_votes, nil, current_user, {:max_height=>80}) %>
+                            <div style="float:left;width:300px;margin-top:4px;">You voted for:</div><div style="margin-top:2px;float:left;width:150px;height:150px;"><%= votable_image(tmp[0],tmp[1], @teacher.total_photo_votes, nil, current_user, {:max_height=>150, :max_width=>150}) %></div>
                         <% end %>
                  <% else %>
-                    <% if(tmp[0]!=Teacher::DEFAULT_IMAGE_LOCATION && tmp[0] != 'public/images/'+Teacher::DEFAULT_IMAGE_LOCATION) %>You have not voted for one of these yet.<% else %>No photo has been uploaded for this teacher yet.<% end %><% if(!logged_in? || current_user.tmp_user) %><br/> To vote or upload a new photo, first <%= link_to "Login Here", :controller=>"login", :action=>"login" %> or <%= link_to "Signup for a new account.", :controller=>"login", :action=>"signup" %><% end %>
+                    <% if(tmp[0]!=Teacher::DEFAULT_IMAGE_LOCATION && tmp[0] != 'public/images/'+Teacher::DEFAULT_IMAGE_LOCATION) %>You have not voted for a photo yet.<% else %>No photos have been uploaded for this teacher yet.<% end %><% if(!logged_in? || current_user.tmp_user) %><br/> To vote or upload photos, first <%= link_to "Login", :controller=>"login", :action=>"login" %> or <%= link_to "Signup", :controller=>"login", :action=>"signup" %><% end %>
                  <% end %>
             </div>
-            <% if runners_up!=nil && runners_up.length>0 %>
-                <div>Runners Up<br/>
-                        <% for photolocation in runners_up %>
-                            <div style="float:left;"><%= votable_image(photolocation[0] ,photolocation[1], @teacher.total_photo_votes, ((logged_in?)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>photolocation[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_height=>80}) %></div>
-                        <% end %>
-                </div>
-            <% end %>
             <% if(logged_in? && !current_user.tmp_user) %>
                 <div style="clear:left;"></div>
-                <div><%= link_to "upload new photo", :controller=>"teachers", :action=>"all_photos", :id=>@teacher.id %></div>
+                <div id="upload_photo_form" style="">
+                    <%= form_tag({:controller=>'teachers', :action => 'all_photos', :id=>@teacher.id}, :multipart => true, :id=>"photo_form") %>
+                        <a id="show_photo_upload_link" href="javascript:show_photo_upload();">Upload new photo</a>
+                        <%= file_field 'upload', 'datafile', :onchange=>"if(this.value!='' && this.value!=undefined){ $('photo_form').submit(); }", :style=>"margin-left:-120px;opacity:0.0;cursor:pointer;" %>
+                    </form>
+                </div>
             <% end %>
+            <% if runners_up!=nil && runners_up.length>0 %>
+                <div id="runners_up" style="margin-top:4px;"><span class="runners_up_header">Runners Up</span>
+                <span id="photo_page_links" class="normal_span" style="margin-left:30px;">
+                <% photo_page = 1 %>
+                <% ((runners_up.length/9.to_f).ceil).times{ %>
+                    <a id="photo_page_link_<%= photo_page %>" <%= (photo_page==1)? "class='curr_page'" : ""%> href="javascript:switch_photo_page(<%= photo_page %>);"><%= photo_page %></a>
+                    <% photo_page = photo_page + 1 %>
+                <% } %>
+                </span>
+                <br/>
+                    <% photo_num = 0 %>
+                    <% for photolocation in runners_up %>
+                        <% if(photo_num%9==0) %>
+                            <% if(photo_num!=0) %>
+                             </div>
+                             <div id="photo_page_<%= photo_num/9 %>" class="photo_page" style="display:none;">
+                            <% else %>
+                             <div id="photo_page_0" class="photo_page">
+                            <% end %>
+                        <% end %>
+                        <div style="float:left;width:80px;height:80px;margin-right:8px;margin-bottom:8px;"><%= votable_image(photolocation[0] ,photolocation[1], @teacher.total_photo_votes, ((logged_in?)? url_for(:controller=>'teachers', :action=>'vote', :id=>@teacher.id, :location=>photolocation[0], :next_page=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id}) : nil), current_user, {:max_height=>80, :max_width=>80}) %></div>
+                        <% photo_num = photo_num + 1 %>
+                        <% if(runners_up.size <= photo_num) %>
+                            </div>
+                        <% end %>
+                    <% end %>
+                </div>
+            <% end %>
+            
     </div><!-- classschedule -->
                 
     <div id="tabs">
@@ -95,16 +122,36 @@
                 </div>
             </div>
         </div><!-- overview -->
-        <div id="teacherReviews">
+        <div id="teacherReviews" style="display:none;">
             teacher Reviews should be here.
         </div><!-- teacherReviews -->
     </div><!-- tabbedWindow -->
 </div><!-- singlewrapper -->
 <script type="text/javascript">
     
-
-    initializeCDfields("overview");
-    hideTab("teacherReviews");
+    initializeTabs("overview","teacherReviews");
+    
+    function show_photo_upload() {
+        $("show_photo_upload_link").hide();
+        $("upload_photo_form").show();
+    }
+    
+    function hide_photo_upload() {
+        $("upload_photo_form").hide();
+        $("show_photo_upload_link").show();
+    }
+    
+    current_photo_page = 1;
+    
+    function switch_photo_page(new_page) {
+        if(current_photo_page!=new_page){
+            $("photo_page_link_"+current_photo_page).setAttribute("class", "");
+            $("photo_page_link_"+new_page).setAttribute("class", "curr_page");
+            $("photo_page_"+(current_photo_page-1)).hide();
+            $("photo_page_"+(new_page-1)).show();
+            current_photo_page = new_page;
+        }
+    }
     
     function trim(str) {
     	var	str = str.replace(/^\s\s*/, ''),

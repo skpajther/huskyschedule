@@ -1,5 +1,7 @@
 ActionController::Routing::Routes.draw do |map|
   
+  map.root :controller=>"categories", :action=>"index"
+
   map.category_parser "parser/parse",
         :controller => "parser",
         :action => "parse",

@@ -635,13 +635,20 @@ def mini_schedule(times, options={})
       end
       vote_button = ""
       if(vote_url!=nil)
-        vote_button = "<div style='float:left;padding-left:5px;padding-top:#{top_lettering_pos}px;'><a class='vote_b' href='#{vote_url}'>Vote</a></div>"
+        vote_button = "<div style='float:left;padding-left:5px;margin-top:#{top_lettering_pos+3}px;'><a class='vote_b' href='#{vote_url}' style='color:white;'>Vote</a></div>"
       end
-      return "<div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;'>
-                <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
-                <div style='z-index:1;position:absolute;width:#{pic_width}px;height:#{pic_height}px;'>
-                  #{((location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION)) && !curr_user.tmp_user)? vote_button : ""}
-                  <div style='float:right;padding-right:5px;padding-top:#{top_lettering_pos}px;'><span class='vote_percent'>#{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? percent.to_i.to_s+'%' : ''}</span></div>
+      parent_height = options[:max_height]
+      if(options[:max_height]==nil)
+        parent_height = pic_height;
+      end
+      return "<div style='width:100%;height:100%;border: 1px solid #bbbbbb;background-color:#E8E8E8;'>
+                <div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;margin-left:auto;margin-right:auto;margin-top:#{(parent_height/2) - (pic_height/2)}px;'>
+                  <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
+                  <div style='z-index:2;position:absolute;width:#{(pic_width<70)? 70 : pic_width}px;height:#{pic_height}px;margin-left:#{(pic_width<70)? -((70-pic_width)/2) : 0}px;'>
+                    #{((location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION)) && !curr_user.tmp_user)? vote_button : ""}
+                    <div style='float:right;padding-right:5px;margin-top:#{top_lettering_pos-2}px;'><span class='vote_percent'>#{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? percent.to_i.to_s+'%' : ''}</span></div>
+                  </div>
+                  <div style='z-index:1;position:absolute;margin-top:#{top_lettering_pos+4}px;width:#{(pic_width<70)? 70 : pic_width}px;background-color:#552277;opacity:0.7;margin-left:#{(pic_width<70)? -((70-pic_width)/2) : 0}px;'>&nbsp;</div>
                 </div>
               </div>"
   end
