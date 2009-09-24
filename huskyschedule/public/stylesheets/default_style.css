@@ -1205,6 +1205,39 @@ border: 1px solid #BBBBBB;
 background-color:white;
 }
 
+#runners_up .photo_page {
+margin-left:10px;
+margin-top:2px;
+}
+
+#runners_up .runners_up_header {
+text-align: left;
+width: auto;
+font: inherit;
+line-height: inherit;
+font-weight: inherit;
+text-decoration: inherit;
+color: black;
+font-weight:bold;
+}
+
+#runners_up #photo_page_links .curr_page {
+text-decoration:none;
+color:gray;
+font-weight:bold;
+cursor:inherit;
+}
+
+.normal_span {
+text-align: left;
+width: auto;
+font: inherit;
+line-height: inherit;
+font-weight: inherit;
+text-decoration: inherit;
+color: inherit;
+}
+
 .button-to {
 display: inline;	
 }

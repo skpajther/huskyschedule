@@ -1,6 +1,6 @@
 <div class="teacher_info_header">User Supplied Information
  <span class="sub_header">
-   <% if(info.author!=curr_user) %>
+   <% if(info==nil || info.author!=curr_user) %>
         <% curr_user_info = TeacherInfo.is_author?(teacher, curr_user) %>
         <% if(curr_user_info==nil) %>
             <% if(info==nil) %>
@@ -20,7 +20,7 @@
 </div>
 <div class="teacher_info">
     <% if(curr_user.tmp_user) %>
-        To add or confirm information about this teacher, first <%= link_to("Login Here", :controller=>"login", :action=>"login", :next_page=>request.path_parameters) %> or <%= link_to("Signup for a new account", :controller=>"login", :action=>"signup", :next_page=>request.path_parameters) %>
+        <div style="margin-bottom:4px;">To add or confirm information about this teacher, first <%= link_to("Login", :controller=>"login", :action=>"login", :next_page=>request.path_parameters) %> or <%= link_to("Signup", :controller=>"login", :action=>"signup", :next_page=>request.path_parameters) %></div>
     <% end %>
     
     <% if(info!=nil) %><!--<%= link_to_remote("Edit", :before=>"alert('Editing your information will cause it to loose all confirmations.');", :update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"edit_user_info", :id=>info.id, :teacher_info_index=>teacher_info_index}, :html=>{:class=>"control_btn"}) %>-->
