@@ -1,0 +1,39 @@
+<% if(!(local_assigns[:course].nil?)) %>
+    <div class="classcontainer">
+        <div class="sampleclassschedule">
+            <%= generate_schedule(course.rendezvous) %>
+        </div>
+        <div class="classinformationcontainer">
+            <div class="titlecredits">
+                <div class="titleprofessor">
+                    <div class="title">
+                        <%= link_to "#{course.name} #{course.section}: #{course.title}", :controller=>"courses", :action=>"index", :id=>course.id %>
+                    </div>
+                    <div class="professor">
+                        <% if course.teacher != nil %>
+                            <%= link_to "#{course.teacher.name}", :controller=>"teachers", :action=>"index", :id=>course.teacher.id %>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <%= course.description %>
+            </div>
+            <%= generate_enrollment_image(course) %>
+            <%= generate_credits_image(course) %>
+            <% if(!(local_assigns[:grab_bag].nil?)) %>
+                <% in_grab_bag = grab_bag.courses.include?(course.id) %>
+                <div class="<%= (in_grab_bag)? "alreadyinschedule" : "addtoschedule" %>" id="addtoschedule_<%= course.id %>">
+                    <% if(in_grab_bag) %>
+                        Already in mySchedule
+                    <% else %>
+                        <%= link_to_remote "Add to mySchedule", :url=>{:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id}, :html=>{:id=>"add_course_#{course.id}"}, :loading=>"$('add_course_#{course.id}').innerHTML = 'Adding...';$('addtoschedule_#{course.id}').setAttribute('class','alreadyinschedule');", :success=>"$('addtoschedule_#{course.id}').innerHTML = 'Already in mySchedule';", :failure=>"$('add_course_#{course.id}').innerHTML = 'Add to mySchedule';" %>
+                    <% end %>
+                </div>
+            <% end %>
+            <!-- <div class="rating">
+                <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">
+            </div> -->
+        </div>
+    </div>
+<% end %>
