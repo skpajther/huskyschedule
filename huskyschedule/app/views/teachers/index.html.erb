@@ -88,7 +88,7 @@
                 <div class="teacher_info">Name:<%= @teacher.name %></diV>
             </div>
             <br/>
-            <div id="user_supp_info">
+            <div id="user_supp_info_<%= @teacher.id %>" class="user_supp_info">
                 <%= render :partial => "teachers/user_supplied_info", :locals => {:info=>@teacher_info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :curr_user=>current_user}%>
             </div>
             <br/>
@@ -268,7 +268,7 @@
     }
     
     function cancel_edit_attributes() {
-        <%= remote_function(:update=>"user_supp_info", :url=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id, :render=>"user_supplied_info", :teacher_info_index=>"'+current_teacher_info_index+'"}, :condition=>"navigation_allowed", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();").gsub("%27", "'").gsub("%2B", "+") %>
+        <%= remote_function(:update=>"user_supp_info_#{@teacher.id}", :url=>{:controller=>"teachers", :action=>"index", :id=>@teacher.id, :render=>"user_supplied_info", :teacher_info_index=>"'+current_teacher_info_index+'"}, :condition=>"navigation_allowed", :loading=>"prepare_for_navigation();", :complete=>"recover_from_navigation();").gsub("%27", "'").gsub("%2B", "+") %>
     }
     
     navigation_allowed = true;
@@ -304,8 +304,8 @@
         $("teacher_info_email").disabled = true;
         $("teacher_info_website").disabled = true;
         new Effect.Parallel([
-          new Effect.Move('curr_user_supp_info', { sync: true, x: ((right)? -200 : 200), y: 0, mode: 'relative' }), 
-          new Effect.Opacity('curr_user_supp_info', { sync: true, from: 1, to: 0 }) 
+          new Effect.Move('curr_user_supp_info_<%= @teacher.id %>', { sync: true, x: ((right)? -200 : 200), y: 0, mode: 'relative' }), 
+          new Effect.Opacity('curr_user_supp_info_<%= @teacher.id %>', { sync: true, from: 1, to: 0 }) 
         ], { 
           duration: 0.8,
           delay: 0.5

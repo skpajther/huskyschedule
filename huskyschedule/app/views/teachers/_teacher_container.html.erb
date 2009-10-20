@@ -1,0 +1,25 @@
+<% if(!(local_assigns[:teacher].nil?)) %>
+    <div class="classcontainer">
+        <div class="sampleclassschedule">
+            <% tmp = teacher.current_photo_location({:long_location=>true, :all_info=>true}) %>
+            <div style="float:left;width:175px;height:175px;"><%= votable_image( tmp[0], tmp[1], teacher.total_photo_votes, "", current_user, {:max_width=>175, :max_height=>175, :enable_voting=>false}) %></div>
+        </div>
+        <div class="classinformationcontainer">
+            <div class="titlecredits">
+                <div class="titleprofessor">
+                    <div class="professor">
+                        <%= link_to "#{teacher.name}", :controller=>"teachers", :action=>"index", :id=>teacher.id %>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div id="user_supp_info_<%= teacher.id %>" class="user_supp_info">
+                <%= render :partial => "teachers/user_supplied_info", :locals => {:info=>teacher.teacher_info_at_index(0), :teacher=>teacher, :teacher_info_index=>0, :curr_user=>current_user}%>
+            </div>
+            
+            <!--<div class="rating">
+                <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">
+            </div>-->
+        </div>
+    </div>
+<% end %>

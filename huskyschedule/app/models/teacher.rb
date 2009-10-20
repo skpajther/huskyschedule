@@ -170,4 +170,36 @@ class Teacher < ActiveRecord::Base
     end
   end
   
+  def teacher_info_at_index(teacher_info_index)
+    return TeacherInfo.find_by_sql("SELECT * FROM teacher_infos WHERE teacher_id=#{self.id} ORDER BY total_confirmations DESC, id DESC LIMIT #{teacher_info_index},1")[0]
+  end
+  
+  def self.generate_search_query(search_text)
+    tokens = Course.search_tokenize(search_text)
+    tokens = tokens - ["it", "and",  "or", "as", "to", "offered", "jointly", "recommended", "prerequisite", "the", "are", "a", "an", "about", "above", "across", "after", "against", "along", "among", "around", "at", "before", "behind", "below", "beneath", "beside", "between", "beyond", "but", "by", "despite", "down", "during", "except", "for", "from", "in", "inside", "into", "like", "near", "of", "off", "on", "onto", "out", "outside", "over", "past", "since", "through", "throughout", "till", "to", "toward", "under", "underneath", "until", "up", "upon", "with", "within", "without"]
+    change_symbol = "<!!>"
+    while(tokens.include?(change_symbol))
+      change_symbol = change_symbol + ">"
+    end
+    base_query = ""
+    first = true
+    tokens.each(){|tok|
+      if(first)
+        base_query = base_query + " #{change_symbol}='#{tok}'"
+        first = false
+      else
+        base_query = base_query + " OR #{change_symbol}='#{tok}'"
+      end
+    }
+    model_str = "(Select *, Sum(position) as position_sum From "
+    model_str = model_str + "(Select t.*, 100 as position From teachers t Where (#{base_query.gsub(Regexp.new(change_symbol+"=\\'(.*?)\\'")){|s| "t.name Like '#{$1}%'"}}) Union Select t.*, 101 as position From teachers t Where (#{base_query.gsub(Regexp.new(change_symbol+"=\\'(.*?)\\'")){|s| "t.name Like '%#{$1}'"}})"
+    model_str = model_str + " ) res Group By res.id) teachers"
+    return model_str
+  end
+  
+  def self.find_by_search_text(search_text, options={})
+    model_str = generate_search_query(search_text)
+    return Teacher.find_by_sql("Select * From #{model_str} Order By teachers.position_sum DESC#{(options[:limit]!=nil)? ' LIMIT '+options[:limit].to_s : ''}")
+  end
+  
 end

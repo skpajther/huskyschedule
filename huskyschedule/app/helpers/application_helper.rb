@@ -326,7 +326,7 @@ def mini_schedule(times, options={})
     include_self_link = false
     include_x_links = true
     limitors = nil
-    base_url_hash = {:controller=>"categories", :action=>"index"}
+    base_url_hash = {:controller=>"categories", :action=>"index", :clear_session=>true}
     limitors_name = :limitors
     
     if(options[:include_self_link]!=nil)
@@ -385,6 +385,7 @@ def mini_schedule(times, options={})
   	    str_fill = " > "
   	  end
     end
+    base_url_hash.delete(:clear_session)
 	  if(limitors!=nil && limitors.size>0 && limitors[:order]!=nil)
 	    to_result = ""
 	    tmp_limitors = limitors.clone
@@ -645,10 +646,10 @@ def mini_schedule(times, options={})
                 <div id='vote_image' style='width:#{pic_width}px;height:#{pic_height}px;margin-left:auto;margin-right:auto;margin-top:#{(parent_height/2) - (pic_height/2)}px;'>
                   <div style='z-index:0;position:absolute;'>#{image_tag(location, :size=>(pic_width.to_s+'x'+pic_height.to_s))}</div>
                   <div style='z-index:2;position:absolute;width:#{(pic_width<70)? 70 : pic_width}px;height:#{pic_height}px;margin-left:#{(pic_width<70)? -((70-pic_width)/2) : 0}px;'>
-                    #{((location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION)) && !curr_user.tmp_user)? vote_button : ""}
+                    #{((location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION)) && !curr_user.tmp_user && options[:enable_voting]==nil)? vote_button : ""}
                     <div style='float:right;padding-right:5px;margin-top:#{top_lettering_pos-2}px;'><span class='vote_percent'>#{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? percent.to_i.to_s+'%' : ''}</span></div>
                   </div>
-                  <div style='z-index:1;position:absolute;margin-top:#{top_lettering_pos+4}px;width:#{(pic_width<70)? 70 : pic_width}px;background-color:#552277;opacity:0.7;margin-left:#{(pic_width<70)? -((70-pic_width)/2) : 0}px;'>&nbsp;</div>
+                  #{(location!=Teacher::DEFAULT_IMAGE_LOCATION && location!=('/images/'+Teacher::DEFAULT_IMAGE_LOCATION))? '<div style=\'z-index:1;position:absolute;margin-top:'+(top_lettering_pos+4).to_s+'px;width:'+((pic_width<70)? 70 : pic_width).to_s+'px;background-color:#552277;opacity:0.7;margin-left:'+((pic_width<70)? -((70-pic_width)/2) : 0).to_s+'px;\'>&nbsp;</div>' : ''}
                 </div>
               </div>"
   end

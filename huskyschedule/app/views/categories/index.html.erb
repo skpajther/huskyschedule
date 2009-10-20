@@ -1,14 +1,29 @@
 <div id="wrapper">
     <div id="side">
+        <div id="search_within" style="padding-top:5px;">
+            Search Within
+            <%= form_tag(:controller=>"categories", :action=>"index", :page=>1, :limitors => @limitors) %>
+                <%= text_field_tag("search_within_text", "", :id=>"search_within_text", :style=>"width:100px;margin-left:7px;margin-right:3px;") %><input type="submit" value="Go" />
+            </form>
+        </div>
         <div id="credit_type" style="padding-top:5px;">
+            <% if(@all_courses!=nil) %>
+                <% tmp_limitors = {:limitors=>{}}%>
+                <% add_to_limitors(tmp_limitors, "custom", "courses.id IN (#{@all_courses.join(",")})", {:do_not_overide=>true, :display=>""}) %>
+            <% else %>
+                <% tmp_limitors = @params %>
+            <% end %>
             <% first = true %>
             <% for ct in Course::CREDITTYPES %>
                 <% query = "courses.credit_type LIKE '%#{ct[1]}%'" %>
                 <% if(@limitors["custom"]!=nil && @limitors["custom"].include?(query)) %>
                     
                 <% else %>
+                    <% if(@all_courses!=nil) %>
+                        <% tmpplace_order = add_to_limitors(tmp_limitors, "custom", query, {:do_not_overide=>true, :display=>"credit type: #{ct[0]}"}) %>
+                    <% end %>
                     <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true, :display=>"credit type: #{ct[0]}"}) %>
-                    <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                    <% numcourses = Course.find_or_count_by_limitors({:limitors => tmp_limitors[:limitors], :count_only => true}) %>
                     <% if(numcourses>0) %>
                         <% if(first) %>
                             Credit Types
@@ -18,6 +33,9 @@
                         <li><%= link_to "#{ct[0]} (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :limitors => @limitors %></li>
                     <% end %>
                     <% delete_from_limitors(@params, place_order) %>
+                    <% if(@all_courses!=nil) %>
+                        <% delete_from_limitors(tmp_limitors, tmpplace_order) %>
+                    <% end %>
                  <% end %>
             <% end %>
             </ul>
@@ -26,14 +44,26 @@
         <div id="credit_amount" style="padding-top:5px;">
             <% query = "courses.credits >= 6" %>
             <% if(@limitors["credits"]==nil && (@limitors["custom"]==nil || !@limitors["custom"].include?(query))) %>
+                <% if(@all_courses!=nil) %>
+                    <% tmp_limitors = {:limitors=>{}}%>
+                    <% add_to_limitors(tmp_limitors, "custom", "courses.id IN (#{@all_courses.join(",")})", {:do_not_overide=>true, :display=>""}) %>
+                <% else %>
+                    <% tmp_limitors = @params %>
+                <% end %>
                 <% first = true %>
                 <% 7.times{|i| %>
                     <% if(i==6) %>
                         <% place_order = add_to_limitors(@params, "custom", query, {:do_not_overide=>true, :display=>"credits: 6 or more"}) %>
+                        <% if(@all_courses!=nil) %>
+                            <% tmpplace_order = add_to_limitors(tmp_limitors, "custom", query, {:do_not_overide=>true, :display=>"credits: 6 or more"}) %>
+                        <% end %>
                     <% else %>
                         <% place_order = add_to_limitors(@params, "credits", i, {:do_not_overide=>true}) %>
+                        <% if(@all_courses!=nil) %>
+                            <% tmpplace_order = add_to_limitors(tmp_limitors, "credits", i, {:do_not_overide=>true}) %>
+                        <% end %>
                     <% end %>
-                    <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                    <% numcourses = Course.find_or_count_by_limitors({:limitors => tmp_limitors[:limitors], :count_only => true}) %>
                     <% if(numcourses>0) %>
                         <% if(first) %>
                             Credit Amount
@@ -43,6 +73,9 @@
                         <li><%= link_to "#{((i==6)? '6 or more' : i)} credits (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :limitors=>@limitors %></li>
                     <% end %>
                     <% delete_from_limitors(@params, place_order) %>
+                    <% if(@all_courses!=nil) %>
+                        <% delete_from_limitors(tmp_limitors, tmpplace_order) %>
+                    <% end %>
                 <% } %>
                 </ul>
             <% end %>
@@ -55,8 +88,15 @@
             <% end %>
             <% if(@category!=nil) %>
               <% for child in @category.children %>
+                <% if(@all_courses!=nil) %>
+                    <% tmp_limitors = {:limitors=>{}}%>
+                    <% add_to_limitors(tmp_limitors, "custom", "courses.id IN (#{@all_courses.join(",")})", {:do_not_overide=>true, :display=>""}) %>
+                    <% add_to_limitors(tmp_limitors, "parent_id", child.all_children_query_string, {:do_not_add_to_order=>true}) %>
+                <% else %>
+                    <% tmp_limitors = @params %>
+                <% end %>
                 <% place_order = add_to_limitors(@params, "parent_id", child.all_children_query_string, {:do_not_add_to_order=>true}) %>
-                <% numcourses = Course.find_or_count_by_limitors({:limitors => @limitors, :count_only => true}) %>
+                <% numcourses = Course.find_or_count_by_limitors({:limitors => tmp_limitors[:limitors], :count_only => true}) %>
                 <% if(numcourses>0) %>
                     <li><%= link_to "#{child.name} (#{numcourses})", :controller=>"categories", :action=>"index", :page=>1, :id=>child.id, :limitors=>@limitors, :no_child_search_needed => true %></li>
                 <% end %>
@@ -77,41 +117,7 @@
         </div>
         <% grab_bag = Schedule.get_or_create_grab_bag(current_user) %>
         <% for course in @courses %>
-            <div class="classcontainer">
-                <div class="sampleclassschedule">
-                    <%= generate_schedule(course.rendezvous) %>
-                </div>
-                <div class="classinformationcontainer">
-                    <div class="titlecredits">
-                        <div class="titleprofessor">
-                            <div class="title">
-                                <%= link_to "#{course.name} #{course.section}: #{course.title}", :controller=>"courses", :action=>"index", :id=>course.id %>
-                            </div>
-                            <div class="professor">
-                                <% if course.teacher != nil %>
-                                    <%= link_to "#{course.teacher.name}", :controller=>"teachers", :action=>"index", :id=>course.teacher.id %>
-                                <% end %>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="description">
-                        <%= course.description %>
-                    </div>
-                    <%= generate_enrollment_image(course) %>
-                    <%= generate_credits_image(course) %>
-                    <% in_grab_bag = grab_bag.courses.include?(course.id) %>
-                    <div class="<%= (in_grab_bag)? "alreadyinschedule" : "addtoschedule" %>" id="addtoschedule_<%= course.id %>">
-                        <% if(in_grab_bag) %>
-                            Already in mySchedule
-                        <% else %>
-                            <%= link_to_remote "Add to mySchedule", :url=>{:controller=>"schedules", :action=>"add_to_grab_bag", :ajax=>"true", :course_id=>course.id}, :html=>{:id=>"add_course_#{course.id}"}, :loading=>"$('add_course_#{course.id}').innerHTML = 'Adding...';$('addtoschedule_#{course.id}').setAttribute('class','alreadyinschedule');", :success=>"$('addtoschedule_#{course.id}').innerHTML = 'Already in mySchedule';", :failure=>"$('add_course_#{course.id}').innerHTML = 'Add to mySchedule';" %>
-                        <% end %>
-                    </div>
-                    <div class="rating">
-                        <img src="/images/darkstar.gif"><img src="/images/darkstar.gif"><img src="/images/halfstar.gif"><img src="/images/lightstar.gif"><img src="/images/lightstar.gif">
-                    </div>
-                </div>
-            </div>
+            <%= render :partial => "courses/course_container", :locals => {:course=>course, :grab_bag=>grab_bag}%>
         <% end %>
         <div class="page_bar">
             <% if(@courses!=nil) %><span style="float:left;">Per Page</span><% old_per_page = request.parameters[:per_page]; request.parameters[:per_page] = "##replace_this##" %><%= select("per_page", "", [5,10,15,20,40,60,100], {:selected=>((old_per_page!=nil)? old_per_page.to_i : 20)}, {:style=>"float:left;margin-top:3px;", :onchange=>"window.location.assign('http://'+window.location.host+'#{url_for(request.parameters).gsub("%23%23replace_this%23%23", "'+this.options[this.selectedIndex].value+'")}');"}) %><% request.parameters[:per_page] = old_per_page; %><%= will_paginate @courses %><% end %>

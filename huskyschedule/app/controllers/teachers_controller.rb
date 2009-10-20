@@ -27,7 +27,7 @@ class TeachersController < ApplicationController
       @teacher_info_index = @total_infos-1
     end
     if(@teacher_info==nil)
-      @teacher_info = TeacherInfo.find_by_sql("SELECT * FROM teacher_infos WHERE teacher_id=#{@teacher.id} ORDER BY total_confirmations DESC, id DESC LIMIT #{@teacher_info_index},1")[0]
+      @teacher_info = @teacher.teacher_info_at_index(@teacher_info_index)
     end
     if(params[:render] == "user_supplied_info")
       render :partial => "teachers/user_supplied_info", :locals => {:info=>@teacher_info, :teacher=>@teacher, :teacher_info_index=>@teacher_info_index, :curr_user=>current_user}

@@ -1,6 +1,5 @@
 class Course < ActiveRecord::Base
   
-  
   belongs_to :teacher
   belongs_to :category, :class_name => "Category", :foreign_key => "parent_id"
   belongs_to :building
@@ -174,6 +173,70 @@ class Course < ActiveRecord::Base
     end
   end
   
+  def self.search_tokenize(search_text)
+    output = []
+    prev_c = ""
+    prev_split = 0
+    spot = 0
+    search_text.strip!()
+    search_text.each_char(){|c|
+                if(c.match(/\s/)!=nil)
+                  output.push(search_text.slice(prev_split, (spot-prev_split)).downcase)
+                  prev_split = spot+1
+                elsif(prev_c.match(/\d/)!=nil && c.match(/\D/)!=nil)
+                  output.push(search_text.slice(prev_split, (spot-prev_split)).downcase)
+                  prev_split = spot
+                elsif(prev_c.match(/\D/)!=nil && c.match(/\d/)!=nil && prev_c.match(/\s/)==nil)
+                  output.push(search_text.slice(prev_split, (spot-prev_split)).downcase)
+                  prev_split = spot
+                end
+                prev_c = c
+                spot = spot + 1
+             }
+    if(prev_split <= search_text.length-1)
+       output.push(search_text.slice(prev_split, (search_text.length-prev_split)).downcase)
+    end
+    return output
+  end  
+  
+  def self.generate_search_query(search_text)
+    tokens = self.search_tokenize(search_text)
+    tokens = tokens - ["it", "and",  "or", "as", "to", "offered", "jointly", "recommended", "prerequisite", "the", "are", "a", "an", "about", "above", "across", "after", "against", "along", "among", "around", "at", "before", "behind", "below", "beneath", "beside", "between", "beyond", "but", "by", "despite", "down", "during", "except", "for", "from", "in", "inside", "into", "like", "near", "of", "off", "on", "onto", "out", "outside", "over", "past", "since", "through", "throughout", "till", "to", "toward", "under", "underneath", "until", "up", "upon", "with", "within", "without"]
+    change_symbol = "<!!>"
+    while(tokens.include?(change_symbol))
+      change_symbol = change_symbol + ">"
+    end
+    base_query = ""
+    base_query2 = ""
+    first = true
+    tokens.each(){|tok|
+      if(first)
+        base_query = base_query + " #{change_symbol}='#{tok}'"
+        base_query2 = base_query2 + "Select * FROM courses Where title Like '%#{tok}%' UNION ALL Select * FROM courses Where title Like '%#{tok}%' UNION ALL Select * FROM courses Where description LIKE '%#{tok}%'"
+        first = false
+      else
+        base_query = base_query + " OR #{change_symbol}='#{tok}'"
+        base_query2 = base_query2 + " UNION ALL Select * FROM courses Where title Like '%#{tok}%'  UNION ALL Select * FROM courses Where title Like '%#{tok}%' UNION ALL Select * FROM courses Where description LIKE '%#{tok}%'"
+      end
+    }
+    model_str = "(Select *, Sum(position) as position_sum From "
+    model_str = model_str + "(Select courses.*, 1000 as position From courses Where " + base_query.gsub(change_symbol, "sln")
+    model_str = model_str + " Union Select courses.*, 500 as position From courses Where (#{base_query.gsub(change_symbol, "deptabbrev")}) AND (#{base_query.gsub(change_symbol, "number")})"
+    model_str = model_str + " Union Select c.*, 100 as position From courses c, teachers t Where c.teacher_id = t.id AND (#{base_query.gsub(Regexp.new(change_symbol+"=\\'(.*?)\\'")){|s| "t.name Like '#{$1}%'"}}) Union Select c.*, 101 as position From courses c, teachers t Where c.teacher_id = t.id AND (#{base_query.gsub(Regexp.new(change_symbol+"=\\'(.*?)\\'")){|s| "t.name Like '%#{$1}'"}})"
+    model_str = model_str + " Union (Select courses.*, tmp2.num as position From courses,  (Select tmp.*, COUNT(tmp.id) num FROM (#{base_query2}) tmp GROUP BY tmp.id) tmp2 WHERE courses.id = tmp2.id AND tmp2.num>=2 ORDER BY tmp2.num DESC)"
+    #model_str = model_str + " Union Select * From courses Where ((#{base_query.gsub(changed_symbol, "deptabbrev")}) And (#{base_query.gsub("OR "+changed_symbol+"=", "AND number<>").gsub(changed_symbol+"=", "number<>")}))"
+    model_str = model_str + " Union Select courses.*, 3 as position From courses Where (#{base_query.gsub(change_symbol, "deptabbrev")}) OR (#{base_query.gsub(change_symbol, "number")})"
+    model_str = model_str + " Union (Select courses.*, tmp2.num as position From courses,  (Select tmp.*, COUNT(tmp.id) num FROM (#{base_query2}) tmp GROUP BY tmp.id) tmp2 WHERE courses.id = tmp2.id AND tmp2.num<2 ORDER BY tmp2.num DESC)"
+    model_str = model_str + " ) res Group By res.id) courses"
+    return model_str
+  end
+  
+  def self.find_by_search_text(search_text, options={})
+    model_str = generate_search_query(search_text)
+    return Course.find_by_sql("Select * From #{model_str} Order By courses.position_sum DESC#{(options[:limit]!=nil)? ' LIMIT '+options[:limit].to_s : ''}")
+    #return "Select * From #{model_str} Order By res.position DESC"
+  end
+  
   def self.find_by_building_quarter_year_day(building_id, quarter_id, year, day, overall_times)
     courses = Course.find(:all, :conditions=>"buildings LIKE '%#{building_id}%' AND quarter_id=#{quarter_id} AND year=#{year}")
     courses.delete_if {|course| !Rendezvous.relevant_rendezvous(course.rendezvous, building_id, day, overall_times) }
@@ -216,7 +279,9 @@ class Course < ActiveRecord::Base
   end
   
   def self.find_or_count_by_limitors(options={})
-    options[:model] = "courses"
+    if(options[:model]==nil)
+      options[:model] = "courses"
+    end
     return self.general_find_or_count_by_limitors(options)
   end
   
@@ -231,20 +296,37 @@ class Course < ActiveRecord::Base
       
       query = ""
       first = true
+      
       if(options[limitors_name]!=nil)
         limitors = options[limitors_name]
         if(limitors["custom"]!=nil)
+          search_text = ""
           for q in limitors["custom"]
-            if(first)
+            if(q.match(/\Asearch/)!=nil)
+              if(search_text.length>0)
+                id_list = []
+                ActiveRecord::Base.connection().execute("Select * From "+generate_search_query(search_text)).each(){|x| id_list.push(x[0])}
+                query += "#{(!first)? ' AND ' : ''}courses.id IN (#{id_list.join(",")})"
+                first = false
+                search_text = q.slice(6, q.length-6)
+              else
+                search_text = q.slice(6, q.length-6)
+              end
+            elsif(first)
               query += "#{q}"
               first = false
             else
               query += " AND #{q}"
             end
           end
+          if(search_text!="")
+            options[:model] = generate_search_query(search_text)
+            options[:order_by] = "courses.position_sum"
+            options[:descending] = true
+          end  
         end
         limitors.each_key{ |k|
-          if(k!="custom" && k!="order")
+          if(k.to_s!="custom" && k.to_s!="order")
   #          k2 = k
   #          if(k=="category_id")
   #            k2 = "parent_id"
@@ -282,7 +364,9 @@ class Course < ActiveRecord::Base
   end
   
   def self.find_or_count_by_sql(query, options={})
-    options[:model] = "courses"
+    if(options[:model]==nil)
+      options[:model] = "courses"
+    end
     return self.general_find_or_count_by_sql(query, options)
   end
   
@@ -322,10 +406,14 @@ class Course < ActiveRecord::Base
         else
           query = "#{select_substitute} #{model} WHERE "+query
         end
-        if(options.key?(:page) && options[:page]!=false)
-          courses = model_instance.paginate_by_sql(query+order_by_str, :page => options[:page], :per_page => options[:per_page])
+        if(options[:query_only]!=nil && options[:query_only])
+          return query+order_by_str
         else
-          courses = model_instance.find_by_sql(query+order_by_str)
+          if(options.key?(:page) && options[:page]!=false)
+            courses = model_instance.paginate_by_sql(query+order_by_str, :page => options[:page], :per_page => options[:per_page])
+          else
+            courses = model_instance.find_by_sql(query+order_by_str)
+          end
         end
       end
       return courses

@@ -273,7 +273,7 @@ color: #552277;
 background: url(../images/logo2.gif) no-repeat 0 -30px;
 }
 
-.topbar a, span {
+ul.topbar a, span {
 text-align: center;
 width: 95px;
 font: 0.9em arial, helvetica, sans-serif;
@@ -282,6 +282,7 @@ font-weight: bold;
 text-decoration: none;
 color: #ffffff;
 }
+
 
 .topbar li a:hover span {
 background-color: #C5B358;
@@ -1145,16 +1146,16 @@ color:inherit;
 margin-left: 10px;
 }
 
-#user_supp_info #curr_user_supp_info {
+.user_supp_info .curr_user_supp_info {
 margin-left: 10px;
 }
 
-#user_supp_info #curr_user_supp_info .attr_name {
+.user_supp_info .curr_user_supp_info .attr_name {
 color:gray;
 min-width:160px;
 }
 
-#user_supp_info #curr_user_supp_info .attr_name span{
+.user_supp_info .curr_user_supp_info .attr_name span{
 text-align: left;
 width: auto;
 font: inherit;
@@ -1168,11 +1169,11 @@ float:left;
 white-space:nowrap;
 }
 
-#user_supp_info #curr_user_supp_info .attr input{
+.user_supp_info .curr_user_supp_info .attr input{
 width:200px;
 }
 
-#user_supp_info #curr_user_supp_info .attr span{
+.user_supp_info .curr_user_supp_info .attr span{
 text-align: left;
 width: auto;
 font: inherit;
@@ -1182,7 +1183,7 @@ text-decoration: inherit;
 color: inherit;
 }
 
-#user_supp_info #user_supp_info_controls .prev_next_btn {
+.user_supp_info .user_supp_info_controls .prev_next_btn {
 text-decoration: none;
 padding-left:3px;
 padding-right:3px;
@@ -1191,11 +1192,11 @@ font-weight: bold;
 background-color: #552277;
 }
 
-#user_supp_info #user_supp_info_controls .prev_next_btn:hover {
+.user_supp_info .user_supp_info_controls .prev_next_btn:hover {
 background-color: #c5b358;
 }
 
-#user_supp_info .control_btn {
+.user_supp_info .control_btn {
 text-decoration: none;
 padding-left:3px;
 padding-right:3px;

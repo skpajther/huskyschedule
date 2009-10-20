@@ -1,0 +1,64 @@
+<div id="wrapper">
+    <div id="search_bar">
+        <%= form_tag(:controller=>"search", :action=>"index") %>
+            Search <%= text_field_tag("search_text", @search_text, :id=>"search_text") %>
+            <input type="submit" value="Go"/>
+        </form>
+    </div>
+    <div id="course_search_section">
+        <div  class="search_section_bar">
+            Matching Courses <%= link_to "View All Matching Courses", :controller=>"categories", :action=>"index", :search_within_text=>@search_text, :clear_session=>true %>
+        </div>
+        <div>
+            <% if(@courses!=nil && @courses.length>0) %>
+                <% for course in @courses %>
+                    <%= render :partial => "courses/course_container", :locals => {:course=>course}%>
+                <% end %>
+            <% else %>
+                Sorry No Courses Matched
+            <% end %>
+        </div>
+    </div>
+    <div id="teacher_search_section">
+        <div class="search_section_bar">
+            Matching Teachers <%= link_to "View All Matching Teachers" %>
+        </div>
+        <div>
+            <% if(@teachers!=nil && @teachers.length>0) %>
+                <% for teacher in @teachers %>
+                    <%= render :partial => "teachers/teacher_container", :locals => {:teacher=>teacher}%>
+                <% end %>
+            <% else %>
+                Sorry No Teachers Matched
+            <% end %>
+        </div>
+    </div>
+    <div id="category_search_section">
+        <div class="search_section_bar">
+            Matching Departments <%= link_to "View All Matching Departments" %>
+        </div>
+        <div>
+            <% if(@categories!=nil && @categories.length>0) %>
+                <% for category in @categories %>
+                    <%= category.name %><br/>
+                <% end %>
+            <% else %>
+                Sorry No Department Matched
+            <% end %>
+        </div>
+    </div>
+    <div id="building_search_section">
+        <div class="search_section_bar">
+            Matching Buildings <%= link_to "View All Matching Buildings" %>
+        </div>
+        <div>
+            <% if(@buildings!=nil && @buildings.length>0) %>
+                <% for building in @buildingss %>
+                    <%= building.name %><br/>
+                <% end %>
+            <% else %>
+                Sorry No Buildings Matched
+            <% end %>
+        </div>
+    </div>
+</div>

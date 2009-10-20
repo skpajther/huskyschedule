@@ -56,11 +56,25 @@
 			   }
 			   return [curleft,curtop];
             }
+            
+            function check_search_text_focus(id) {
+                if($(id).value == "Search"){
+                    $(id).value = "";
+                    $(id).style.color = "black";
+                }
+            }
+            
+            function check_search_text_blur() {
+                if($(id).value == ""){
+                    $(id).style.color = "#999999";
+                    $(id).value = "Search";
+                }
+            }
         </script>
     </div>
     <div id="head">
 
-<form name="search" action="" method="post">
+    <%= form_tag(:controller=>"search", :action=>"index") %>
             <ul class="topbar">
             <li id="space"></li>
             <li id="home"><a href="index.html"><span class="normal"> </span></a></li>
@@ -70,7 +84,7 @@
             <li><a href="<%= url_for :controller=>"buildings", :action=>"map" %>" title="Navigate the UW Seattle campus with ease."><span class="normal" <%= (controller.controller_name == "buildings")? "id='me'" : "" %>>Map</span></a></li>
             <li><a href="<%= url_for :controller=>"schedules", :action=>"index" %>" title="Organize a custom class schedule."><span class="normal" <%= (controller.controller_name == "schedules")? "id='me'" : "" %>>mySchedules</span></a></li>
             <li id="space3"></li>
-            <li id="search"><input type="text" title="Search" value="Search" /></li>
+            <li id="search"><%= text_field_tag("search_text", "Search", :id=>"search_text", :onfocus=>"check_search_text_focus('search_text')", :onblur=>"check_search_text_blur('search_text')") %></li>
             <li id="gofish"><input type="submit" class="submit" value="Go" onMouseOver="this.className='submit_hover';" onMouseOut="this.className='submit';" /></li>
             <li id="space"></li>
             </ul>

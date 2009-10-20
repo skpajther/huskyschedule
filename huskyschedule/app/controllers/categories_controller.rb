@@ -1,6 +1,11 @@
 class CategoriesController < ApplicationController
   
   def index
+    if(params[:clear_session]!=nil)
+      session[:last_category] = nil
+      session[:category_limitors] = nil
+      session[:category_page] = nil
+    end
     if(params[:id]!=nil)
       @category = Category.find(params[:id])
     elsif(session[:last_category]!=nil)
@@ -11,6 +16,10 @@ class CategoriesController < ApplicationController
     session[:last_category] = @category.id
     
     @familypath = @category.parent_path
+    
+    if(params[:search_within_text]!=nil)
+      help.add_to_limitors(params, "custom", "search #{params[:search_within_text]}", {:do_not_overide=>true, :display=>"search: #{params[:search_within_text]}"})
+    end
     
     if(params[:limitors]==nil && session[:category_limitors]!=nil)
       params[:limitors] = session[:category_limitors]
@@ -42,6 +51,8 @@ class CategoriesController < ApplicationController
     session[:category_per_page] = params[:per_page]
     
     @courses = Course.find_or_count_by_limitors(params)
+    @all_courses = []
+    ActiveRecord::Base.connection().execute(Course.find_or_count_by_limitors({:limitors=>params[:limitors], :select_substitute=>"Select courses.id From", :query_only=>true})).each(){|x| @all_courses.push(x[0]) }
     total_pages = WillPaginate::ViewHelpers.total_pages_for_collection(@courses)
     if(params[:page].to_i>1 && params[:page].to_i>total_pages)
       params[:page] = total_pages
